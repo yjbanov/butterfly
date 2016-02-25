@@ -1,0 +1,12 @@
+name: ftw
+version: 0.0.1
+authors:
+- Yegor Jbanov <yjbanov@google.com>
+description: Yet another functional reactive web framework for Dart
+homepage: https://github.com/yjbanov/ftw
+environment:
+  sdk: '>=1.14.0 <2.0.0'
+dependencies:
+  browser: any
+dev_dependencies:
+  test: '>=0.12.0 <1.0.0'
