@@ -45,9 +45,6 @@ abstract class Node<N extends VirtualNode> {
     assert(newConfiguration != null);
     _configuration = newConfiguration;
   }
-
-  html.Node get _startAnchor;
-  html.Node get _endAnchor;
 }
 
 /// A node that has children.

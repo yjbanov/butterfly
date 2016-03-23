@@ -22,12 +22,6 @@ class ElementNode extends MultiChildNode<VirtualElement> {
   final html.Element _nativeElement;
 
   @override
-  html.Node get _startAnchor => _nativeElement;
-
-  @override
-  html.Node get _endAnchor => _nativeElement;
-
-  @override
   void detach() {
     _nativeElement.remove();
     super.detach();

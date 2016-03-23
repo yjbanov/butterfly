@@ -20,12 +20,6 @@ class TextNode extends Node<Text> {
 
   html.Text _nativeNode;
 
-  @override
-  html.Node get _startAnchor => _nativeNode;
-
-  @override
-  html.Node get _endAnchor => _nativeNode;
-
   void update() {
     throw 'not implemented';
   }

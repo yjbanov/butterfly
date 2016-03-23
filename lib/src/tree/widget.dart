@@ -22,12 +22,6 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
   Node _child;
 
   @override
-  html.Node get _startAnchor => _child._startAnchor;
-
-  @override
-  html.Node get _endAnchor => _child._endAnchor;
-
-  @override
   void update(StatelessWidget newConfiguration) {
     assert(_child != null);
     if (!identical(configuration, newConfiguration)) {
@@ -64,12 +58,6 @@ class StatefulWidgetNode extends ParentNode<StatefulWidget> {
 
   final State _state;
   Node _child;
-
-  @override
-  html.Node get _startAnchor => _child._startAnchor;
-
-  @override
-  html.Node get _endAnchor => _child._endAnchor;
 
   bool _isDirty = true;
 

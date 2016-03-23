@@ -19,7 +19,8 @@ Some reasons why you might like it:
   language to write your code in - Dart
 - Small: starting application size is <40kb (minified + gzipped)
 - Fast: while it's hard to compare frameworks in terms of raw speed, this
-  framework does aim to give you the control
+  framework does aim to give you great levels of control for efficient
+  incremental UI updates.
 - Composable: works like a library - drop it into an existing app; it shares
   all the same Dart libraries so the incremental cost of adding it to your
   project is minimal.
