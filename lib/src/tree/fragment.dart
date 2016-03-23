@@ -12,20 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html';
-import 'package:flutter_ftw/ftw.dart';
+part of flutter_ftw.tree;
 
-main() {
-  runApp(new App(), document.querySelector('#app-host'));
-}
+class FragmentNode extends MultiChildNode<VirtualFragment> {
+  FragmentNode(VirtualFragment configuration)
+      : _startAnchor = new html.Comment(),
+        _endAnchor = new html.Comment(),
+        super(configuration);
 
-class App extends StatelessWidget {
-  VirtualNode build() {
-    return div(
-      {'id': 'greeting'},
-      [
-        text('Hello, World!')
-      ]
-    );
-  }
+  @override
+  final html.Node _startAnchor;
+  @override
+  final html.Node _endAnchor;
 }

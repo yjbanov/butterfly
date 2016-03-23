@@ -12,20 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html';
-import 'package:flutter_ftw/ftw.dart';
+part of flutter_ftw.tree;
 
-main() {
-  runApp(new App(), document.querySelector('#app-host'));
-}
+/// A node that carries textual information. This node is immutable.
+class TextNode extends Node<Text> {
+  TextNode(Text configuration) : super(configuration);
 
-class App extends StatelessWidget {
-  VirtualNode build() {
-    return div(
-      {'id': 'greeting'},
-      [
-        text('Hello, World!')
-      ]
-    );
+  html.Text _nativeNode;
+
+  @override
+  html.Node get _startAnchor => _nativeNode;
+
+  @override
+  html.Node get _endAnchor => _nativeNode;
+
+  void update() {
+    throw 'not implemented';
   }
+
+  @override
+  String toString() => 'TEXT(${configuration.value})';
 }
