@@ -22,7 +22,7 @@ main() {
 class App extends StatelessWidget {
   VirtualNode build() {
     return div(
-      {'id': 'greeting'},
+      const {'id': 'greeting'},
       [
         text('Hello, World!')
       ]

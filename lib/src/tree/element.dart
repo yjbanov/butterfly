@@ -16,16 +16,11 @@ part of flutter_ftw.tree;
 
 class ElementNode extends MultiChildNode<VirtualElement> {
   ElementNode(VirtualElement configuration)
-    : _nativeElement = new html.Element.tag(configuration.tag),
+    : nativeNode = new html.Element.tag(configuration.tag),
       super(configuration);
 
-  final html.Element _nativeElement;
-
   @override
-  void detach() {
-    _nativeElement.remove();
-    super.detach();
-  }
+  final html.Node nativeNode;
 
   @override
   void update(VirtualElement newConfiguration) {
@@ -37,21 +32,22 @@ class ElementNode extends MultiChildNode<VirtualElement> {
     Attributes oldAttrs = configuration.attributes;
     Attributes newAttrs = newConfiguration.attributes;
 
-    if (identical(oldAttrs, newAttrs)) {
+    if (identical(oldAttrs, newAttrs) || oldAttrs == newAttrs) {
       return;
     }
 
+    html.Element nativeElement = nativeNode as html.Element;
     for (String attributeName in newAttrs) {
       String oldValue = oldAttrs[attributeName];
       String newValue = newAttrs[attributeName];
       assert(!(oldValue == null && newValue == null));
       if (oldValue == null && newValue != null) {
-        _nativeElement.setAttribute(attributeName, newValue);
+        nativeElement.setAttribute(attributeName, newValue);
       } else if (oldValue != null && newValue == null) {
         // TODO(yjbanov): is there a more efficient way to do this?
-        _nativeElement.attributes.remove(attributeName);
+        nativeElement.attributes.remove(attributeName);
       } else if (!looseIdentical(oldValue, newValue)) {
-        _nativeElement.setAttribute(attributeName, newValue);
+        nativeElement.setAttribute(attributeName, newValue);
       }
     }
   }

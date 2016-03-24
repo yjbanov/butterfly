@@ -35,9 +35,13 @@ class Application {
 
   Application._(tree.Tree this._tree);
 
+  // TODO: for some reason a blank animation frame takes 1/2 millisecond. That's
+  //       3% of CPU! Either find a way to reduce that dramatically, like 100x
+  //       or consider scheduling the next frame only when new state is
+  //       received.
   Future<Null> nextFrame() async {
     await html.window.animationFrame;
-    _tree.update();
+    _tree.renderFrame();
     nextFrame();
   }
 }

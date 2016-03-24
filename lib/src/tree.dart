@@ -20,7 +20,6 @@ import 'util.dart';
 
 part 'tree/element.dart';
 part 'tree/event.dart';
-part 'tree/fragment.dart';
 part 'tree/node.dart';
 part 'tree/text.dart';
 part 'tree/widget.dart';
@@ -32,10 +31,14 @@ class Tree extends Node<Widget> {
         super(topLevelWidget) {
     assert(topLevelWidget != null);
     assert(_hostElement != null);
+    _hostElement.append(_topLevelNode.nativeNode);
   }
 
-  final html.Element _hostElement;
   final Node _topLevelNode;
+  final html.Element _hostElement;
+
+  /// The native node that this tree node corresponds to.
+  html.Node get nativeNode => _hostElement;
 
   void renderFrame() {
     update(configuration);

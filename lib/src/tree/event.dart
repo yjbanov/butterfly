@@ -66,10 +66,3 @@ class Envelope {
     return new Envelope(json['recipient'], Event.fromJson(json['event']));
   }
 }
-
-class _EventDispatcher {
-  final String eventType;
-  final EventListener listener;
-
-  _EventDispatcher(this.eventType, this.listener);
-}

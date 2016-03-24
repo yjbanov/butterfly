@@ -20,14 +20,14 @@ abstract class Node<N extends VirtualNode> {
     assert(this._configuration != null);
   }
 
+  /// The native node that this tree node corresponds to.
+  html.Node get nativeNode;
+
   ParentNode get parent => _parent;
   ParentNode _parent;
 
-  void attach(ParentNode newParent) {
-    _parent = newParent;
-  }
-
   void detach() {
+    nativeNode.remove();
     _parent == null;
   }
 
@@ -50,7 +50,8 @@ abstract class Node<N extends VirtualNode> {
 /// A node that has children.
 // TODO(yjbanov): add fast-track access to class
 abstract class ParentNode<N extends VirtualNode> extends Node<N> {
-  ParentNode(N configuration) : super(configuration);
+  ParentNode(N configuration)
+      : super(configuration);
 
   /// Whether any of this node's descentant nodes need to be updated.
   bool _hasDescendantsNeedingUpdate = true;
@@ -79,21 +80,27 @@ abstract class ParentNode<N extends VirtualNode> extends Node<N> {
 
 /// A node that has multiple children.
 abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNode<N> {
-  MultiChildNode(N configuration) : super(configuration);
+  MultiChildNode(N configuration)
+      : super(configuration);
 
   List<Node> _currentChildren;
 
   @override
   void update(N newConfiguration) {
     // TODO: this is a super-naive impl, just to get things started.
-    for (Node child in _currentChildren) {
-      child.detach();
+    if (_currentChildren != null) {
+      for (Node child in _currentChildren) {
+        child.detach();
+      }
     }
 
     _currentChildren = <Node>[];
     var newChildList = newConfiguration.children;
+    html.Element nativeElement = nativeNode as html.Element;
     for (VirtualNode vn in newChildList) {
-      _currentChildren.add(vn.instantiate());
+      Node node = vn.instantiate();
+      _currentChildren.add(node);
+      nativeElement.append(node.nativeNode);
     }
     super.update(newConfiguration);
   }

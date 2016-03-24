@@ -15,11 +15,13 @@
 part of flutter_ftw.tree;
 
 class StatelessWidgetNode extends ParentNode<StatelessWidget> {
-  StatelessWidgetNode(StatelessWidget configuration) : super(configuration) {
-    _buildNewChild(configuration);
-  }
+  StatelessWidgetNode(StatelessWidget configuration)
+     : _child = configuration.build().instantiate(),
+       super(configuration);
 
   Node _child;
+
+  html.Node get nativeNode => _child.nativeNode;
 
   @override
   void update(StatelessWidget newConfiguration) {
@@ -32,7 +34,7 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
         _child.update(newChildConfiguration);
       } else {
         _child.detach();
-        _buildNewChild(newConfiguration);
+        _child = newConfiguration.build().instantiate();
       }
     } else if (hasDescendantsNeedingUpdate) {
       // Own configuration is the same, but some children are scheduled to be
@@ -41,25 +43,20 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
     }
     super.update(newConfiguration);
   }
-
-  _buildNewChild(StatelessWidget newConfiguration) {
-    _child = newConfiguration.build().instantiate();
-    _child.attach(this);
-    _child.update(_child.configuration);
-  }
 }
 
 class StatefulWidgetNode extends ParentNode<StatefulWidget> {
   StatefulWidgetNode(StatefulWidget configuration)
       : _state = configuration.createState(),
         super(configuration) {
-    _buildNewChild();
+    _child = _state.build().instantiate();
   }
 
   final State _state;
   Node _child;
-
   bool _isDirty = true;
+
+  html.Node get nativeNode => _child.nativeNode;
 
   void scheduleUpdate() {
     _isDirty = true;
@@ -69,14 +66,8 @@ class StatefulWidgetNode extends ParentNode<StatefulWidget> {
   void update(StatefulWidget newConfiguration) {
     if (_isDirty) {
       _child.detach();
-      _buildNewChild();
+      _child = _state.build().instantiate();
     }
     super.update(newConfiguration);
-  }
-
-  _buildNewChild() {
-    _child = _state.build().instantiate();
-    _child.attach(this);
-    _child.update(_child.configuration);
   }
 }

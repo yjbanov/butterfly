@@ -87,20 +87,6 @@ class VirtualElement extends MultiChildVirtualNode {
   tree.Node instantiate() => new tree.ElementNode(this);
 }
 
-/// A list of nodes.
-///
-/// A fragment has a place in the element tree, but it does not have its own
-/// element.
-abstract class VirtualFragment extends MultiChildVirtualNode {
-  const VirtualFragment({Key key, List<VirtualNode> children})
-    : super(key: key, children: children);
-
-  @override
-  tree.Node instantiate() => new tree.FragmentNode(this);
-
-  List<VirtualNode> build();
-}
-
 /// An immutable hierarchical collection of attributes.
 class Attributes {
   /// Creates a `const` map of attributes.
@@ -116,6 +102,15 @@ class Attributes {
   final Attributes _base;
 
   String operator[](String name) => this.getAttribute(name);
+
+  bool operator==(Attributes other) {
+    return identical(this, other) || (
+      identical(this._data, other._data) && (
+        identical(this._base, other._base) ||
+        this._base == other._base
+      )
+    );
+  }
 
   /// Convenience over `operator[]` for cases when null-aware operators are
   /// used (operators do not mix with null-aware operators).
