@@ -18,7 +18,9 @@ part of flutter_ftw.tree;
 class TextNode extends Node<Text> {
   TextNode(Text configuration)
       : nativeNode = new html.Text(configuration.value),
-        super(configuration);
+        super(configuration) {
+    nativeNode.data = configuration.value;
+  }
 
   @override
   final html.Text nativeNode;

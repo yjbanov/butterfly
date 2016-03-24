@@ -3,7 +3,7 @@ version: 0.0.1
 authors:
 - Yegor Jbanov <yjbanov@google.com>
 description: Yet another functional reactive web framework for Dart
-homepage: https://github.com/yjbanov/ftw
+homepage: https://github.com/yjbanov/flutter_ftw
 environment:
   sdk: '>=1.14.0 <2.0.0'
 dependencies:

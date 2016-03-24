@@ -71,7 +71,18 @@ abstract class StatefulWidget extends Widget {
 
 /// Mutable state of a [StatefulWidget].
 abstract class State<T extends StatefulWidget> {
+  tree.StatefulWidgetNode _node;
+
   VirtualNode build();
+
+  void scheduleUpdate() {
+    _node.scheduleUpdate();
+  }
+}
+
+// TODO: this begs for a better API
+void internalSetStateNode(State state, tree.StatefulWidgetNode node) {
+  state._node = node;
 }
 
 /// A kind of node that maps directly to the render system's native element, for

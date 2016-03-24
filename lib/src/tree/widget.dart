@@ -34,7 +34,7 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
         _child.update(newChildConfiguration);
       } else {
         _child.detach();
-        _child = newConfiguration.build().instantiate();
+        _child = newChildConfiguration.instantiate();
       }
     } else if (hasDescendantsNeedingUpdate) {
       // Own configuration is the same, but some children are scheduled to be
@@ -49,12 +49,13 @@ class StatefulWidgetNode extends ParentNode<StatefulWidget> {
   StatefulWidgetNode(StatefulWidget configuration)
       : _state = configuration.createState(),
         super(configuration) {
+    internalSetStateNode(_state, this);
     _child = _state.build().instantiate();
   }
 
-  final State _state;
+  State _state;
   Node _child;
-  bool _isDirty = true;
+  bool _isDirty = false;
 
   html.Node get nativeNode => _child.nativeNode;
 
@@ -64,10 +65,27 @@ class StatefulWidgetNode extends ParentNode<StatefulWidget> {
   }
 
   void update(StatefulWidget newConfiguration) {
-    if (_isDirty) {
-      _child.detach();
-      _child = _state.build().instantiate();
+    assert(_child != null);
+    if (!identical(configuration, newConfiguration)) {
+      // Build the new configuration and decide whether to reuse the child node
+      // or replace with a new one.
+      _state = newConfiguration.createState();
+      VirtualNode newChildConfiguration = _state.build();
+      if (identical(newChildConfiguration.runtimeType, _child.configuration.runtimeType)) {
+        _child.update(newChildConfiguration);
+      } else {
+        _child.detach();
+        _child = newChildConfiguration.instantiate();
+      }
+    } else if (_isDirty) {
+      _child.update(_state.build());
+    } else if (hasDescendantsNeedingUpdate) {
+      // Own configuration is the same, but some children are scheduled to be
+      // updated.
+      _child.update(_child.configuration);
     }
+
+    _isDirty = false;
     super.update(newConfiguration);
   }
 }
