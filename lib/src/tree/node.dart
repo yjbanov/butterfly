@@ -96,11 +96,13 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
 
     _currentChildren = <Node>[];
     var newChildList = newConfiguration.children;
+    if (newChildList != null && newChildList.isNotEmpty) {
     html.Element nativeElement = nativeNode as html.Element;
-    for (VirtualNode vn in newChildList) {
-      Node node = vn.instantiate();
-      _currentChildren.add(node);
-      nativeElement.append(node.nativeNode);
+      for (VirtualNode vn in newChildList) {
+        Node node = vn.instantiate();
+        _currentChildren.add(node);
+        nativeElement.append(node.nativeNode);
+      }
     }
     super.update(newConfiguration);
   }

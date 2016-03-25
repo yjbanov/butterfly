@@ -17,6 +17,18 @@ import 'framework.dart';
 Attributes attrs(Map<String, String> data) => new Attributes(data);
 
 VirtualElement div([dynamic attributesOrChildren1, dynamic attributesOrChildren2]) {
+  return elem('div', attributesOrChildren1, attributesOrChildren2);
+}
+
+VirtualElement span([dynamic attributesOrChildren1, dynamic attributesOrChildren2]) {
+  return elem('span', attributesOrChildren1, attributesOrChildren2);
+}
+
+VirtualElement button([dynamic attributesOrChildren1, dynamic attributesOrChildren2]) {
+  return elem('button', attributesOrChildren1, attributesOrChildren2);
+}
+
+VirtualElement elem(String tag, [dynamic attributesOrChildren1, dynamic attributesOrChildren2]) {
   assert(_validateAttributesOrChildren(attributesOrChildren1));
   assert(_validateAttributesOrChildren(attributesOrChildren2));
 
@@ -36,7 +48,7 @@ VirtualElement div([dynamic attributesOrChildren1, dynamic attributesOrChildren2
   }
 
   Attributes attributes = new Attributes(attributeMap);
-  return new VirtualElement('div', attributes: attributes, children: children);
+  return new VirtualElement(tag, attributes: attributes, children: children);
 }
 
 Text text(String value) => new Text(value);

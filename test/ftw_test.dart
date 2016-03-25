@@ -44,6 +44,22 @@ main() {
       expect(tester.html, 'updated');
     });
   });
+
+  group('element', () {
+    test('renders simple element', () {
+      expect(
+        runTestApp(new SimpleElementWidget()).html,
+        '<div></div>'
+      );
+    });
+
+    test('renders nested elements', () {
+      expect(
+        runTestApp(new NestedElementWidget()).html,
+        '<div><span></span><button></button></div>'
+      );
+    });
+  });
 }
 
 class SimpleTextWidget extends StatelessWidget {
@@ -64,4 +80,15 @@ class ChangingTextWidgetState extends State<ChangingTextWidget> {
   }
 
   VirtualNode build() => new Text(_value);
+}
+
+class SimpleElementWidget extends StatelessWidget {
+  VirtualNode build() => div();
+}
+
+class NestedElementWidget extends StatelessWidget {
+  VirtualNode build() => div([
+    span(),
+    button(),
+  ]);
 }
