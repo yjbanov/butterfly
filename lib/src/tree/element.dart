@@ -17,7 +17,16 @@ part of flutter_ftw.tree;
 class ElementNode extends MultiChildNode<VirtualElement> {
   ElementNode(VirtualElement configuration)
     : nativeNode = new html.Element.tag(configuration.tag),
-      super(configuration);
+      super(configuration) {
+    if (configuration.attributes != null) {
+      Map<String, String> attributes = configuration.attributes.all;
+      html.Element nativeElement = nativeNode as html.Element;
+      for (String attributeName in attributes.keys) {
+        String value = attributes[attributeName];
+        nativeElement.setAttribute(attributeName, value);
+      }
+    }
+  }
 
   @override
   final html.Node nativeNode;

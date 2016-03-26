@@ -130,9 +130,9 @@ class Attributes {
   /// Flat map of all attributes.
   Map<String, String> get all => _base == null
     ? _data
-    : <String, String>{}
+    : (<String, String>{}
         ..addAll(_base.all)
-        ..addAll(_data);
+        ..addAll(_data));
 }
 
 /// A kind of node that maps directly to the render system's native node

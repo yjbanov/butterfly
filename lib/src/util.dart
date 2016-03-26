@@ -61,14 +61,20 @@ bool get assertionsEnabled {
 ///
 /// This function is designed to be inlinable by `dart2js` have zero runtime
 /// cost.
-Map fixedMap(Map map) => assertionsEnabled
-  ? new UnmodifiableMapView(map)
-  : map;
+Map fixedMap(Map map) {
+  assert(map != null);
+  return assertionsEnabled
+    ? new UnmodifiableMapView(map)
+    : map;
+}
 
 /// Creates an immutable wrapper for [list] in checked mode.
 ///
 /// This function is designed to be inlinable by `dart2js` have zero runtime
 /// cost.
-List fixedList(List list) => assertionsEnabled
-  ? new UnmodifiableListView(list)
-  : list;
+List fixedList(List list) {
+  assert(list != null);
+  return assertionsEnabled
+    ? new UnmodifiableListView(list)
+    : list;
+}

@@ -60,6 +60,15 @@ main() {
       );
     });
   });
+
+  group('attributes', () {
+    test('are set', () {
+      expect(
+        runTestApp(new SimpleAttributesWidget()).html,
+        '<div id="this_is_id" width="300"></div>'
+      );
+    });
+  });
 }
 
 class SimpleTextWidget extends StatelessWidget {
@@ -91,4 +100,11 @@ class NestedElementWidget extends StatelessWidget {
     span(),
     button(),
   ]);
+}
+
+class SimpleAttributesWidget extends StatelessWidget {
+  VirtualNode build() => div({
+    'id': 'this_is_id',
+    'width': '300',
+  });
 }

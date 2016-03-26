@@ -32,22 +32,21 @@ VirtualElement elem(String tag, [dynamic attributesOrChildren1, dynamic attribut
   assert(_validateAttributesOrChildren(attributesOrChildren1));
   assert(_validateAttributesOrChildren(attributesOrChildren2));
 
-  Map<String, String> attributeMap;
+  Attributes attributes;
   List<VirtualNode> children;
 
   if (attributesOrChildren1 is Map) {
-    attributeMap = attributesOrChildren1;
+    attributes = new Attributes(attributesOrChildren1);
   } else if (attributesOrChildren1 is List) {
     children = attributesOrChildren1;
   }
 
   if (attributesOrChildren2 is Map) {
-    attributeMap = attributesOrChildren2;
+    attributes = new Attributes(attributesOrChildren2);
   } else if (attributesOrChildren2 is List) {
     children = attributesOrChildren2;
   }
 
-  Attributes attributes = new Attributes(attributeMap);
   return new VirtualElement(tag, attributes: attributes, children: children);
 }
 
