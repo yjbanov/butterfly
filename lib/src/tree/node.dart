@@ -14,6 +14,19 @@
 
 part of flutter_ftw.tree;
 
+/// Whether [node] can be updated from [configuration].
+///
+/// This is used to decide whether a node should be moved, replaced, removed or
+/// updated using the new data (configuration).
+// TODO: can this be made inlineable?
+bool _canUpdate(Node node, VirtualNode configuration) {
+  if (!identical(node.configuration.runtimeType, configuration.runtimeType)) {
+    return false;
+  }
+
+  return node.configuration.key == configuration.key;
+}
+
 /// A node in the retained tree instantiated from [VirtualNode]s.
 abstract class Node<N extends VirtualNode> {
   Node(this._configuration) {
@@ -57,6 +70,11 @@ abstract class ParentNode<N extends VirtualNode> extends Node<N> {
   bool _hasDescendantsNeedingUpdate = true;
   bool get hasDescendantsNeedingUpdate => _hasDescendantsNeedingUpdate;
 
+  /// As a result of an update a [child] may decide to replace its [nativeNode]
+  /// with a [replacement]. It will then call this method on its [parent] to
+  /// demand that the parent updates its native children.
+  void replaceChildNativeNode(html.Node oldNode, html.Node replacement);
+
   void scheduleUpdate() {
     ParentNode parent = _parent;
     while(parent != null) {
@@ -86,24 +104,81 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
   List<Node> _currentChildren;
 
   @override
+  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
+    oldNode.parent.insertBefore(replacement, oldNode);
+    oldNode.remove();
+  }
+
+  @override
   void update(N newConfiguration) {
-    // TODO: this is a super-naive impl, just to get things started.
-    if (_currentChildren != null) {
-      for (Node child in _currentChildren) {
-        child.detach();
-      }
+    if (_currentChildren == null) {
+      _currentChildren = <Node>[];
     }
 
-    _currentChildren = <Node>[];
-    var newChildList = newConfiguration.children;
-    if (newChildList != null && newChildList.isNotEmpty) {
-    html.Element nativeElement = nativeNode as html.Element;
-      for (VirtualNode vn in newChildList) {
-        Node node = vn.instantiate();
-        _currentChildren.add(node);
-        nativeElement.append(node.nativeNode);
+    List<VirtualNode> newChildList = newConfiguration.children;
+    if (_currentChildren == null || _currentChildren.isEmpty) {
+      if (newChildList != null && newChildList.isNotEmpty) {
+        _appendChildren(newChildList);
+      }
+    } else if (newChildList == null && newChildList.isEmpty) {
+      if (_currentChildren != null && _currentChildren.isNotEmpty) {
+        _removeAllCurrentChildren();
+      }
+    } else {
+      // Both are not empty
+      int from = 0;
+      while(from < _currentChildren.length &&
+            from < newChildList.length &&
+            _canUpdate(_currentChildren[from], newChildList[from])) {
+        _currentChildren[from].update(newChildList[from]);
+        from++;
+      }
+
+      if (from == _currentChildren.length && from < newChildList.length) {
+        // More children were added at the end, append them
+        _appendChildren(newChildList.sublist(from));
+      } else if (from == newChildList.length && from < _currentChildren.length) {
+        // Some children at the end were removed, remove them
+        for (int i = _currentChildren.length - 1; i >= from; i--) {
+          _currentChildren[i].detach();
+        }
+        _currentChildren = _currentChildren.sublist(0, from);
+      } else {
+        // Walk lists from the end and try to update as much as possible
+        int currTo = _currentChildren.length - 1;
+        int newTo = newChildList.length - 1;
+        while(currTo > from &&
+              newTo > from &&
+              _canUpdate(_currentChildren[currTo], newChildList[newTo])) {
+          _currentChildren[currTo].update(newChildList[newTo]);
+        }
+
+        // We're strictly in the middle of both lists, at which point nodes
+        // moved around, were added, or removed. If the nodes are keyed, map
+        // them by key and figure out all the moves. If the nodes are not keyed,
+        // be pessimistic and replace them.
+
+        
+        throw 'not implemented';
       }
     }
     super.update(newConfiguration);
+  }
+
+  void _appendChildren(List<VirtualNode> newChildList) {
+    assert(newChildList != null && newChildList.isNotEmpty);
+    html.Element nativeElement = nativeNode as html.Element;
+    for (VirtualNode vn in newChildList) {
+      Node node = vn.instantiate();
+      _currentChildren.add(node);
+      nativeElement.append(node.nativeNode);
+    }
+  }
+
+  void _removeAllCurrentChildren() {
+    for (Node child in _currentChildren) {
+      child.detach();
+    }
+    _currentChildren = <Node>[];
   }
 }

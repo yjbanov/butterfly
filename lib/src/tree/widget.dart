@@ -21,6 +21,11 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
 
   Node _child;
 
+  @override
+  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
+    parent.replaceChildNativeNode(oldNode, replacement);
+  }
+
   html.Node get nativeNode => _child.nativeNode;
 
   @override
@@ -30,9 +35,10 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
       // Build the new configuration and decide whether to reuse the child node
       // or replace with a new one.
       VirtualNode newChildConfiguration = newConfiguration.build();
-      if (identical(newChildConfiguration.runtimeType, _child.configuration.runtimeType)) {
+      if (_canUpdate(this, newChildConfiguration)) {
         _child.update(newChildConfiguration);
       } else {
+        // Replace child
         _child.detach();
         _child = newChildConfiguration.instantiate();
       }
@@ -56,6 +62,11 @@ class StatefulWidgetNode extends ParentNode<StatefulWidget> {
   State _state;
   Node _child;
   bool _isDirty = false;
+
+  @override
+  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
+    parent.replaceChildNativeNode(oldNode, replacement);
+  }
 
   html.Node get nativeNode => _child.nativeNode;
 
