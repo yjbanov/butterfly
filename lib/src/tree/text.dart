@@ -25,6 +25,9 @@ class TextNode extends Node<Text> {
   @override
   final html.Text nativeNode;
 
+  @override
+  void visitChildren(_) {}
+
   void update(Text newConfiguration) {
     nativeNode.data = newConfiguration.value;
     super.update(newConfiguration);

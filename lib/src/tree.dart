@@ -14,6 +14,7 @@
 
 library flutter_ftw.tree;
 
+import 'dart:async';
 import 'dart:html' as html;
 import 'framework.dart';
 import 'util.dart';
@@ -25,26 +26,55 @@ part 'tree/text.dart';
 part 'tree/widget.dart';
 
 /// Retained virtual mirror of the DOM Tree.
-class Tree extends Node<Widget> {
+class Tree extends ParentNode<Widget> {
   Tree(Widget topLevelWidget, this._hostElement)
-      : _topLevelNode = topLevelWidget.instantiate(),
-        super(topLevelWidget) {
+      : super(topLevelWidget) {
     assert(topLevelWidget != null);
     assert(_hostElement != null);
-    _hostElement.append(_topLevelNode.nativeNode);
   }
 
-  final Node _topLevelNode;
+  Node _topLevelNode;
   final html.Element _hostElement;
+
+  @override
+  void visitChildren(void visitor(Node child)) {
+    visitor(_topLevelNode);
+  }
 
   /// The native node that this tree node corresponds to.
   html.Node get nativeNode => _hostElement;
 
+  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
+    _hostElement.insertBefore(replacement, oldNode);
+    oldNode.remove();
+  }
+
   void renderFrame() {
     update(configuration);
+    assert(() => _debugCheckParentChildRelationships());
+    GlobalKey.debugCheckForDuplicates();
+    scheduleMicrotask(GlobalKey.notifyListeners);
   }
 
   void update(Widget newConfiguration) {
-    _topLevelNode.update(newConfiguration);
+    if (_topLevelNode == null) {
+      _topLevelNode = newConfiguration.instantiate();
+      _hostElement.append(_topLevelNode.nativeNode);
+      _topLevelNode.attach(this);
+    } else {
+      _topLevelNode.update(_topLevelNode.configuration);
+    }
   }
+
+  bool _debugCheckParentChildRelationships() {
+    _debugCheckParentChildRelationshipWith(this);
+    return true;
+  }
+}
+
+void _debugCheckParentChildRelationshipWith(Node node) {
+  node.visitChildren((Node child) {
+    assert(identical(child.parent, node));
+    _debugCheckParentChildRelationshipWith(child);
+  });
 }

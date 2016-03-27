@@ -17,16 +17,7 @@ part of flutter_ftw.tree;
 class ElementNode extends MultiChildNode<VirtualElement> {
   ElementNode(VirtualElement configuration)
     : nativeNode = new html.Element.tag(configuration.tag),
-      super(configuration) {
-    if (configuration.attributes != null) {
-      Map<String, String> attributes = configuration.attributes.all;
-      html.Element nativeElement = nativeNode as html.Element;
-      for (String attributeName in attributes.keys) {
-        String value = attributes[attributeName];
-        nativeElement.setAttribute(attributeName, value);
-      }
-    }
-  }
+      super(configuration);
 
   @override
   final html.Node nativeNode;
@@ -38,6 +29,25 @@ class ElementNode extends MultiChildNode<VirtualElement> {
   }
 
   void _updateAttributes(VirtualElement newConfiguration) {
+    if (configuration == null || configuration.attributes == null) {
+      if (newConfiguration.attributes != null) {
+        _setAttributes(newConfiguration);
+      }
+    } else {
+      _diffAttributes(newConfiguration);
+    }
+  }
+
+  void _setAttributes(VirtualElement newConfiguration) {
+    Map<String, String> attributes = newConfiguration.attributes.all;
+    html.Element nativeElement = nativeNode as html.Element;
+    for (String attributeName in attributes.keys) {
+      String value = attributes[attributeName];
+      nativeElement.setAttribute(attributeName, value);
+    }
+  }
+
+  void _diffAttributes(VirtualElement newConfiguration) {
     Attributes oldAttrs = configuration.attributes;
     Attributes newAttrs = newConfiguration.attributes;
 

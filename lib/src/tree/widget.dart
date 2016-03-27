@@ -15,11 +15,14 @@
 part of flutter_ftw.tree;
 
 class StatelessWidgetNode extends ParentNode<StatelessWidget> {
-  StatelessWidgetNode(StatelessWidget configuration)
-     : _child = configuration.build().instantiate(),
-       super(configuration);
+  StatelessWidgetNode(StatelessWidget configuration) : super(configuration);
 
   Node _child;
+
+  @override
+  void visitChildren(void visitor(Node child)) {
+    visitor(_child);
+  }
 
   @override
   void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
@@ -30,17 +33,18 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
 
   @override
   void update(StatelessWidget newConfiguration) {
-    assert(_child != null);
+    assert(newConfiguration != null);
     if (!identical(configuration, newConfiguration)) {
       // Build the new configuration and decide whether to reuse the child node
       // or replace with a new one.
       VirtualNode newChildConfiguration = newConfiguration.build();
-      if (_canUpdate(this, newChildConfiguration)) {
+      if (_child != null && _canUpdate(_child, newChildConfiguration)) {
         _child.update(newChildConfiguration);
       } else {
         // Replace child
-        _child.detach();
+        _child?.detach();
         _child = newChildConfiguration.instantiate();
+        _child.attach(this);
       }
     } else if (hasDescendantsNeedingUpdate) {
       // Own configuration is the same, but some children are scheduled to be
@@ -52,16 +56,17 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
 }
 
 class StatefulWidgetNode extends ParentNode<StatefulWidget> {
-  StatefulWidgetNode(StatefulWidget configuration)
-      : _state = configuration.createState(),
-        super(configuration) {
-    internalSetStateNode(_state, this);
-    _child = _state.build().instantiate();
-  }
+  StatefulWidgetNode(StatefulWidget configuration) : super(configuration);
 
   State _state;
+  State get state => _state;
   Node _child;
   bool _isDirty = false;
+
+  @override
+  void visitChildren(void visitor(Node child)) {
+    visitor(_child);
+  }
 
   @override
   void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
@@ -76,17 +81,19 @@ class StatefulWidgetNode extends ParentNode<StatefulWidget> {
   }
 
   void update(StatefulWidget newConfiguration) {
-    assert(_child != null);
+    assert(newConfiguration != null);
     if (!identical(configuration, newConfiguration)) {
       // Build the new configuration and decide whether to reuse the child node
       // or replace with a new one.
       _state = newConfiguration.createState();
+      internalSetStateNode(_state, this);
       VirtualNode newChildConfiguration = _state.build();
-      if (identical(newChildConfiguration.runtimeType, _child.configuration.runtimeType)) {
+      if (_child != null && identical(newChildConfiguration.runtimeType, _child.configuration.runtimeType)) {
         _child.update(newChildConfiguration);
       } else {
-        _child.detach();
+        _child?.detach();
         _child = newChildConfiguration.instantiate();
+        _child.attach(this);
       }
     } else if (_isDirty) {
       _child.update(_state.build());
