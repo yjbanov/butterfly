@@ -14,6 +14,8 @@
 
 @TestOn('browser')
 
+import 'dart:html' as html;
+
 import 'package:test/test.dart';
 
 import 'package:flutter_ftw/ftw.dart';
@@ -27,10 +29,8 @@ main() {
     });
 
     test('renders changing text', () {
-      ChangingTextWidgetState state = new ChangingTextWidgetState();
-      ApplicationTester tester = runTestApp(
-        new ChangingTextWidget()..state = state
-      );
+      var widget = new ChangingTextWidget();
+      ApplicationTester tester = runTestApp(widget);
       expect(tester.html, 'initial');
 
       // Repeated re-renders without actual change should be a noop
@@ -38,7 +38,7 @@ main() {
       expect(tester.html, 'initial');
 
       // Now with the actual change
-      state.value = 'updated';
+      widget.state.value = 'updated';
       expect(tester.html, 'initial', reason: 'have not rendered yet');
       tester.renderFrame();
       expect(tester.html, 'updated');
@@ -59,6 +59,23 @@ main() {
         '<div><span></span><button></button></div>'
       );
     });
+
+    test('updates the native nodes with new configuration', () {
+      var widget = new NodeUpdatingWidget();
+      var tester = runTestApp(widget);
+      expect(tester.html, '<div>initial</div>');
+      html.Element div1 = tester.hostElement.childNodes.single;
+      html.Text text1 = div1.childNodes.single;
+
+      widget.state.value = 'updated';
+      tester.renderFrame();
+      expect(tester.html, '<div>updated</div>');
+
+      html.Element div2 = tester.hostElement.childNodes.single;
+      html.Text text2 = div2.childNodes.single;
+      expect(div2, same(div1));
+      expect(text2, same(text1));
+    });
   });
 
   group('attributes', () {
@@ -72,11 +89,11 @@ main() {
 }
 
 class SimpleTextWidget extends StatelessWidget {
-  VirtualNode build() => const Text('hello world!');
+  VirtualNode build() => text('hello world!');
 }
 
 class ChangingTextWidget extends StatefulWidget {
-  ChangingTextWidgetState state;
+  final ChangingTextWidgetState state = new ChangingTextWidgetState();
 
   ChangingTextWidgetState createState() => state;
 }
@@ -88,7 +105,7 @@ class ChangingTextWidgetState extends State<ChangingTextWidget> {
     scheduleUpdate();
   }
 
-  VirtualNode build() => new Text(_value);
+  VirtualNode build() => text(_value);
 }
 
 class SimpleElementWidget extends StatelessWidget {
@@ -107,4 +124,21 @@ class SimpleAttributesWidget extends StatelessWidget {
     'id': 'this_is_id',
     'width': '300',
   });
+}
+
+class NodeUpdatingWidget extends StatefulWidget {
+  final NodeUpdatingWidgetState state = new NodeUpdatingWidgetState();
+  NodeUpdatingWidgetState createState() => state;
+}
+
+class NodeUpdatingWidgetState extends State<NodeUpdatingWidget> {
+  String _value = 'initial';
+  set value(String newValue) {
+    _value = newValue;
+    scheduleUpdate();
+  }
+
+  VirtualNode build() => div([
+    text(_value)
+  ]);
 }

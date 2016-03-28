@@ -31,12 +31,12 @@ class ApplicationTester {
     return tester;
   }
 
-  ApplicationTester._(this._hostElement, this._tree);
+  ApplicationTester._(this.hostElement, this._tree);
 
-  final htm.Element _hostElement;
+  final htm.Element hostElement;
   final Tree _tree;
 
-  String get html => _hostElement.innerHtml;
+  String get html => hostElement.innerHtml;
 
   void renderFrame() {
     _tree.renderFrame();

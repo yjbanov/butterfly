@@ -166,10 +166,12 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
           from++;
         }
 
-        if (from == _currentChildren.length && from < newChildList.length) {
-          // More children were added at the end, append them
-          _appendChildren(newChildList.sublist(from));
-        } else if (from == newChildList.length && from < _currentChildren.length) {
+        if (from == _currentChildren.length) {
+          if (from < newChildList.length) {
+            // More children were added at the end, append them
+            _appendChildren(newChildList.sublist(from));
+          }
+        } else if (from == newChildList.length) {
           // Some children at the end were removed, remove them
           for (int i = _currentChildren.length - 1; i >= from; i--) {
             _currentChildren[i].detach();
@@ -183,7 +185,12 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
                 newTo > from &&
                 _canUpdate(_currentChildren[currTo], newChildList[newTo])) {
             _currentChildren[currTo].update(newChildList[newTo]);
+            currTo--;
+            newTo--;
           }
+
+          assert(currTo >= from);
+          assert(newTo >= from);
 
           if (newTo == from && currTo > from) {
             // Some children in the middle were removed, remove them
@@ -223,7 +230,9 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
               ? (Node child) {
                 nativeElement.insertBefore(child.nativeNode, _currentChildren[currTo].nativeNode);
               }
-              : nativeElement.append;
+              : (Node child) {
+                nativeElement.append(child.nativeNode);
+              };
 
             for (int i = from; i < currTo; i++) {
               _currentChildren[i].detach();
