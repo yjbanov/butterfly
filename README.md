@@ -27,3 +27,5 @@ Some reasons why you might like it:
   project is minimal.
 - **Layered**: made of layers (widgets, tree, DOM) - you choose how low-level to
   go.
+- **Dart**: a sane language that scales from small apps to large enterprise
+  projects.
