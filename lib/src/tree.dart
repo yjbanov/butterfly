@@ -51,8 +51,11 @@ class Tree extends ParentNode<Widget> {
 
   void renderFrame() {
     update(configuration);
-    assert(() => _debugCheckParentChildRelationships());
-    GlobalKey.debugCheckForDuplicates();
+    assert(() {
+      _debugCheckParentChildRelationships();
+      GlobalKey.debugCheckForDuplicates();
+      return true;
+    });
     scheduleMicrotask(GlobalKey.notifyListeners);
   }
 

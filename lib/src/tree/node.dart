@@ -99,6 +99,7 @@ abstract class ParentNode<N extends VirtualNode> extends Node<N> {
   void replaceChildNativeNode(html.Node oldNode, html.Node replacement);
 
   void scheduleUpdate() {
+    _hasDescendantsNeedingUpdate = true;
     ParentNode parent = _parent;
     while(parent != null) {
       parent._hasDescendantsNeedingUpdate = true;
@@ -142,7 +143,7 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
 
   @override
   void update(N newConfiguration) {
-    if (!identical(configuration, newConfiguration) || hasDescendantsNeedingUpdate) {
+    if (!identical(configuration, newConfiguration)) {
       if (_currentChildren == null) {
         _currentChildren = <Node>[];
       }
@@ -179,18 +180,15 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
           _currentChildren = _currentChildren.sublist(0, from);
         } else {
           // Walk lists from the end and try to update as much as possible
-          int currTo = _currentChildren.length - 1;
-          int newTo = newChildList.length - 1;
+          int currTo = _currentChildren.length;
+          int newTo = newChildList.length;
           while(currTo > from &&
                 newTo > from &&
-                _canUpdate(_currentChildren[currTo], newChildList[newTo])) {
-            _currentChildren[currTo].update(newChildList[newTo]);
+                _canUpdate(_currentChildren[currTo - 1], newChildList[newTo - 1])) {
+            _currentChildren[currTo - 1].update(newChildList[newTo - 1]);
             currTo--;
             newTo--;
           }
-
-          assert(currTo >= from);
-          assert(newTo >= from);
 
           if (newTo == from && currTo > from) {
             // Some children in the middle were removed, remove them
@@ -200,7 +198,7 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
             _currentChildren.removeRange(from, currTo);
           } else if (currTo == from && newTo > from) {
             // New children were inserted in the middle, insert them
-            List<VirtualNode> newChildren = newChildList.getRange(from, newTo);
+            Iterable<VirtualNode> newChildren = newChildList.getRange(from, newTo);
 
             List<Node> insertedChildren = <Node>[];
             for (VirtualNode vn in newChildren) {
@@ -212,8 +210,9 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
             _currentChildren.insertAll(from, insertedChildren);
 
             html.Element nativeElement = nativeNode as html.Element;
+            html.Node refNode = _currentChildren[newTo].nativeNode;
             for (Node node in insertedChildren) {
-              nativeElement.append(node.nativeNode);
+              nativeElement.insertBefore(node.nativeNode, refNode);
             }
           } else {
             // We're strictly in the middle of both lists, at which point nodes
@@ -225,31 +224,31 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
             // implementation would compute the minimum sufficient number of
             // moves to transform the tree into the desired configuration.
 
-            html.Element nativeElement = nativeNode as html.Element;
-            _AppendChildFunction appendFn = currTo < _currentChildren.length - 1
-              ? (Node child) {
-                nativeElement.insertBefore(child.nativeNode, _currentChildren[currTo].nativeNode);
-              }
-              : (Node child) {
-                nativeElement.append(child.nativeNode);
-              };
-
+            List<Node> disputedRange = <Node>[];
             for (int i = from; i < currTo; i++) {
-              _currentChildren[i].detach();
+              Node child = _currentChildren[i];
+              child.detach();
+              disputedRange.add(child);
             }
 
-            List<Node> range = _currentChildren.getRange(from, currTo);
-            _currentChildren.removeRange(from, currTo);
-
             List<Node> newRange = <Node>[];
-            for (VirtualNode newChild in newChildList) {
+            html.Element nativeElement = nativeNode;
+            html.Node refNode = currTo < _currentChildren.length
+              ? _currentChildren[currTo].nativeNode
+              : null;
+            for (int i = from; i < newTo; i++) {
+              VirtualNode newChild = newChildList[i];
               // First try to fing an existing node that could be updated
               bool updated = false;
-              for (Node child in range) {
+              for (Node child in disputedRange) {
                 if (_canUpdate(child, newChild)) {
                   child.update(newChild);
                   child.attach(this);
-                  appendFn(child);
+                  if (refNode == null) {
+                    nativeElement.append(child.nativeNode);
+                  } else {
+                    nativeElement.insertBefore(child.nativeNode, refNode);
+                  }
                   updated = true;
                   newRange.add(child);
                   break;
@@ -259,14 +258,27 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
               if (!updated) {
                 Node child = newChild.instantiate();
                 child.attach(this);
-                appendFn(child);
+                if (refNode == null) {
+                  nativeElement.append(child.nativeNode);
+                } else {
+                  nativeElement.insertBefore(child.nativeNode, refNode);
+                }
                 newRange.add(child);
               }
             }
 
-            _currentChildren.insertAll(from, newRange);
+            _currentChildren = <Node>[]
+              ..addAll(_currentChildren.sublist(0, from))
+              ..addAll(newRange)
+              ..addAll(_currentChildren.sublist(currTo));
+            assert(_currentChildren.length == nativeElement.childNodes.length);
+            assert(_currentChildren.length == newChildList.length);
           }
         }
+      }
+    } else if (hasDescendantsNeedingUpdate) {
+      for (Node child in _currentChildren) {
+        child.update(child.configuration);
       }
     }
     super.update(newConfiguration);
@@ -290,5 +302,3 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
     _currentChildren = <Node>[];
   }
 }
-
-typedef void _AppendChildFunction(Node child);

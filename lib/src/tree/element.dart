@@ -24,7 +24,9 @@ class ElementNode extends MultiChildNode<VirtualElement> {
 
   @override
   void update(VirtualElement newConfiguration) {
-    _updateAttributes(newConfiguration);
+    if (!identical(newConfiguration, configuration)) {
+      _updateAttributes(newConfiguration);
+    }
     super.update(newConfiguration);
   }
 

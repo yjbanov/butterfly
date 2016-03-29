@@ -20,6 +20,7 @@ import 'package:test/test.dart';
 
 import 'package:flutter_ftw/ftw.dart';
 import 'package:flutter_ftw/testing.dart';
+import 'package:flutter_ftw/src/tree.dart' as tree;
 
 main() {
   group('text', () {
@@ -76,6 +77,112 @@ main() {
       expect(div2, same(div1));
       expect(text2, same(text1));
     });
+
+  });
+
+  group('MultiChildNode', () {
+    test('does not update if config is identical', () {
+      var tester = runTestApp(new IdenticalConfigElement());
+      UpdateTrackingTextNode trackingNode = tester.findNodeOfType(UpdateTrackingTextNode);
+
+      expect(tester.html, '<div>never updated</div>');
+      expect(trackingNode.updateCount, 1);
+      tester.renderFrame();
+      expect(trackingNode.updateCount, 1);
+      tester.renderFrame();
+      expect(trackingNode.updateCount, 1);
+    });
+
+    test('updates children if descendants need update', () {
+      var widget = new ElementWithTrackingChild();
+      var tester = runTestApp(widget);
+      tree.ParentNode statefulNode = tester.findNodeOfConfigurationType(ElementWithTrackingChild);
+      UpdateTrackingTextNode trackingNode1 = tester.findNodeOfType(UpdateTrackingTextNode);
+      expect(trackingNode1.updateCount, 1);
+
+      statefulNode.scheduleUpdate();
+      tester.renderFrame();
+
+      UpdateTrackingTextNode trackingNode2 = tester.findNodeOfType(UpdateTrackingTextNode);
+      expect(trackingNode2, same(trackingNode1));
+      expect(trackingNode2.updateCount, 2);
+    });
+
+    group('child list diffing', () {
+      ApplicationTester tester;
+      ChildListWidgetState listState;
+
+      setUp(() {
+        var widget = new ChildListWidget();
+        listState = widget.state;
+        tester = runTestApp(widget);
+      });
+
+      tearDown(() {
+        tester = null;
+        listState = null;
+      });
+
+      testKeys(List<int> keys) {
+        listState.childKeys = keys;
+        tester.renderFrame();
+        var innerHtml = keys
+          .map((key) => '<span>${key}</span>')
+          .join();
+        expect(tester.html, '<div>${innerHtml}</div>');
+      }
+
+      test('appends new children added to previously empty child list', () {
+        testKeys([]);
+        testKeys([1, 2, 3]);
+      });
+
+      test('appends new children added to previously non-empty child list', () {
+        testKeys([1, 2]);
+        testKeys([1, 2, 3, 4, 5]);
+      });
+
+      test('deletes all children', () {
+        testKeys([1, 2]);
+        testKeys([]);
+      });
+
+      test('updates all children with the same key', () {
+        testKeys([1, 2, 3]);
+        testKeys([1, 2, 3]);
+      });
+
+
+      test('truncates child list', () {
+        testKeys([1, 2, 3, 4, 5]);
+        testKeys([1, 2, 3]);
+      });
+
+      test('removes children in the middle', () {
+        testKeys([1, 2, 3, 4]);
+        testKeys([1, 4]);
+      });
+
+      test('inserts children in the middle', () {
+        testKeys([1, 4]);
+        testKeys([1, 2, 3, 4]);
+      });
+
+      test('replaces range with a longer range', () {
+        testKeys([1, 2, 3, 4, 9]);
+        testKeys([1, 5, 6, 7, 8, 9]);
+      });
+
+      test('replaces range with a shorter range', () {
+        testKeys([1, 2, 3, 4]);
+        testKeys([1, 10, 4]);
+      });
+
+      test('moves children', () {
+        testKeys([1, 2, 3, 4, 5]);
+        testKeys([1, 4, 3, 2, 5]);
+      });
+    });
   });
 
   group('attributes', () {
@@ -86,6 +193,33 @@ main() {
       );
     });
   });
+}
+
+class UpdateTrackingTextNode extends tree.TextNode {
+  UpdateTrackingTextNode(Text config) : super(config);
+
+  int updateCount = 0;
+
+  @override
+  void update(Text newConfig) {
+    updateCount++;
+    super.update(newConfig);
+  }
+}
+
+class UpdateTrackingText extends Text {
+  const UpdateTrackingText(String value) : super(value);
+
+  tree.Node instantiate() => new UpdateTrackingTextNode(this);
+}
+
+class IdenticalConfigElement extends StatelessWidget {
+  static const updateTracker = const UpdateTrackingText('never updated');
+  static const config = const VirtualElement(
+    'div',
+    children: const [updateTracker]
+  );
+  build() => config;
 }
 
 class SimpleTextWidget extends StatelessWidget {
@@ -141,4 +275,37 @@ class NodeUpdatingWidgetState extends State<NodeUpdatingWidget> {
   VirtualNode build() => div([
     text(_value)
   ]);
+}
+
+class ChildListWidget extends StatefulWidget {
+  ChildListWidgetState state = new ChildListWidgetState();
+
+  ChildListWidgetState createState() => state;
+}
+
+class ChildListWidgetState extends State<ChildListWidget> {
+  List<int> _childKeys;
+  set childKeys(List<int> keys) {
+    _childKeys = keys;
+    scheduleUpdate();
+  }
+
+  VirtualNode build() {
+    if (_childKeys == null) {
+      return new VirtualElement('div');
+    }
+
+    return div(_childKeys
+      .map((key) => new VirtualElement(
+        'span',
+        key: new ValueKey(key),
+        children: [text(key.toString())]
+      ))
+      .toList()
+    );
+  }
+}
+
+class ElementWithTrackingChild extends StatelessWidget {
+  VirtualNode build() => new UpdateTrackingText('foo');
 }

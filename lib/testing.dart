@@ -31,14 +31,33 @@ class ApplicationTester {
     return tester;
   }
 
-  ApplicationTester._(this.hostElement, this._tree);
+  ApplicationTester._(this.hostElement, this.tree);
 
   final htm.Element hostElement;
-  final Tree _tree;
+  final Tree tree;
 
   String get html => hostElement.innerHtml;
 
+  Node findNode(bool predicate(Node node)) {
+    Node foundNode;
+    void findTrackingNode(Node node) {
+      if (predicate(node)) {
+        foundNode = node;
+      } else {
+        node.visitChildren(findTrackingNode);
+      }
+    }
+    tree.visitChildren(findTrackingNode);
+    return foundNode;
+  }
+
+  Node findNodeOfType(Type type) =>
+      findNode((node) => node.runtimeType == type);
+
+  Node findNodeOfConfigurationType(Type type) =>
+      findNode((node) => node.configuration.runtimeType == type);
+
   void renderFrame() {
-    _tree.renderFrame();
+    tree.renderFrame();
   }
 }
