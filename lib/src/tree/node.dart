@@ -144,11 +144,12 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
   @override
   void update(N newConfiguration) {
     if (!identical(configuration, newConfiguration)) {
-      if (_currentChildren == null) {
+      List<VirtualNode> newChildList = newConfiguration.children;
+
+      if (newChildList != null && newChildList.isNotEmpty && _currentChildren == null) {
         _currentChildren = <Node>[];
       }
 
-      List<VirtualNode> newChildList = newConfiguration.children;
       if (_currentChildren == null || _currentChildren.isEmpty) {
         if (newChildList != null && newChildList.isNotEmpty) {
           _appendChildren(newChildList);

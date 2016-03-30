@@ -22,6 +22,7 @@ import 'util.dart';
 part 'tree/element.dart';
 part 'tree/event.dart';
 part 'tree/node.dart';
+part 'tree/props.dart';
 part 'tree/text.dart';
 part 'tree/widget.dart';
 

@@ -38,6 +38,12 @@ class ApplicationTester {
 
   String get html => hostElement.innerHtml;
 
+  htm.Element querySelector(String selector) =>
+      hostElement.querySelector(selector);
+
+  htm.ElementList<htm.Element> querySelectorAll(String selector) =>
+      hostElement.querySelectorAll(selector);
+
   Node findNode(bool predicate(Node node)) {
     Node foundNode;
     void findTrackingNode(Node node) {

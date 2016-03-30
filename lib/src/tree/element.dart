@@ -14,7 +14,7 @@
 
 part of flutter_ftw.tree;
 
-class ElementNode extends MultiChildNode<VirtualElement> {
+class ElementNode extends MultiChildNode<VirtualElement> with ElementProps {
   ElementNode(VirtualElement configuration)
     : nativeNode = new html.Element.tag(configuration.tag),
       super(configuration);
@@ -26,6 +26,7 @@ class ElementNode extends MultiChildNode<VirtualElement> {
   void update(VirtualElement newConfiguration) {
     if (!identical(newConfiguration, configuration)) {
       _updateAttributes(newConfiguration);
+      _updateProps(newConfiguration);
     }
     super.update(newConfiguration);
   }
@@ -40,8 +41,14 @@ class ElementNode extends MultiChildNode<VirtualElement> {
     }
   }
 
+  void _updateProps(VirtualElement newConfiguration) {
+    if (newConfiguration.props != null) {
+      newConfiguration.props(this);
+    }
+  }
+
   void _setAttributes(VirtualElement newConfiguration) {
-    Map<String, String> attributes = newConfiguration.attributes.all;
+    Map<String, String> attributes = newConfiguration.attributes;
     html.Element nativeElement = nativeNode as html.Element;
     for (String attributeName in attributes.keys) {
       String value = attributes[attributeName];
@@ -50,15 +57,15 @@ class ElementNode extends MultiChildNode<VirtualElement> {
   }
 
   void _diffAttributes(VirtualElement newConfiguration) {
-    Attributes oldAttrs = configuration.attributes;
-    Attributes newAttrs = newConfiguration.attributes;
+    Map<String, String> oldAttrs = configuration.attributes;
+    Map<String, String> newAttrs = newConfiguration.attributes;
 
     if (identical(oldAttrs, newAttrs) || oldAttrs == newAttrs) {
       return;
     }
 
     html.Element nativeElement = nativeNode as html.Element;
-    for (String attributeName in newAttrs) {
+    for (String attributeName in newAttrs.keys) {
       String oldValue = oldAttrs[attributeName];
       String newValue = newAttrs[attributeName];
       assert(!(oldValue == null && newValue == null));

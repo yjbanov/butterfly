@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'tree.dart' as tree;
-import 'util.dart';
 
 abstract class VirtualNode {
   const VirtualNode({this.key});
@@ -78,61 +77,40 @@ void internalSetStateNode(State state, tree.StatefulWidgetNode node) {
   state._node = node;
 }
 
+typedef void PropSetter(Props props);
+
 /// A kind of node that maps directly to the render system's native element, for
 /// example an HTML element such as `<div>`, `<button>`.
 class VirtualElement extends MultiChildVirtualNode {
-  const VirtualElement(this.tag, {Key key, this.attributes, List<VirtualNode> children})
-    : super(key: key, children: children);
+  const VirtualElement(this.tag, {Key key, Map<String, String> attributes,
+      List<VirtualNode> children, this.props})
+    : this.attributes = attributes,
+      super(key: key, children: children);
 
   final String tag;
-  final Attributes attributes;
+  final Map<String, String> attributes;
+  final PropSetter props;
 
   @override
   tree.Node instantiate() => new tree.ElementNode(this);
 }
 
-/// An immutable hierarchical collection of attributes.
-class Attributes {
-  /// Creates a `const` map of attributes.
-  const Attributes.constant(this._data, {Attributes base})
-      : _base = base;
+abstract class Props {
+  /// A property on `<input>`
+  set checked(bool value);
 
-  /// Creates a non-`const` immutable map of attributes.
-  Attributes(Map<String, String> data, {Attributes base})
-      : _data = fixedMap(data),
-        _base = base;
+  /// A property on `<input>`
+  set value(String newValue);
 
-  final Map<String, String> _data;
-  final Attributes _base;
-
-  String operator[](String name) => this.getAttribute(name);
-
-  bool operator==(Attributes other) {
-    return identical(this, other) || (
-      identical(this._data, other._data) && (
-        identical(this._base, other._base) ||
-        this._base == other._base
-      )
-    );
-  }
-
-  /// Convenience over `operator[]` for cases when null-aware operators are
-  /// used (operators do not mix with null-aware operators).
-  String getAttribute(String name) => _data[name] ?? _base?.getAttribute(name);
-
-  /// Flat map of all attributes.
-  Map<String, String> get all => _base == null
-    ? _data
-    : (<String, String>{}
-        ..addAll(_base.all)
-        ..addAll(_data));
+  /// A property on `<input>`
+  set type(String type);
 }
 
 /// A kind of node that maps directly to the render system's native node
 /// representing a text value.
 class Text extends VirtualNode {
   final String value;
-  const Text(this.value);
+  const Text(this.value, {Key key}) : super(key: key);
 
   tree.Node instantiate() => new tree.TextNode(this);
 }

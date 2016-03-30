@@ -193,6 +193,24 @@ main() {
       );
     });
   });
+
+  group('props', () {
+    test('are set', () {
+      var widget = new ElementPropsWidget();
+      var tester = runTestApp(widget);
+      html.InputElement input = tester.querySelectorAll('input').single;
+      expect(input.value, 'foo');
+      expect(input.checked, true);
+
+      widget.state.value = 'bar';
+      widget.state.checked = false;
+      widget.state.scheduleUpdate();
+      tester.renderFrame();
+
+      expect(input.value, 'bar');
+      expect(input.checked, false);
+    });
+  });
 }
 
 class UpdateTrackingTextNode extends tree.TextNode {
@@ -243,21 +261,21 @@ class ChangingTextWidgetState extends State<ChangingTextWidget> {
 }
 
 class SimpleElementWidget extends StatelessWidget {
-  VirtualNode build() => div();
+  VirtualNode build() => div()();
 }
 
 class NestedElementWidget extends StatelessWidget {
-  VirtualNode build() => div([
-    span(),
-    button(),
+  VirtualNode build() => div()([
+    span()(),
+    button()(),
   ]);
 }
 
 class SimpleAttributesWidget extends StatelessWidget {
-  VirtualNode build() => div({
+  VirtualNode build() => div(attrs: {
     'id': 'this_is_id',
     'width': '300',
-  });
+  })();
 }
 
 class NodeUpdatingWidget extends StatefulWidget {
@@ -272,7 +290,7 @@ class NodeUpdatingWidgetState extends State<NodeUpdatingWidget> {
     scheduleUpdate();
   }
 
-  VirtualNode build() => div([
+  VirtualNode build() => div()([
     text(_value)
   ]);
 }
@@ -295,17 +313,39 @@ class ChildListWidgetState extends State<ChildListWidget> {
       return new VirtualElement('div');
     }
 
-    return div(_childKeys
-      .map((key) => new VirtualElement(
-        'span',
-        key: new ValueKey(key),
-        children: [text(key.toString())]
-      ))
-      .toList()
+    return div()(
+      _childKeys
+        .map((key) => new VirtualElement(
+          'span',
+          key: new ValueKey(key),
+          children: [text(key.toString())]
+        ))
+        .toList()
     );
   }
 }
 
 class ElementWithTrackingChild extends StatelessWidget {
   VirtualNode build() => new UpdateTrackingText('foo');
+}
+
+class ElementPropsWidget extends StatefulWidget {
+  ElementPropsWidgetState state = new ElementPropsWidgetState();
+  ElementPropsWidgetState createState() => state;
+}
+
+class ElementPropsWidgetState extends State<ElementPropsWidget> {
+  String value = 'foo';
+  bool checked = true;
+
+  VirtualNode build() {
+    return checkbox(
+      attrs: const {
+        'id': 'first-name',
+      },
+      props: (p) => p
+        ..value = value
+        ..checked = checked
+    )();
+  }
 }

@@ -12,17 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html';
-import 'package:flutter_ftw/ftw.dart';
+part of flutter_ftw.tree;
 
-main() {
-  runApp(new App(), document.querySelector('#app-host'));
-}
+abstract class ElementProps implements Props {
+  html.Node get nativeNode;
 
-class App extends StatelessWidget {
-  VirtualNode build() {
-    return div(attrs: {'id': 'greeting'})([
-      text('Hello, World!')
-    ]);
+  @override
+  set checked(bool value) {
+    html.CheckboxInputElement cb = nativeNode;
+    if (cb.checked != value) {
+      cb.checked = value;
+    }
+  }
+
+  @override
+  set value(String newValue) {
+    html.InputElementBase cb = nativeNode;
+    if (cb.value != newValue) {
+      cb.value = newValue;
+    }
+  }
+
+  @override
+  set type(String type) {
+    html.InputElement cb = nativeNode;
+    if (cb.type != type) {
+      cb.type = type;
+    }
   }
 }

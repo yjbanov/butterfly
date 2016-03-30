@@ -18,7 +18,7 @@ Some reasons why you might like it:
   analysis tends to be brittle and is usually only available in big IDEs. The
   languages are in a perpetual state of incompatibility with each other. For
   example, you may have to leak implementation details by exposing private fields
-  to bind them to your template code, or deal with variables scoping issues.
+  to bind them to your template code, or deal with variable scoping issues.
   Your component objects tend to be in inconsistent state throughout the
   lifecycle because of how the template system initializes and binds the data.
   Custom extensions, such as JSX/TSX, solve some of the problems, but they still
@@ -39,14 +39,12 @@ Some reasons why you might like it:
   web projects.
 - **Simple**: Flutter introduces only a handful of concepts popularized by
   ReactJS and it works like a plain library that you can drop into an existing
-  project.
+  project; it shares all the same Dart libraries so the incremental cost of
+  adding it to your project is minimal.
 - **Small**: starting application size is <40kb (minified + gzipped)
 - **Fast**: while it's hard to compare frameworks in terms of raw speed, this
   framework does aim to give you great levels of control for efficient
   incremental UI updates.
-- **Composable**: works like a library - drop it into an existing app; it shares
-  all the same Dart libraries so the incremental cost of adding it to your
-  project is minimal.
 - **Layered**: made of layers (widgets, tree, DOM) - you choose how low-level to
   go.
 - **Hackable**: defining new widgets is at the core of the development

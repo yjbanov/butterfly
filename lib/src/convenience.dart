@@ -14,49 +14,97 @@
 
 import 'framework.dart';
 
-Attributes attrs(Map<String, String> data) => new Attributes(data);
+Text text(String value, {Key key}) => new Text(value, key: key);
 
-VirtualElement div([dynamic attributesOrChildren1, dynamic attributesOrChildren2]) {
-  return elem('div', attributesOrChildren1, attributesOrChildren2);
+VirtualElementBuilder element(String tag, {Key key, Map<String, String> attrs, PropSetter props}) {
+  return new VirtualElementBuilder(tag, key, attrs, props);
 }
 
-VirtualElement span([dynamic attributesOrChildren1, dynamic attributesOrChildren2]) {
-  return elem('span', attributesOrChildren1, attributesOrChildren2);
+VirtualElementBuilder div({Map<String, String> attrs, PropSetter props}) {
+  return element('div', attrs: attrs, props: props);
 }
 
-VirtualElement button([dynamic attributesOrChildren1, dynamic attributesOrChildren2]) {
-  return elem('button', attributesOrChildren1, attributesOrChildren2);
+VirtualElementBuilder span({Map<String, String> attrs, PropSetter props}) {
+  return element('span', attrs: attrs, props: props);
 }
 
-VirtualElement elem(String tag, [dynamic attributesOrChildren1, dynamic attributesOrChildren2]) {
-  assert(_validateAttributesOrChildren(attributesOrChildren1));
-  assert(_validateAttributesOrChildren(attributesOrChildren2));
+VirtualElementBuilder button({Map<String, String> attrs, PropSetter props}) {
+  return element('button', attrs: attrs, props: props);
+}
 
-  Attributes attributes;
-  List<VirtualNode> children;
-
-  if (attributesOrChildren1 is Map) {
-    attributes = new Attributes(attributesOrChildren1);
-  } else if (attributesOrChildren1 is List) {
-    children = attributesOrChildren1;
+VirtualElementBuilder input(String type, {Map<String, String> attrs, PropSetter props}) {
+  PropSetter propSetter;
+  if (props != null) {
+    propSetter = (Props p) {
+      p.type = type;
+      props(p);
+    };
+  } else {
+    propSetter = (Props p) {
+      p.type = type;
+    };
   }
-
-  if (attributesOrChildren2 is Map) {
-    attributes = new Attributes(attributesOrChildren2);
-  } else if (attributesOrChildren2 is List) {
-    children = attributesOrChildren2;
-  }
-
-  return new VirtualElement(tag, attributes: attributes, children: children);
+  return element('input', attrs: attrs, props: propSetter);
 }
 
-Text text(String value) => new Text(value);
+VirtualElementBuilder checkbox({Map<String, String> attrs, PropSetter props}) {
+  return input('checkbox', attrs: attrs, props: props);
+}
 
-bool _validateAttributesOrChildren(dynamic attributesOrChildren) {
-  assert(
-    attributesOrChildren == null ||
-    attributesOrChildren is Map ||
-    attributesOrChildren is List
+VirtualElementBuilder radio({Map<String, String> attrs, PropSetter props}) {
+  return input('radio', attrs: attrs, props: props);
+}
+
+VirtualElementBuilder password({Map<String, String> attrs, PropSetter props}) {
+  return input('password', attrs: attrs, props: props);
+}
+
+VirtualElementBuilder submit({Map<String, String> attrs, PropSetter props}) {
+  return input('submit', attrs: attrs, props: props);
+}
+
+VirtualElementBuilder textInput({Map<String, String> attrs, PropSetter props}) {
+  return input('text', attrs: attrs, props: props);
+}
+
+VirtualElementBuilder buttonInput({Map<String, String> attrs, PropSetter props}) {
+  return input('button', attrs: attrs, props: props);
+}
+
+class VirtualElementBuilder {
+  const VirtualElementBuilder(
+    this._tag,
+    this._key,
+    this._attributes,
+    this._props
   );
-  return true;
+
+  final String _tag;
+  final Key _key;
+  final Map<String, String> _attributes;
+  final PropSetter _props;
+
+  VirtualElement call([List<VirtualNode> children]) {
+    // TODO: validate tag name
+    assert(_tag != null);
+    assert(() {
+      if (children == null) {
+        return true;
+      }
+
+      for (var child in children) {
+        assert(child is VirtualNode);
+      }
+
+      return true;
+    });
+
+    return new VirtualElement(
+      _tag,
+      key: _key,
+      attributes: _attributes,
+      props: _props,
+      children: children
+    );
+  }
 }
