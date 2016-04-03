@@ -18,8 +18,8 @@ import 'dart:html' as html;
 
 import 'package:test/test.dart';
 
-import 'package:flutter_ftw/ftw.dart';
-import 'package:flutter_ftw/testing.dart';
+import 'package:butterfly/butterfly.dart';
+import 'package:butterfly/testing.dart';
 
 main() {
   group('text', () {

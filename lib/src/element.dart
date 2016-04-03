@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of flutter.web;
+part of butterfly;
 
 typedef void PropSetter(Props props);
 typedef void EventListener(Event event);

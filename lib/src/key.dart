@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of flutter.web;
+part of butterfly;
 
 /// A Key is an identifier for [Widget]s and [Element]s. A new Widget will only
 /// be used to reconfigure an existing Element if its Key is the same as its

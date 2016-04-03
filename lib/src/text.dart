@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of flutter.web;
+part of butterfly;
 
 /// A kind of node that maps directly to the render system's native node
 /// representing a text value.

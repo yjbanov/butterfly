@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import 'dart:html' as html;
-import 'package:flutter_ftw/ftw.dart';
+import 'package:butterfly/butterfly.dart';
 
 main() {
   runApp(new App(), html.document.querySelector('#app-host'));

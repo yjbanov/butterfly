@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-library flutter_ftw.testing;
+library butterfly.testing;
 
 import 'dart:html' as html;
-import 'ftw.dart';
+import 'butterfly.dart';
 
 ApplicationTester runTestApp(Widget topLevelWidget) {
   return new ApplicationTester(topLevelWidget);
@@ -23,13 +23,13 @@ ApplicationTester runTestApp(Widget topLevelWidget) {
 
 class ApplicationTester {
   factory ApplicationTester(Widget topLevelWidget) {
-    const flutterTestHostElementId = 'flutter-test-host-element';
-    html.Element hostElement = html.document.querySelector('#$flutterTestHostElementId');
+    const butterflyTestHostElementId = 'butterfly-test-host-element';
+    html.Element hostElement = html.document.querySelector('#$butterflyTestHostElementId');
     if (hostElement != null) {
       hostElement.remove();
     }
     hostElement = new html.DivElement()
-      ..id = flutterTestHostElementId;
+      ..id = butterflyTestHostElementId;
     html.document.body.append(hostElement);
     Tree tree = new Tree(topLevelWidget, hostElement);
     ApplicationTester tester = new ApplicationTester._(hostElement, tree);

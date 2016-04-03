@@ -1,9 +1,12 @@
-name: flutter_ftw
+name: butterfly
 version: 0.0.1
 authors:
 - Yegor Jbanov <yjbanov@google.com>
-description: Yet another functional reactive web framework for Dart
-homepage: https://github.com/yjbanov/flutter_ftw
+description: >
+  A web framework for Dart based on Flutter's widget model. The goal of the
+  project is conceptual and data model compatibility with Flutter. An explicit
+  non-goal is "write once, run anywhere".
+homepage: https://github.com/yjbanov/butterfly
 environment:
   sdk: '>=1.14.0 <2.0.0'
 dependencies:
