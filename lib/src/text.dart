@@ -15,8 +15,8 @@
 part of flutter_ftw.tree;
 
 /// A node that carries textual information. This node is immutable.
-class TextNode extends RenderNode<Text> {
-  TextNode(Tree tree, Text configuration)
+class RenderText extends RenderNode<Text> {
+  RenderText(Tree tree, Text configuration)
       : nativeNode = new html.Text(configuration.value),
         super(tree, configuration) {
     nativeNode.data = configuration.value;

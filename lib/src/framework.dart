@@ -48,7 +48,7 @@ abstract class Widget extends Node {
 abstract class StatelessWidget extends Widget {
   const StatelessWidget({Key key}) : super(key: key);
 
-  tree.RenderNode instantiate(tree.Tree t) => new tree.StatelessWidgetNode(t, this);
+  tree.RenderNode instantiate(tree.Tree t) => new tree.RenderStatelessWidget(t, this);
 
   Node build();
 }
@@ -64,12 +64,12 @@ abstract class StatefulWidget extends Widget {
 
   State createState();
 
-  tree.RenderNode instantiate(tree.Tree t) => new tree.StatefulWidgetNode(t, this);
+  tree.RenderNode instantiate(tree.Tree t) => new tree.RenderStatefulWidget(t, this);
 }
 
 /// Mutable state of a [StatefulWidget].
 abstract class State<T extends StatefulWidget> {
-  tree.StatefulWidgetNode _node;
+  tree.RenderStatefulWidget _node;
 
   Node build();
 
@@ -79,7 +79,7 @@ abstract class State<T extends StatefulWidget> {
 }
 
 // TODO: this begs for a better API
-void internalSetStateNode(State state, tree.StatefulWidgetNode node) {
+void internalSetStateNode(State state, tree.RenderStatefulWidget node) {
   state._node = node;
 }
 
@@ -130,7 +130,7 @@ class Text extends Node {
   final String value;
   const Text(this.value, {Key key}) : super(key: key);
 
-  tree.RenderNode instantiate(tree.Tree t) => new tree.TextNode(t, this);
+  tree.RenderNode instantiate(tree.Tree t) => new tree.RenderText(t, this);
 }
 
 /// A Key is an identifier for [Widget]s and [Element]s. A new Widget will only
@@ -239,8 +239,8 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
   Node get currentVirtualNode => _currentTreeNode?.configuration;
   T get currentState {
     tree.RenderNode element = _currentTreeNode;
-    if (element is tree.StatefulWidgetNode) {
-      tree.StatefulWidgetNode statefulElement = element;
+    if (element is tree.RenderStatefulWidget) {
+      tree.RenderStatefulWidget statefulElement = element;
       return statefulElement.state;
     }
     return null;

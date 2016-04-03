@@ -14,7 +14,7 @@
 
 part of flutter_ftw.tree;
 
-class RenderElement extends MultiChildNode<Element> with ElementProps {
+class RenderElement extends RenderMultiChildParent<Element> with ElementProps {
   RenderElement(Tree tree, Element configuration)
     : nativeNode = new html.Element.tag(configuration.tag),
       super(tree, configuration);

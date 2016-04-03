@@ -83,7 +83,7 @@ main() {
   group('MultiChildNode', () {
     test('does not update if config is identical', () {
       var tester = runTestApp(new IdenticalConfigElement());
-      UpdateTrackingTextNode trackingNode = tester.findNodeOfType(UpdateTrackingTextNode);
+      UpdateTrackingRenderText trackingNode = tester.findNodeOfType(UpdateTrackingRenderText);
 
       expect(tester.innerHtml, '<div>never updated</div>');
       expect(trackingNode.updateCount, 1);
@@ -96,14 +96,14 @@ main() {
     test('updates children if descendants need update', () {
       var widget = new ElementWithTrackingChild();
       var tester = runTestApp(widget);
-      tree.ParentNode statefulNode = tester.findNodeOfConfigurationType(ElementWithTrackingChild);
-      UpdateTrackingTextNode trackingNode1 = tester.findNodeOfType(UpdateTrackingTextNode);
+      tree.RenderParent statefulNode = tester.findNodeOfConfigurationType(ElementWithTrackingChild);
+      UpdateTrackingRenderText trackingNode1 = tester.findNodeOfType(UpdateTrackingRenderText);
       expect(trackingNode1.updateCount, 1);
 
       statefulNode.scheduleUpdate();
       tester.renderFrame();
 
-      UpdateTrackingTextNode trackingNode2 = tester.findNodeOfType(UpdateTrackingTextNode);
+      UpdateTrackingRenderText trackingNode2 = tester.findNodeOfType(UpdateTrackingRenderText);
       expect(trackingNode2, same(trackingNode1));
       expect(trackingNode2.updateCount, 2);
     });
@@ -226,8 +226,8 @@ main() {
   });
 }
 
-class UpdateTrackingTextNode extends tree.TextNode {
-  UpdateTrackingTextNode(tree.Tree tree, Text config) : super(tree, config);
+class UpdateTrackingRenderText extends tree.RenderText {
+  UpdateTrackingRenderText(tree.Tree tree, Text config) : super(tree, config);
 
   int updateCount = 0;
 
@@ -241,7 +241,7 @@ class UpdateTrackingTextNode extends tree.TextNode {
 class UpdateTrackingText extends Text {
   const UpdateTrackingText(String value) : super(value);
 
-  tree.RenderNode instantiate(tree.Tree tree) => new UpdateTrackingTextNode(tree, this);
+  tree.RenderNode instantiate(tree.Tree tree) => new UpdateTrackingRenderText(tree, this);
 }
 
 class IdenticalConfigElement extends StatelessWidget {

@@ -14,8 +14,8 @@
 
 part of flutter_ftw.tree;
 
-class StatelessWidgetNode extends ParentNode<StatelessWidget> {
-  StatelessWidgetNode(Tree tree, StatelessWidget configuration)
+class RenderStatelessWidget extends RenderParent<StatelessWidget> {
+  RenderStatelessWidget(Tree tree, StatelessWidget configuration)
       : super(tree, configuration);
 
   RenderNode _child;
@@ -56,8 +56,8 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
   }
 }
 
-class StatefulWidgetNode extends ParentNode<StatefulWidget> {
-  StatefulWidgetNode(Tree tree, StatefulWidget configuration)
+class RenderStatefulWidget extends RenderParent<StatefulWidget> {
+  RenderStatefulWidget(Tree tree, StatefulWidget configuration)
       : super(tree, configuration);
 
   State _state;

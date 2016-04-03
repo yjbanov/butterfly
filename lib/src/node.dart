@@ -37,8 +37,8 @@ abstract class RenderNode<N extends Node> {
   html.Node get nativeNode;
 
   /// The parent node of this node.
-  ParentNode get parent => _parent;
-  ParentNode _parent;
+  RenderParent get parent => _parent;
+  RenderParent _parent;
 
   void dispatchEvent(Event event) {
     if (_parent != null) {
@@ -66,7 +66,7 @@ abstract class RenderNode<N extends Node> {
   }
 
   /// Attached this node to a [newParent].
-  void attach(ParentNode newParent) {
+  void attach(RenderParent newParent) {
     assert(newParent != null);
     _parent = newParent;
     if (_configuration.key is GlobalKey) {
@@ -97,8 +97,8 @@ abstract class RenderNode<N extends Node> {
 
 /// A node that has children.
 // TODO(yjbanov): add fast-track access to class
-abstract class ParentNode<N extends Node> extends RenderNode<N> {
-  ParentNode(Tree tree, N configuration)
+abstract class RenderParent<N extends Node> extends RenderNode<N> {
+  RenderParent(Tree tree, N configuration)
       : super(tree, configuration);
 
   /// Whether any of this node's descentant nodes need to be updated.
@@ -112,7 +112,7 @@ abstract class ParentNode<N extends Node> extends RenderNode<N> {
 
   void scheduleUpdate() {
     _hasDescendantsNeedingUpdate = true;
-    ParentNode parent = _parent;
+    RenderParent parent = _parent;
     while(parent != null) {
       parent._hasDescendantsNeedingUpdate = true;
       parent = parent.parent;
@@ -133,8 +133,8 @@ abstract class ParentNode<N extends Node> extends RenderNode<N> {
 }
 
 /// A node that has multiple children.
-abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNode<N> {
-  MultiChildNode(Tree tree, N configuration) : super(tree, configuration);
+abstract class RenderMultiChildParent<N extends MultiChildVirtualNode> extends RenderParent<N> {
+  RenderMultiChildParent(Tree tree, N configuration) : super(tree, configuration);
 
   List<RenderNode> _currentChildren;
 
