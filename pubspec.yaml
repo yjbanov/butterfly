@@ -10,6 +10,6 @@ homepage: https://github.com/yjbanov/butterfly
 environment:
   sdk: '>=1.14.0 <2.0.0'
 dependencies:
-  browser: any
+  browser: ^0.10.0+2
 dev_dependencies:
   test: '>=0.12.0 <1.0.0'
