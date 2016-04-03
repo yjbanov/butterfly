@@ -51,9 +51,10 @@ non-goal is "write once, run anywhere".
 - **Small**: starting application size is <40kb (minified + gzipped)
 - **Fast**: while it's hard to compare frameworks in terms of raw speed, this
   framework does aim to give you great levels of control for efficient
-  incremental UI updates. Butterfly minimizes the number of DOM nodes. Butterfly
-  widgets are virtual. Most other frameworks create a DOM element for each
-  component.
+  incremental UI updates. Because widgets in Butterfly are plain in-memory
+  objects (a.k.a. virtual) the framework minimizes the number of DOM nodes by
+  only creates nodes for those virtual nodes that need them. Most other
+  frameworks create a DOM element for each component.
 - **Layered**: made of layers (widgets, tree, DOM) - you choose how low-level to
   go.
 - **Hackable**: defining new widgets is at the core of the development
