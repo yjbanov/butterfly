@@ -19,11 +19,11 @@ import 'dart:html' as html;
 import 'framework.dart';
 import 'util.dart';
 
-part 'tree/element.dart';
-part 'tree/node.dart';
-part 'tree/props.dart';
-part 'tree/text.dart';
-part 'tree/widget.dart';
+part 'element.dart';
+part 'node.dart';
+part 'props.dart';
+part 'text.dart';
+part 'widget.dart';
 
 /// Links back from the native node to [ElementNode].
 ///
