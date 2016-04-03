@@ -25,10 +25,10 @@ part 'props.dart';
 part 'text.dart';
 part 'widget.dart';
 
-/// Links back from the native node to [ElementNode].
+/// Links back from the native node to [RenderElement].
 ///
 /// This is used to lookup the event listeners given the event target.
-final Expando<ElementNode> _backlink = new Expando<ElementNode>();
+final Expando<RenderElement> _backlink = new Expando<RenderElement>();
 
 /// Retained virtual mirror of the DOM Tree.
 class Tree {
@@ -40,7 +40,7 @@ class Tree {
   final Widget _topLevelWidget;
   final html.Element _hostElement;
 
-  Node _topLevelNode;
+  RenderNode _topLevelNode;
 
   final List<bool> _globalEventListeners = new List<bool>.filled(400, false);
 
@@ -54,7 +54,7 @@ class Tree {
       Event event = new Event(type, nativeEvent);
       // Find the closest render node interested in the event
       html.Node nativeTarget = nativeEvent.target;
-      ElementNode node;
+      RenderElement node;
       while(nativeTarget != null &&
           (node = _backlink[nativeTarget]) == null || !node.handlesEvent(event)) {
         nativeTarget = nativeTarget.parent;
@@ -67,7 +67,7 @@ class Tree {
     });
   }
 
-  void registerEventListeners(ElementNode element, Map<EventType, EventListener> eventListeners) {
+  void registerEventListeners(RenderElement element, Map<EventType, EventListener> eventListeners) {
     if (eventListeners != null && eventListeners.isNotEmpty) {
       _backlink[element.nativeNode] = element;
       for (EventType type in eventListeners.keys) {
@@ -78,7 +78,7 @@ class Tree {
     }
   }
 
-  void visitChildren(void visitor(Node child)) {
+  void visitChildren(void visitor(RenderNode child)) {
     visitor(_topLevelNode);
   }
 
@@ -109,8 +109,8 @@ class Tree {
   }
 }
 
-void _debugCheckParentChildRelationshipWith(Node node) {
-  node.visitChildren((Node child) {
+void _debugCheckParentChildRelationshipWith(RenderNode node) {
+  node.visitChildren((RenderNode child) {
     assert(identical(child.parent, node));
     _debugCheckParentChildRelationshipWith(child);
   });

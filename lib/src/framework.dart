@@ -20,26 +20,26 @@ import 'tree.dart' as tree;
 
 part 'event_type.dart';
 
-abstract class VirtualNode {
-  const VirtualNode({this.key});
+abstract class Node {
+  const Node({this.key});
   final Key key;
 
-  tree.Node instantiate(tree.Tree t);
+  tree.RenderNode instantiate(tree.Tree t);
 }
 
-abstract class MultiChildVirtualNode extends VirtualNode {
+abstract class MultiChildVirtualNode extends Node {
   const MultiChildVirtualNode({Key key, this.children})
     : super(key: key);
 
-  final List<VirtualNode> children;
+  final List<Node> children;
 }
 
 /// A kind of node that's composed of other nodes.
-abstract class Widget extends VirtualNode {
+abstract class Widget extends Node {
   const Widget({Key key}) : super(key: key);
 }
 
-/// A widget built out of other [VirtualNode]s and has no mutable state.
+/// A widget built out of other [Node]s and has no mutable state.
 ///
 /// As a matter of good practice prefer making stateless widgets immutable, or
 /// even better, support `const`. Because mutations on a stateless widget do not
@@ -48,9 +48,9 @@ abstract class Widget extends VirtualNode {
 abstract class StatelessWidget extends Widget {
   const StatelessWidget({Key key}) : super(key: key);
 
-  tree.Node instantiate(tree.Tree t) => new tree.StatelessWidgetNode(t, this);
+  tree.RenderNode instantiate(tree.Tree t) => new tree.StatelessWidgetNode(t, this);
 
-  VirtualNode build();
+  Node build();
 }
 
 /// A widget that's built from a mutable [State] object.
@@ -64,14 +64,14 @@ abstract class StatefulWidget extends Widget {
 
   State createState();
 
-  tree.Node instantiate(tree.Tree t) => new tree.StatefulWidgetNode(t, this);
+  tree.RenderNode instantiate(tree.Tree t) => new tree.StatefulWidgetNode(t, this);
 }
 
 /// Mutable state of a [StatefulWidget].
 abstract class State<T extends StatefulWidget> {
   tree.StatefulWidgetNode _node;
 
-  VirtualNode build();
+  Node build();
 
   void scheduleUpdate() {
     _node.scheduleUpdate();
@@ -98,9 +98,9 @@ class Event {
 
 /// A kind of node that maps directly to the render system's native element, for
 /// example an HTML element such as `<div>`, `<button>`.
-class VirtualElement extends MultiChildVirtualNode {
-  const VirtualElement(this.tag, {Key key, Map<String, String> attributes,
-      List<VirtualNode> children, this.props, this.eventListeners})
+class Element extends MultiChildVirtualNode {
+  const Element(this.tag, {Key key, Map<String, String> attributes,
+      List<Node> children, this.props, this.eventListeners})
     : this.attributes = attributes,
       super(key: key, children: children);
 
@@ -110,7 +110,7 @@ class VirtualElement extends MultiChildVirtualNode {
   final Map<EventType, EventListener> eventListeners;
 
   @override
-  tree.Node instantiate(tree.Tree t) => new tree.ElementNode(t, this);
+  tree.RenderNode instantiate(tree.Tree t) => new tree.RenderElement(t, this);
 }
 
 abstract class Props {
@@ -126,11 +126,11 @@ abstract class Props {
 
 /// A kind of node that maps directly to the render system's native node
 /// representing a text value.
-class Text extends VirtualNode {
+class Text extends Node {
   final String value;
   const Text(this.value, {Key key}) : super(key: key);
 
-  tree.Node instantiate(tree.Tree t) => new tree.TextNode(t, this);
+  tree.RenderNode instantiate(tree.Tree t) => new tree.TextNode(t, this);
 }
 
 /// A Key is an identifier for [Widget]s and [Element]s. A new Widget will only
@@ -199,12 +199,12 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
   /// The label is not used for comparing the identity of the key.
   factory GlobalKey({ String debugLabel }) => new LabeledGlobalKey<T>(debugLabel); // the label is purely for debugging purposes and is otherwise ignored
 
-  static final Map<GlobalKey, tree.Node> _registry = new Map<GlobalKey, tree.Node>();
+  static final Map<GlobalKey, tree.RenderNode> _registry = new Map<GlobalKey, tree.RenderNode>();
   static final Map<GlobalKey, int> _debugDuplicates = new Map<GlobalKey, int>();
   static final Map<GlobalKey, Set<GlobalKeyRemoveListener>> _removeListeners = new Map<GlobalKey, Set<GlobalKeyRemoveListener>>();
   static final Set<GlobalKey> _removedKeys = new Set<GlobalKey>();
 
-  void register(tree.Node element) {
+  void register(tree.RenderNode element) {
     assert(() {
       if (_registry.containsKey(this)) {
         int oldCount = _debugDuplicates.putIfAbsent(this, () => 1);
@@ -216,7 +216,7 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
     _registry[this] = element;
   }
 
-  void unregister(tree.Node element) {
+  void unregister(tree.RenderNode element) {
     assert(() {
       if (_registry.containsKey(this) && _debugDuplicates.containsKey(this)) {
         int oldCount = _debugDuplicates[this];
@@ -235,10 +235,10 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
     }
   }
 
-  tree.Node get _currentTreeNode => _registry[this];
-  VirtualNode get currentVirtualNode => _currentTreeNode?.configuration;
+  tree.RenderNode get _currentTreeNode => _registry[this];
+  Node get currentVirtualNode => _currentTreeNode?.configuration;
   T get currentState {
-    tree.Node element = _currentTreeNode;
+    tree.RenderNode element = _currentTreeNode;
     if (element is tree.StatefulWidgetNode) {
       tree.StatefulWidgetNode statefulElement = element;
       return statefulElement.state;

@@ -26,37 +26,37 @@ main() {
   group('text', () {
     test('renders simple text', () {
       ApplicationTester tester = runTestApp(new SimpleTextWidget());
-      expect(tester.html, 'hello world!');
+      expect(tester.innerHtml, 'hello world!');
     });
 
     test('renders changing text', () {
       var widget = new ChangingTextWidget();
       ApplicationTester tester = runTestApp(widget);
-      expect(tester.html, 'initial');
+      expect(tester.innerHtml, 'initial');
 
       // Repeated re-renders without actual change should be a noop
       tester.renderFrame();
-      expect(tester.html, 'initial');
+      expect(tester.innerHtml, 'initial');
 
       // Now with the actual change
       widget.state.value = 'updated';
-      expect(tester.html, 'initial', reason: 'have not rendered yet');
+      expect(tester.innerHtml, 'initial', reason: 'have not rendered yet');
       tester.renderFrame();
-      expect(tester.html, 'updated');
+      expect(tester.innerHtml, 'updated');
     });
   });
 
   group('element', () {
     test('renders simple element', () {
       expect(
-        runTestApp(new SimpleElementWidget()).html,
+        runTestApp(new SimpleElementWidget()).innerHtml,
         '<div></div>'
       );
     });
 
     test('renders nested elements', () {
       expect(
-        runTestApp(new NestedElementWidget()).html,
+        runTestApp(new NestedElementWidget()).innerHtml,
         '<div><span></span><button></button></div>'
       );
     });
@@ -64,13 +64,13 @@ main() {
     test('updates the native nodes with new configuration', () {
       var widget = new NodeUpdatingWidget();
       var tester = runTestApp(widget);
-      expect(tester.html, '<div>initial</div>');
+      expect(tester.innerHtml, '<div>initial</div>');
       html.Element div1 = tester.hostElement.childNodes.single;
       html.Text text1 = div1.childNodes.single;
 
       widget.state.value = 'updated';
       tester.renderFrame();
-      expect(tester.html, '<div>updated</div>');
+      expect(tester.innerHtml, '<div>updated</div>');
 
       html.Element div2 = tester.hostElement.childNodes.single;
       html.Text text2 = div2.childNodes.single;
@@ -85,7 +85,7 @@ main() {
       var tester = runTestApp(new IdenticalConfigElement());
       UpdateTrackingTextNode trackingNode = tester.findNodeOfType(UpdateTrackingTextNode);
 
-      expect(tester.html, '<div>never updated</div>');
+      expect(tester.innerHtml, '<div>never updated</div>');
       expect(trackingNode.updateCount, 1);
       tester.renderFrame();
       expect(trackingNode.updateCount, 1);
@@ -129,7 +129,7 @@ main() {
         var innerHtml = keys
           .map((key) => '<span>${key}</span>')
           .join();
-        expect(tester.html, '<div>${innerHtml}</div>');
+        expect(tester.innerHtml, '<div>${innerHtml}</div>');
       }
 
       test('appends new children added to previously empty child list', () {
@@ -187,7 +187,7 @@ main() {
   group('attributes', () {
     test('are set', () {
       expect(
-        runTestApp(new SimpleAttributesWidget()).html,
+        runTestApp(new SimpleAttributesWidget()).innerHtml,
         '<div id="this_is_id" width="300"></div>'
       );
     });
@@ -215,13 +215,13 @@ main() {
     test('are captured by listeners', () {
       var widget = new EventListeningWidget();
       var tester = runTestApp(widget);
-      expect(tester.html, '<button>0</button>');
+      expect(tester.innerHtml, '<button>0</button>');
 
       var button = tester.querySelector('button') as html.ButtonElement;
       button.click();
 
       tester.renderFrame();
-      expect(tester.html, '<button>1</button>');
+      expect(tester.innerHtml, '<button>1</button>');
     });
   });
 }
@@ -241,12 +241,12 @@ class UpdateTrackingTextNode extends tree.TextNode {
 class UpdateTrackingText extends Text {
   const UpdateTrackingText(String value) : super(value);
 
-  tree.Node instantiate(tree.Tree tree) => new UpdateTrackingTextNode(tree, this);
+  tree.RenderNode instantiate(tree.Tree tree) => new UpdateTrackingTextNode(tree, this);
 }
 
 class IdenticalConfigElement extends StatelessWidget {
   static const updateTracker = const UpdateTrackingText('never updated');
-  static const config = const VirtualElement(
+  static const config = const Element(
     'div',
     children: const [updateTracker]
   );
@@ -254,7 +254,7 @@ class IdenticalConfigElement extends StatelessWidget {
 }
 
 class SimpleTextWidget extends StatelessWidget {
-  VirtualNode build() => text('hello world!');
+  Node build() => text('hello world!');
 }
 
 class ChangingTextWidget extends StatefulWidget {
@@ -270,22 +270,22 @@ class ChangingTextWidgetState extends State<ChangingTextWidget> {
     scheduleUpdate();
   }
 
-  VirtualNode build() => text(_value);
+  Node build() => text(_value);
 }
 
 class SimpleElementWidget extends StatelessWidget {
-  VirtualNode build() => div()();
+  Node build() => div()();
 }
 
 class NestedElementWidget extends StatelessWidget {
-  VirtualNode build() => div()([
+  Node build() => div()([
     span()(),
     button()(),
   ]);
 }
 
 class SimpleAttributesWidget extends StatelessWidget {
-  VirtualNode build() => div(attrs: {
+  Node build() => div(attrs: {
     'id': 'this_is_id',
     'width': '300',
   })();
@@ -303,7 +303,7 @@ class NodeUpdatingWidgetState extends State<NodeUpdatingWidget> {
     scheduleUpdate();
   }
 
-  VirtualNode build() => div()([
+  Node build() => div()([
     text(_value)
   ]);
 }
@@ -321,14 +321,14 @@ class ChildListWidgetState extends State<ChildListWidget> {
     scheduleUpdate();
   }
 
-  VirtualNode build() {
+  Node build() {
     if (_childKeys == null) {
-      return new VirtualElement('div');
+      return new Element('div');
     }
 
     return div()(
       _childKeys
-        .map((key) => new VirtualElement(
+        .map((key) => new Element(
           'span',
           key: new ValueKey(key),
           children: [text(key.toString())]
@@ -339,7 +339,7 @@ class ChildListWidgetState extends State<ChildListWidget> {
 }
 
 class ElementWithTrackingChild extends StatelessWidget {
-  VirtualNode build() => new UpdateTrackingText('foo');
+  Node build() => new UpdateTrackingText('foo');
 }
 
 class ElementPropsWidget extends StatefulWidget {
@@ -351,7 +351,7 @@ class ElementPropsWidgetState extends State<ElementPropsWidget> {
   String value = 'foo';
   bool checked = true;
 
-  VirtualNode build() {
+  Node build() {
     return checkbox(
       attrs: const {
         'id': 'first-name',
@@ -370,7 +370,7 @@ class EventListeningWidget extends StatefulWidget {
 class EventListeningWidgetState extends State<EventListeningWidget> {
   int counter = 0;
 
-  VirtualNode build() {
+  Node build() {
     return button(
       eventListeners: {
         EventType.click: (Event event) {

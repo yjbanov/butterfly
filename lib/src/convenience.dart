@@ -97,7 +97,7 @@ class VirtualElementBuilder {
   final PropSetter _props;
   final Map<EventType, EventListener> _eventListeners;
 
-  VirtualElement call([List<VirtualNode> children]) {
+  Element call([List<Node> children]) {
     // TODO: validate tag name
     assert(_tag != null);
     assert(() {
@@ -106,13 +106,13 @@ class VirtualElementBuilder {
       }
 
       for (var child in children) {
-        assert(child is VirtualNode);
+        assert(child is Node);
       }
 
       return true;
     });
 
-    return new VirtualElement(
+    return new Element(
       _tag,
       key: _key,
       attributes: _attributes,

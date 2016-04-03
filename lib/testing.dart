@@ -14,7 +14,7 @@
 
 library flutter_ftw.testing;
 
-import 'dart:html' as htm;
+import 'dart:html' as html;
 import 'ftw.dart';
 import 'src/tree.dart';
 
@@ -25,13 +25,13 @@ ApplicationTester runTestApp(Widget topLevelWidget) {
 class ApplicationTester {
   factory ApplicationTester(Widget topLevelWidget) {
     const flutterTestHostElementId = 'flutter-test-host-element';
-    htm.Element hostElement = htm.document.querySelector('#$flutterTestHostElementId');
+    html.Element hostElement = html.document.querySelector('#$flutterTestHostElementId');
     if (hostElement != null) {
       hostElement.remove();
     }
-    hostElement = new htm.DivElement()
+    hostElement = new html.DivElement()
       ..id = flutterTestHostElementId;
-    htm.document.body.append(hostElement);
+    html.document.body.append(hostElement);
     Tree tree = new Tree(topLevelWidget, hostElement);
     ApplicationTester tester = new ApplicationTester._(hostElement, tree);
     tester.renderFrame();
@@ -40,20 +40,20 @@ class ApplicationTester {
 
   ApplicationTester._(this.hostElement, this.tree);
 
-  final htm.Element hostElement;
+  final html.Element hostElement;
   final Tree tree;
 
-  String get html => hostElement.innerHtml;
+  String get innerHtml => hostElement.innerHtml;
 
-  htm.Element querySelector(String selector) =>
+  html.Element querySelector(String selector) =>
       hostElement.querySelector(selector);
 
-  htm.ElementList<htm.Element> querySelectorAll(String selector) =>
+  html.ElementList<html.Element> querySelectorAll(String selector) =>
       hostElement.querySelectorAll(selector);
 
-  Node findNode(bool predicate(Node node)) {
-    Node foundNode;
-    void findTrackingNode(Node node) {
+  RenderNode findNode(bool predicate(RenderNode node)) {
+    RenderNode foundNode;
+    void findTrackingNode(RenderNode node) {
       if (predicate(node)) {
         foundNode = node;
       } else {
@@ -64,10 +64,10 @@ class ApplicationTester {
     return foundNode;
   }
 
-  Node findNodeOfType(Type type) =>
+  RenderNode findNodeOfType(Type type) =>
       findNode((node) => node.runtimeType == type);
 
-  Node findNodeOfConfigurationType(Type type) =>
+  RenderNode findNodeOfConfigurationType(Type type) =>
       findNode((node) => node.configuration.runtimeType == type);
 
   void renderFrame() {

@@ -14,8 +14,8 @@
 
 part of flutter_ftw.tree;
 
-class ElementNode extends MultiChildNode<VirtualElement> with ElementProps {
-  ElementNode(Tree tree, VirtualElement configuration)
+class RenderElement extends MultiChildNode<Element> with ElementProps {
+  RenderElement(Tree tree, Element configuration)
     : nativeNode = new html.Element.tag(configuration.tag),
       super(tree, configuration);
 
@@ -23,7 +23,7 @@ class ElementNode extends MultiChildNode<VirtualElement> with ElementProps {
   final html.Node nativeNode;
 
   @override
-  void update(VirtualElement newConfiguration) {
+  void update(Element newConfiguration) {
     if (!identical(newConfiguration, configuration)) {
       _updateAttributes(newConfiguration);
       _updateProps(newConfiguration);
@@ -48,7 +48,7 @@ class ElementNode extends MultiChildNode<VirtualElement> with ElementProps {
     super.dispatchEvent(event);
   }
 
-  void _updateAttributes(VirtualElement newConfiguration) {
+  void _updateAttributes(Element newConfiguration) {
     if (configuration == null || configuration.attributes == null) {
       if (newConfiguration.attributes != null) {
         _setAttributes(newConfiguration);
@@ -58,13 +58,13 @@ class ElementNode extends MultiChildNode<VirtualElement> with ElementProps {
     }
   }
 
-  void _updateProps(VirtualElement newConfiguration) {
+  void _updateProps(Element newConfiguration) {
     if (newConfiguration.props != null) {
       newConfiguration.props(this);
     }
   }
 
-  void _setAttributes(VirtualElement newConfiguration) {
+  void _setAttributes(Element newConfiguration) {
     Map<String, String> attributes = newConfiguration.attributes;
     html.Element nativeElement = nativeNode as html.Element;
     for (String attributeName in attributes.keys) {
@@ -73,7 +73,7 @@ class ElementNode extends MultiChildNode<VirtualElement> with ElementProps {
     }
   }
 
-  void _diffAttributes(VirtualElement newConfiguration) {
+  void _diffAttributes(Element newConfiguration) {
     Map<String, String> oldAttrs = configuration.attributes;
     Map<String, String> newAttrs = newConfiguration.attributes;
 

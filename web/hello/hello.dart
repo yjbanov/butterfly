@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html';
+import 'dart:html' as html;
 import 'package:flutter_ftw/ftw.dart';
 
 main() {
-  runApp(new App(), document.querySelector('#app-host'));
+  runApp(new App(), html.document.querySelector('#app-host'));
 }
 
 class App extends StatelessWidget {
-  VirtualNode build() {
+  Node build() {
     return div(attrs: {'id': 'greeting'})([
       text('Hello, World!')
     ]);

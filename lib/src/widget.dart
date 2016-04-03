@@ -18,10 +18,10 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
   StatelessWidgetNode(Tree tree, StatelessWidget configuration)
       : super(tree, configuration);
 
-  Node _child;
+  RenderNode _child;
 
   @override
-  void visitChildren(void visitor(Node child)) {
+  void visitChildren(void visitor(RenderNode child)) {
     visitor(_child);
   }
 
@@ -38,7 +38,7 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
     if (!identical(configuration, newConfiguration)) {
       // Build the new configuration and decide whether to reuse the child node
       // or replace with a new one.
-      VirtualNode newChildConfiguration = newConfiguration.build();
+      Node newChildConfiguration = newConfiguration.build();
       if (_child != null && _canUpdate(_child, newChildConfiguration)) {
         _child.update(newChildConfiguration);
       } else {
@@ -62,11 +62,11 @@ class StatefulWidgetNode extends ParentNode<StatefulWidget> {
 
   State _state;
   State get state => _state;
-  Node _child;
+  RenderNode _child;
   bool _isDirty = false;
 
   @override
-  void visitChildren(void visitor(Node child)) {
+  void visitChildren(void visitor(RenderNode child)) {
     visitor(_child);
   }
 
@@ -89,7 +89,7 @@ class StatefulWidgetNode extends ParentNode<StatefulWidget> {
       // or replace with a new one.
       _state = newConfiguration.createState();
       internalSetStateNode(_state, this);
-      VirtualNode newChildConfiguration = _state.build();
+      Node newChildConfiguration = _state.build();
       if (_child != null && identical(newChildConfiguration.runtimeType, _child.configuration.runtimeType)) {
         _child.update(newChildConfiguration);
       } else {

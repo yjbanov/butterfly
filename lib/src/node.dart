@@ -19,7 +19,7 @@ part of flutter_ftw.tree;
 /// This is used to decide whether a node should be moved, replaced, removed or
 /// updated using the new data (configuration).
 // TODO: can this be made inlineable?
-bool _canUpdate(Node node, VirtualNode configuration) {
+bool _canUpdate(RenderNode node, Node configuration) {
   if (!identical(node.configuration.runtimeType, configuration.runtimeType)) {
     return false;
   }
@@ -27,9 +27,9 @@ bool _canUpdate(Node node, VirtualNode configuration) {
   return node.configuration.key == configuration.key;
 }
 
-/// A node in the retained tree instantiated from [VirtualNode]s.
-abstract class Node<N extends VirtualNode> {
-  Node(this._tree, VirtualNode configuration) {
+/// A node in the retained tree instantiated from [Node]s.
+abstract class RenderNode<N extends Node> {
+  RenderNode(this._tree, Node configuration) {
     update(configuration);
   }
 
@@ -50,7 +50,7 @@ abstract class Node<N extends VirtualNode> {
   Tree get tree => _tree;
   final Tree _tree;
 
-  void visitChildren(void visitor(Node child));
+  void visitChildren(void visitor(RenderNode child));
 
   /// Remove this node from the tree.
   ///
@@ -75,7 +75,7 @@ abstract class Node<N extends VirtualNode> {
     }
   }
 
-  /// The [VirtualNode] that instantiated this retained node.
+  /// The [Node] that instantiated this retained node.
   N get configuration => _configuration;
   N _configuration;
 
@@ -97,7 +97,7 @@ abstract class Node<N extends VirtualNode> {
 
 /// A node that has children.
 // TODO(yjbanov): add fast-track access to class
-abstract class ParentNode<N extends VirtualNode> extends Node<N> {
+abstract class ParentNode<N extends Node> extends RenderNode<N> {
   ParentNode(Tree tree, N configuration)
       : super(tree, configuration);
 
@@ -136,13 +136,13 @@ abstract class ParentNode<N extends VirtualNode> extends Node<N> {
 abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNode<N> {
   MultiChildNode(Tree tree, N configuration) : super(tree, configuration);
 
-  List<Node> _currentChildren;
+  List<RenderNode> _currentChildren;
 
   @override
-  void visitChildren(void visitor(Node child)) {
+  void visitChildren(void visitor(RenderNode child)) {
     if (_currentChildren == null) return;
 
-    for (Node child in _currentChildren) {
+    for (RenderNode child in _currentChildren) {
       visitor(child);
     }
   }
@@ -156,10 +156,10 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
   @override
   void update(N newConfiguration) {
     if (!identical(configuration, newConfiguration)) {
-      List<VirtualNode> newChildList = newConfiguration.children;
+      List<Node> newChildList = newConfiguration.children;
 
       if (newChildList != null && newChildList.isNotEmpty && _currentChildren == null) {
-        _currentChildren = <Node>[];
+        _currentChildren = <RenderNode>[];
       }
 
       if (_currentChildren == null || _currentChildren.isEmpty) {
@@ -211,11 +211,11 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
             _currentChildren.removeRange(from, currTo);
           } else if (currTo == from && newTo > from) {
             // New children were inserted in the middle, insert them
-            Iterable<VirtualNode> newChildren = newChildList.getRange(from, newTo);
+            Iterable<Node> newChildren = newChildList.getRange(from, newTo);
 
-            List<Node> insertedChildren = <Node>[];
-            for (VirtualNode vn in newChildren) {
-              Node child = vn.instantiate(tree);
+            List<RenderNode> insertedChildren = <RenderNode>[];
+            for (Node vn in newChildren) {
+              RenderNode child = vn.instantiate(tree);
               child.attach(this);
               insertedChildren.add(child);
             }
@@ -224,7 +224,7 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
 
             html.Element nativeElement = nativeNode as html.Element;
             html.Node refNode = _currentChildren[newTo].nativeNode;
-            for (Node node in insertedChildren) {
+            for (RenderNode node in insertedChildren) {
               nativeElement.insertBefore(node.nativeNode, refNode);
             }
           } else {
@@ -237,23 +237,23 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
             // implementation would compute the minimum sufficient number of
             // moves to transform the tree into the desired configuration.
 
-            List<Node> disputedRange = <Node>[];
+            List<RenderNode> disputedRange = <RenderNode>[];
             for (int i = from; i < currTo; i++) {
-              Node child = _currentChildren[i];
+              RenderNode child = _currentChildren[i];
               child.detach();
               disputedRange.add(child);
             }
 
-            List<Node> newRange = <Node>[];
+            List<RenderNode> newRange = <RenderNode>[];
             html.Element nativeElement = nativeNode;
             html.Node refNode = currTo < _currentChildren.length
               ? _currentChildren[currTo].nativeNode
               : null;
             for (int i = from; i < newTo; i++) {
-              VirtualNode newChild = newChildList[i];
+              Node newChild = newChildList[i];
               // First try to fing an existing node that could be updated
               bool updated = false;
-              for (Node child in disputedRange) {
+              for (RenderNode child in disputedRange) {
                 if (_canUpdate(child, newChild)) {
                   child.update(newChild);
                   child.attach(this);
@@ -269,7 +269,7 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
               }
 
               if (!updated) {
-                Node child = newChild.instantiate(tree);
+                RenderNode child = newChild.instantiate(tree);
                 child.attach(this);
                 if (refNode == null) {
                   nativeElement.append(child.nativeNode);
@@ -280,7 +280,7 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
               }
             }
 
-            _currentChildren = <Node>[]
+            _currentChildren = <RenderNode>[]
               ..addAll(_currentChildren.sublist(0, from))
               ..addAll(newRange)
               ..addAll(_currentChildren.sublist(currTo));
@@ -290,18 +290,18 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
         }
       }
     } else if (hasDescendantsNeedingUpdate) {
-      for (Node child in _currentChildren) {
+      for (RenderNode child in _currentChildren) {
         child.update(child.configuration);
       }
     }
     super.update(newConfiguration);
   }
 
-  void _appendChildren(List<VirtualNode> newChildList) {
+  void _appendChildren(List<Node> newChildList) {
     assert(newChildList != null && newChildList.isNotEmpty);
     html.Element nativeElement = nativeNode as html.Element;
-    for (VirtualNode vn in newChildList) {
-      Node node = vn.instantiate(tree);
+    for (Node vn in newChildList) {
+      RenderNode node = vn.instantiate(tree);
       node.attach(this);
       _currentChildren.add(node);
       nativeElement.append(node.nativeNode);
@@ -309,9 +309,9 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
   }
 
   void _removeAllCurrentChildren() {
-    for (Node child in _currentChildren) {
+    for (RenderNode child in _currentChildren) {
       child.detach();
     }
-    _currentChildren = <Node>[];
+    _currentChildren = <RenderNode>[];
   }
 }
