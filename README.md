@@ -4,6 +4,8 @@ A web framework for Dart based on Flutter's widget model. The goal of the
 project is conceptual and data model compatibility with Flutter. An explicit
 non-goal is "write once, run anywhere".
 
+*Disclaimer: This is a personal experiment. This is not an official Google product.*
+
 ## What is Butterfly?
 
 - Object-oriented
