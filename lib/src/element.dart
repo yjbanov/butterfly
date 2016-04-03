@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of flutter_ftw.tree;
+part of flutter.web;
 
 class RenderElement extends RenderMultiChildParent<Element> with ElementProps {
   RenderElement(Tree tree, Element configuration)

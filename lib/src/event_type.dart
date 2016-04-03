@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of flutter_ftw.framework;
+part of flutter.web;
 
 /*
 To regenerate this list:

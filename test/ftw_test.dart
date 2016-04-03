@@ -20,7 +20,6 @@ import 'package:test/test.dart';
 
 import 'package:flutter_ftw/ftw.dart';
 import 'package:flutter_ftw/testing.dart';
-import 'package:flutter_ftw/src/tree.dart' as tree;
 
 main() {
   group('text', () {
@@ -96,7 +95,7 @@ main() {
     test('updates children if descendants need update', () {
       var widget = new ElementWithTrackingChild();
       var tester = runTestApp(widget);
-      tree.RenderParent statefulNode = tester.findNodeOfConfigurationType(ElementWithTrackingChild);
+      RenderParent statefulNode = tester.findNodeOfConfigurationType(ElementWithTrackingChild);
       UpdateTrackingRenderText trackingNode1 = tester.findNodeOfType(UpdateTrackingRenderText);
       expect(trackingNode1.updateCount, 1);
 
@@ -226,8 +225,8 @@ main() {
   });
 }
 
-class UpdateTrackingRenderText extends tree.RenderText {
-  UpdateTrackingRenderText(tree.Tree tree, Text config) : super(tree, config);
+class UpdateTrackingRenderText extends RenderText {
+  UpdateTrackingRenderText(Tree tree, Text config) : super(tree, config);
 
   int updateCount = 0;
 
@@ -241,7 +240,7 @@ class UpdateTrackingRenderText extends tree.RenderText {
 class UpdateTrackingText extends Text {
   const UpdateTrackingText(String value) : super(value);
 
-  tree.RenderNode instantiate(tree.Tree tree) => new UpdateTrackingRenderText(tree, this);
+  RenderNode instantiate(Tree tree) => new UpdateTrackingRenderText(tree, this);
 }
 
 class IdenticalConfigElement extends StatelessWidget {

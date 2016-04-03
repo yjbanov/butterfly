@@ -16,7 +16,6 @@ library flutter_ftw.testing;
 
 import 'dart:html' as html;
 import 'ftw.dart';
-import 'src/tree.dart';
 
 ApplicationTester runTestApp(Widget topLevelWidget) {
   return new ApplicationTester(topLevelWidget);

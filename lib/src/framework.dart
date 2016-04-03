@@ -12,19 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-library flutter_ftw.framework;
-
-import 'dart:html' as html;
-
-import 'tree.dart' as tree;
-
-part 'event_type.dart';
+part of flutter.web;
 
 abstract class Node {
   const Node({this.key});
   final Key key;
 
-  tree.RenderNode instantiate(tree.Tree t);
+  RenderNode instantiate(Tree t);
 }
 
 abstract class MultiChildNode extends Node {
@@ -48,7 +42,7 @@ abstract class Widget extends Node {
 abstract class StatelessWidget extends Widget {
   const StatelessWidget({Key key}) : super(key: key);
 
-  tree.RenderNode instantiate(tree.Tree t) => new tree.RenderStatelessWidget(t, this);
+  RenderNode instantiate(Tree t) => new RenderStatelessWidget(t, this);
 
   Node build();
 }
@@ -64,12 +58,12 @@ abstract class StatefulWidget extends Widget {
 
   State createState();
 
-  tree.RenderNode instantiate(tree.Tree t) => new tree.RenderStatefulWidget(t, this);
+  RenderNode instantiate(Tree t) => new RenderStatefulWidget(t, this);
 }
 
 /// Mutable state of a [StatefulWidget].
 abstract class State<T extends StatefulWidget> {
-  tree.RenderStatefulWidget _node;
+  RenderStatefulWidget _node;
 
   Node build();
 
@@ -79,7 +73,7 @@ abstract class State<T extends StatefulWidget> {
 }
 
 // TODO: this begs for a better API
-void internalSetStateNode(State state, tree.RenderStatefulWidget node) {
+void internalSetStateNode(State state, RenderStatefulWidget node) {
   state._node = node;
 }
 
@@ -110,7 +104,7 @@ class Element extends MultiChildNode {
   final Map<EventType, EventListener> eventListeners;
 
   @override
-  tree.RenderNode instantiate(tree.Tree t) => new tree.RenderElement(t, this);
+  RenderNode instantiate(Tree t) => new RenderElement(t, this);
 }
 
 abstract class Props {
@@ -130,7 +124,7 @@ class Text extends Node {
   final String value;
   const Text(this.value, {Key key}) : super(key: key);
 
-  tree.RenderNode instantiate(tree.Tree t) => new tree.RenderText(t, this);
+  RenderNode instantiate(Tree t) => new RenderText(t, this);
 }
 
 /// A Key is an identifier for [Widget]s and [Element]s. A new Widget will only
@@ -191,7 +185,7 @@ typedef void GlobalKeyRemoveListener(GlobalKey key);
 
 /// A GlobalKey is one that must be unique across the entire application. It is
 /// used by components that need to communicate with other components across the
-/// application's element tree.
+/// application's element
 abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
   const GlobalKey.constructor() : super.constructor(); // so that subclasses can call us, since the Key() factory constructor shadows the implicit constructor
 
@@ -199,12 +193,12 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
   /// The label is not used for comparing the identity of the key.
   factory GlobalKey({ String debugLabel }) => new LabeledGlobalKey<T>(debugLabel); // the label is purely for debugging purposes and is otherwise ignored
 
-  static final Map<GlobalKey, tree.RenderNode> _registry = new Map<GlobalKey, tree.RenderNode>();
+  static final Map<GlobalKey, RenderNode> _registry = new Map<GlobalKey, RenderNode>();
   static final Map<GlobalKey, int> _debugDuplicates = new Map<GlobalKey, int>();
   static final Map<GlobalKey, Set<GlobalKeyRemoveListener>> _removeListeners = new Map<GlobalKey, Set<GlobalKeyRemoveListener>>();
   static final Set<GlobalKey> _removedKeys = new Set<GlobalKey>();
 
-  void register(tree.RenderNode element) {
+  void register(RenderNode element) {
     assert(() {
       if (_registry.containsKey(this)) {
         int oldCount = _debugDuplicates.putIfAbsent(this, () => 1);
@@ -216,7 +210,7 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
     _registry[this] = element;
   }
 
-  void unregister(tree.RenderNode element) {
+  void unregister(RenderNode element) {
     assert(() {
       if (_registry.containsKey(this) && _debugDuplicates.containsKey(this)) {
         int oldCount = _debugDuplicates[this];
@@ -235,12 +229,12 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
     }
   }
 
-  tree.RenderNode get _currentTreeNode => _registry[this];
+  RenderNode get _currentTreeNode => _registry[this];
   Node get currentVirtualNode => _currentTreeNode?.configuration;
   T get currentState {
-    tree.RenderNode element = _currentTreeNode;
-    if (element is tree.RenderStatefulWidget) {
-      tree.RenderStatefulWidget statefulElement = element;
+    RenderNode element = _currentTreeNode;
+    if (element is RenderStatefulWidget) {
+      RenderStatefulWidget statefulElement = element;
       return statefulElement.state;
     }
     return null;

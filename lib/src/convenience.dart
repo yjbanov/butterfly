@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'framework.dart';
+part of flutter.web;
 
 Text text(String value, {Key key}) => new Text(value, key: key);
 

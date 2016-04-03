@@ -12,28 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-library flutter_ftw;
+library flutter.web;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:html' as html;
 
-import 'src/tree.dart' as tree;
-import 'src/framework.dart';
-
-export 'src/convenience.dart';
-export 'src/framework.dart';
+part 'src/convenience.dart';
+part 'src/element.dart';
+part 'src/event_type.dart';
+part 'src/framework.dart';
+part 'src/node.dart';
+part 'src/props.dart';
+part 'src/text.dart';
+part 'src/tree.dart';
+part 'src/util.dart';
+part 'src/widget.dart';
 
 // TODO(yjbanov): do not directly expose `dart:html` as we might want to support
 // alternative renderers (web-workers, web-socket).
 Application runApp(Widget topLevelWidget, html.Element hostElement) {
-  return new Application._(new tree.Tree(topLevelWidget, hostElement))
+  return new Application._(new Tree(topLevelWidget, hostElement))
     ..nextFrame();
 }
 
 class Application {
-  final tree.Tree _tree;
+  final Tree _tree;
 
-  Application._(tree.Tree this._tree);
+  Application._(Tree this._tree);
 
   // TODO: for some reason a blank animation frame takes 1/2 millisecond. That's
   //       3% of CPU! Either find a way to reduce that dramatically, like 100x

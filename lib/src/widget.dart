@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of flutter_ftw.tree;
+part of flutter.web;
 
 class RenderStatelessWidget extends RenderParent<StatelessWidget> {
   RenderStatelessWidget(Tree tree, StatelessWidget configuration)

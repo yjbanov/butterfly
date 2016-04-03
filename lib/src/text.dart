@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of flutter_ftw.tree;
+part of flutter.web;
 
 /// A node that carries textual information. This node is immutable.
 class RenderText extends RenderNode<Text> {

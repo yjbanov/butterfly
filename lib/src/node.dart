@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of flutter_ftw.tree;
+part of flutter.web;
 
 /// Whether [node] can be updated from [configuration].
 ///

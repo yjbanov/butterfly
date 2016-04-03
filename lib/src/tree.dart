@@ -12,18 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-library flutter_ftw.tree;
-
-import 'dart:async';
-import 'dart:html' as html;
-import 'framework.dart';
-import 'util.dart';
-
-part 'element.dart';
-part 'node.dart';
-part 'props.dart';
-part 'text.dart';
-part 'widget.dart';
+part of flutter.web;
 
 /// Links back from the native node to [RenderElement].
 ///

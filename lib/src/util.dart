@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:collection';
+part of flutter.web;
 
 /// Dart VM implements `identical` as true reference identity. JavaScript does
 /// not have this. The closest we have in JS is `===`. However, for strings JS
