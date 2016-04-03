@@ -27,8 +27,8 @@ abstract class Node {
   tree.RenderNode instantiate(tree.Tree t);
 }
 
-abstract class MultiChildVirtualNode extends Node {
-  const MultiChildVirtualNode({Key key, this.children})
+abstract class MultiChildNode extends Node {
+  const MultiChildNode({Key key, this.children})
     : super(key: key);
 
   final List<Node> children;
@@ -98,7 +98,7 @@ class Event {
 
 /// A kind of node that maps directly to the render system's native element, for
 /// example an HTML element such as `<div>`, `<button>`.
-class Element extends MultiChildVirtualNode {
+class Element extends MultiChildNode {
   const Element(this.tag, {Key key, Map<String, String> attributes,
       List<Node> children, this.props, this.eventListeners})
     : this.attributes = attributes,

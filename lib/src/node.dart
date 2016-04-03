@@ -133,7 +133,7 @@ abstract class RenderParent<N extends Node> extends RenderNode<N> {
 }
 
 /// A node that has multiple children.
-abstract class RenderMultiChildParent<N extends MultiChildVirtualNode> extends RenderParent<N> {
+abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderParent<N> {
   RenderMultiChildParent(Tree tree, N configuration) : super(tree, configuration);
 
   List<RenderNode> _currentChildren;
