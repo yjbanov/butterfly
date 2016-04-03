@@ -16,23 +16,28 @@ import 'framework.dart';
 
 Text text(String value, {Key key}) => new Text(value, key: key);
 
-VirtualElementBuilder element(String tag, {Key key, Map<String, String> attrs, PropSetter props}) {
-  return new VirtualElementBuilder(tag, key, attrs, props);
+VirtualElementBuilder element(String tag, {Key key, Map<String, String> attrs, PropSetter props,
+    Map<EventType, EventListener> eventListeners}) {
+  return new VirtualElementBuilder(tag, key, attrs, props, eventListeners);
 }
 
-VirtualElementBuilder div({Map<String, String> attrs, PropSetter props}) {
-  return element('div', attrs: attrs, props: props);
+VirtualElementBuilder div({Map<String, String> attrs, PropSetter props,
+    Map<EventType, EventListener> eventListeners}) {
+  return element('div', attrs: attrs, props: props, eventListeners: eventListeners);
 }
 
-VirtualElementBuilder span({Map<String, String> attrs, PropSetter props}) {
-  return element('span', attrs: attrs, props: props);
+VirtualElementBuilder span({Map<String, String> attrs, PropSetter props,
+    Map<EventType, EventListener> eventListeners}) {
+  return element('span', attrs: attrs, props: props, eventListeners: eventListeners);
 }
 
-VirtualElementBuilder button({Map<String, String> attrs, PropSetter props}) {
-  return element('button', attrs: attrs, props: props);
+VirtualElementBuilder button({Map<String, String> attrs, PropSetter props,
+    Map<EventType, EventListener> eventListeners}) {
+  return element('button', attrs: attrs, props: props, eventListeners: eventListeners);
 }
 
-VirtualElementBuilder input(String type, {Map<String, String> attrs, PropSetter props}) {
+VirtualElementBuilder input(String type, {Map<String, String> attrs, PropSetter props,
+    Map<EventType, EventListener> eventListeners}) {
   PropSetter propSetter;
   if (props != null) {
     propSetter = (Props p) {
@@ -47,28 +52,34 @@ VirtualElementBuilder input(String type, {Map<String, String> attrs, PropSetter 
   return element('input', attrs: attrs, props: propSetter);
 }
 
-VirtualElementBuilder checkbox({Map<String, String> attrs, PropSetter props}) {
-  return input('checkbox', attrs: attrs, props: props);
+VirtualElementBuilder checkbox({Map<String, String> attrs, PropSetter props,
+    Map<EventType, EventListener> eventListeners}) {
+  return input('checkbox', attrs: attrs, props: props, eventListeners: eventListeners);
 }
 
-VirtualElementBuilder radio({Map<String, String> attrs, PropSetter props}) {
-  return input('radio', attrs: attrs, props: props);
+VirtualElementBuilder radio({Map<String, String> attrs, PropSetter props,
+    Map<EventType, EventListener> eventListeners}) {
+  return input('radio', attrs: attrs, props: props, eventListeners: eventListeners);
 }
 
-VirtualElementBuilder password({Map<String, String> attrs, PropSetter props}) {
-  return input('password', attrs: attrs, props: props);
+VirtualElementBuilder password({Map<String, String> attrs, PropSetter props,
+    Map<EventType, EventListener> eventListeners}) {
+  return input('password', attrs: attrs, props: props, eventListeners: eventListeners);
 }
 
-VirtualElementBuilder submit({Map<String, String> attrs, PropSetter props}) {
-  return input('submit', attrs: attrs, props: props);
+VirtualElementBuilder submit({Map<String, String> attrs, PropSetter props,
+    Map<EventType, EventListener> eventListeners}) {
+  return input('submit', attrs: attrs, props: props, eventListeners: eventListeners);
 }
 
-VirtualElementBuilder textInput({Map<String, String> attrs, PropSetter props}) {
-  return input('text', attrs: attrs, props: props);
+VirtualElementBuilder textInput({Map<String, String> attrs, PropSetter props,
+    Map<EventType, EventListener> eventListeners}) {
+  return input('text', attrs: attrs, props: props, eventListeners: eventListeners);
 }
 
-VirtualElementBuilder buttonInput({Map<String, String> attrs, PropSetter props}) {
-  return input('button', attrs: attrs, props: props);
+VirtualElementBuilder buttonInput({Map<String, String> attrs, PropSetter props,
+    Map<EventType, EventListener> eventListeners}) {
+  return input('button', attrs: attrs, props: props, eventListeners: eventListeners);
 }
 
 class VirtualElementBuilder {
@@ -76,13 +87,15 @@ class VirtualElementBuilder {
     this._tag,
     this._key,
     this._attributes,
-    this._props
+    this._props,
+    this._eventListeners
   );
 
   final String _tag;
   final Key _key;
   final Map<String, String> _attributes;
   final PropSetter _props;
+  final Map<EventType, EventListener> _eventListeners;
 
   VirtualElement call([List<VirtualNode> children]) {
     // TODO: validate tag name
@@ -104,7 +117,8 @@ class VirtualElementBuilder {
       key: _key,
       attributes: _attributes,
       props: _props,
-      children: children
+      children: children,
+      eventListeners: _eventListeners
     );
   }
 }

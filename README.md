@@ -12,31 +12,30 @@ Some reasons why you might like it:
 - **One language**: traditionally web-frameworks make developers work in a
   number of languages that are glued together by toolchains and runtimes.
   The common combination is JavaScript, HTML templates and CSS (or SASS, or
-  LESS). Not only does it complicate tooling, but it also creates friction in
-  development. There is no common set of guidelines between the languages as
-  they are developed independently of each other. Code completion and code
-  analysis tends to be brittle and is usually only available in big IDEs. The
-  languages are in a perpetual state of incompatibility with each other. For
-  example, you may have to leak implementation details by exposing private fields
-  to bind them to your template code, or deal with variable scoping issues.
-  Your component objects tend to be in inconsistent state throughout the
-  lifecycle because of how the template system initializes and binds the data.
-  Custom extensions, such as JSX/TSX, solve some of the problems, but they still
-  remain half-developed and generally you still end up in a multi-lingual
-  situation, combining JSX with plain JS. Flutter offers you one modern language
-  (Dart) that scales from small apps to large enterprise projects, has great
-  tools and is a pleasure to write code in every day. Code navigation
+  LESS). This complicates tooling and usually the integration between the
+  languages is very weak. Flutter gives you one modern battle-tested language -
+  Dart - that proved to scale from small apps to large enterprise projects, has
+  great tools and is a pleasure to write code in every day. Code navigation
   works seamlessly, typos in the code are identified immediately, and you get
   powerful refactoring features, such as renaming variables and methods. In
   addition Dart gives you minification, dead code elimination and performance
-  optimizing compiler.
+  optimizing compiler. Having one powerful language lets you write your code
+  using the normal OOP practices and patterns:
+  - Encapsulation: private fields, methods and classes
+  - Lexical scoping: static and top-level variables, constants and
+    functions
+  - Control of API surface: make your components private
+  - Control of initialization and lifecycle: components can be cached, injected,
+    shared, and provided via factories
+  - Debugging: breakpoints work everywhere and show correct stack information.
 - **Familiar**: if you have prior Flutter/ReactJS experience you will feel right
   at home.
 - **Reusable**: while not API compatible with Flutter (on purpose), the
   component system is identical, which means you can reuse most of your app's
   business logic, data model and utilities across mobile and web. More
   importantly, you will be using the same Dart tools both for your mobile and
-  web projects.
+  web projects. You cannot reuse the widgets though, as they are targeting
+  different rendering systems (Flutter Engine vs HTML DOM).
 - **Simple**: Flutter introduces only a handful of concepts popularized by
   ReactJS and it works like a plain library that you can drop into an existing
   project; it shares all the same Dart libraries so the incremental cost of
@@ -44,7 +43,9 @@ Some reasons why you might like it:
 - **Small**: starting application size is <40kb (minified + gzipped)
 - **Fast**: while it's hard to compare frameworks in terms of raw speed, this
   framework does aim to give you great levels of control for efficient
-  incremental UI updates.
+  incremental UI updates. Flutter minimizes the number of DOM nodes. Flutter
+  widgets are virtual. Most framework create an extra DOM node for each
+  component.
 - **Layered**: made of layers (widgets, tree, DOM) - you choose how low-level to
   go.
 - **Hackable**: defining new widgets is at the core of the development

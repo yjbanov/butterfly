@@ -15,7 +15,8 @@
 part of flutter_ftw.tree;
 
 class StatelessWidgetNode extends ParentNode<StatelessWidget> {
-  StatelessWidgetNode(StatelessWidget configuration) : super(configuration);
+  StatelessWidgetNode(Tree tree, StatelessWidget configuration)
+      : super(tree, configuration);
 
   Node _child;
 
@@ -43,7 +44,7 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
       } else {
         // Replace child
         _child?.detach();
-        _child = newChildConfiguration.instantiate();
+        _child = newChildConfiguration.instantiate(tree);
         _child.attach(this);
       }
     } else if (hasDescendantsNeedingUpdate) {
@@ -56,7 +57,8 @@ class StatelessWidgetNode extends ParentNode<StatelessWidget> {
 }
 
 class StatefulWidgetNode extends ParentNode<StatefulWidget> {
-  StatefulWidgetNode(StatefulWidget configuration) : super(configuration);
+  StatefulWidgetNode(Tree tree, StatefulWidget configuration)
+      : super(tree, configuration);
 
   State _state;
   State get state => _state;
@@ -92,7 +94,7 @@ class StatefulWidgetNode extends ParentNode<StatefulWidget> {
         _child.update(newChildConfiguration);
       } else {
         _child?.detach();
-        _child = newChildConfiguration.instantiate();
+        _child = newChildConfiguration.instantiate(tree);
         _child.attach(this);
       }
     } else if (_isDirty) {

@@ -12,13 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+library flutter_ftw.framework;
+
+import 'dart:html' as html;
+
 import 'tree.dart' as tree;
+
+part 'event_type.dart';
 
 abstract class VirtualNode {
   const VirtualNode({this.key});
   final Key key;
 
-  tree.Node instantiate();
+  tree.Node instantiate(tree.Tree t);
 }
 
 abstract class MultiChildVirtualNode extends VirtualNode {
@@ -42,7 +48,7 @@ abstract class Widget extends VirtualNode {
 abstract class StatelessWidget extends Widget {
   const StatelessWidget({Key key}) : super(key: key);
 
-  tree.Node instantiate() => new tree.StatelessWidgetNode(this);
+  tree.Node instantiate(tree.Tree t) => new tree.StatelessWidgetNode(t, this);
 
   VirtualNode build();
 }
@@ -58,7 +64,7 @@ abstract class StatefulWidget extends Widget {
 
   State createState();
 
-  tree.Node instantiate() => new tree.StatefulWidgetNode(this);
+  tree.Node instantiate(tree.Tree t) => new tree.StatefulWidgetNode(t, this);
 }
 
 /// Mutable state of a [StatefulWidget].
@@ -78,21 +84,33 @@ void internalSetStateNode(State state, tree.StatefulWidgetNode node) {
 }
 
 typedef void PropSetter(Props props);
+typedef void EventListener(Event event);
+
+/// An event emitted by an element.
+class Event {
+  Event(this.type, this.nativeEvent);
+
+  final EventType type;
+
+  /// The native HTML event that triggered this event.
+  final html.Event nativeEvent;
+}
 
 /// A kind of node that maps directly to the render system's native element, for
 /// example an HTML element such as `<div>`, `<button>`.
 class VirtualElement extends MultiChildVirtualNode {
   const VirtualElement(this.tag, {Key key, Map<String, String> attributes,
-      List<VirtualNode> children, this.props})
+      List<VirtualNode> children, this.props, this.eventListeners})
     : this.attributes = attributes,
       super(key: key, children: children);
 
   final String tag;
   final Map<String, String> attributes;
   final PropSetter props;
+  final Map<EventType, EventListener> eventListeners;
 
   @override
-  tree.Node instantiate() => new tree.ElementNode(this);
+  tree.Node instantiate(tree.Tree t) => new tree.ElementNode(t, this);
 }
 
 abstract class Props {
@@ -112,7 +130,7 @@ class Text extends VirtualNode {
   final String value;
   const Text(this.value, {Key key}) : super(key: key);
 
-  tree.Node instantiate() => new tree.TextNode(this);
+  tree.Node instantiate(tree.Tree t) => new tree.TextNode(t, this);
 }
 
 /// A Key is an identifier for [Widget]s and [Element]s. A new Widget will only

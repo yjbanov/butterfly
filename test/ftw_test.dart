@@ -152,7 +152,6 @@ main() {
         testKeys([1, 2, 3]);
       });
 
-
       test('truncates child list', () {
         testKeys([1, 2, 3, 4, 5]);
         testKeys([1, 2, 3]);
@@ -211,10 +210,24 @@ main() {
       expect(input.checked, false);
     });
   });
+
+  group('events', () {
+    test('are captured by listeners', () {
+      var widget = new EventListeningWidget();
+      var tester = runTestApp(widget);
+      expect(tester.html, '<button>0</button>');
+
+      var button = tester.querySelector('button') as html.ButtonElement;
+      button.click();
+
+      tester.renderFrame();
+      expect(tester.html, '<button>1</button>');
+    });
+  });
 }
 
 class UpdateTrackingTextNode extends tree.TextNode {
-  UpdateTrackingTextNode(Text config) : super(config);
+  UpdateTrackingTextNode(tree.Tree tree, Text config) : super(tree, config);
 
   int updateCount = 0;
 
@@ -228,7 +241,7 @@ class UpdateTrackingTextNode extends tree.TextNode {
 class UpdateTrackingText extends Text {
   const UpdateTrackingText(String value) : super(value);
 
-  tree.Node instantiate() => new UpdateTrackingTextNode(this);
+  tree.Node instantiate(tree.Tree tree) => new UpdateTrackingTextNode(tree, this);
 }
 
 class IdenticalConfigElement extends StatelessWidget {
@@ -347,5 +360,27 @@ class ElementPropsWidgetState extends State<ElementPropsWidget> {
         ..value = value
         ..checked = checked
     )();
+  }
+}
+
+class EventListeningWidget extends StatefulWidget {
+  EventListeningWidgetState createState() => new EventListeningWidgetState();
+}
+
+class EventListeningWidgetState extends State<EventListeningWidget> {
+  int counter = 0;
+
+  VirtualNode build() {
+    return button(
+      eventListeners: {
+        EventType.click: (Event event) {
+          expect(event.nativeEvent is html.MouseEvent, isTrue);
+          counter++;
+          scheduleUpdate();
+        }
+      }
+    )([
+      text('$counter')
+    ]);
   }
 }

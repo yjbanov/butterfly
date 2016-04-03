@@ -15,9 +15,9 @@
 part of flutter_ftw.tree;
 
 class ElementNode extends MultiChildNode<VirtualElement> with ElementProps {
-  ElementNode(VirtualElement configuration)
+  ElementNode(Tree tree, VirtualElement configuration)
     : nativeNode = new html.Element.tag(configuration.tag),
-      super(configuration);
+      super(tree, configuration);
 
   @override
   final html.Node nativeNode;
@@ -27,8 +27,25 @@ class ElementNode extends MultiChildNode<VirtualElement> with ElementProps {
     if (!identical(newConfiguration, configuration)) {
       _updateAttributes(newConfiguration);
       _updateProps(newConfiguration);
+      _updateEventListeners(newConfiguration.eventListeners);
     }
     super.update(newConfiguration);
+  }
+
+  void _updateEventListeners(Map<EventType, EventListener> eventListeners) {
+    tree.registerEventListeners(this, eventListeners);
+  }
+
+  bool handlesEvent(Event event) {
+    var eventListeners = _configuration.eventListeners;
+    return eventListeners != null && eventListeners.containsKey(event.type);
+  }
+
+  void dispatchEvent(Event event) {
+    var eventListeners = _configuration.eventListeners;
+    assert(eventListeners != null && eventListeners.containsKey(event.type));
+    eventListeners[event.type](event);
+    super.dispatchEvent(event);
   }
 
   void _updateAttributes(VirtualElement newConfiguration) {

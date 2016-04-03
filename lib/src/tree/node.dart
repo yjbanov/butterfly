@@ -29,15 +29,26 @@ bool _canUpdate(Node node, VirtualNode configuration) {
 
 /// A node in the retained tree instantiated from [VirtualNode]s.
 abstract class Node<N extends VirtualNode> {
-  Node(VirtualNode configuration) {
+  Node(this._tree, VirtualNode configuration) {
     update(configuration);
   }
 
   /// The native node that this tree node corresponds to.
   html.Node get nativeNode;
 
+  /// The parent node of this node.
   ParentNode get parent => _parent;
   ParentNode _parent;
+
+  void dispatchEvent(Event event) {
+    if (_parent != null) {
+      _parent.dispatchEvent(event);
+    }
+  }
+
+  /// The node tree that this node participates in.
+  Tree get tree => _tree;
+  final Tree _tree;
 
   void visitChildren(void visitor(Node child));
 
@@ -56,6 +67,7 @@ abstract class Node<N extends VirtualNode> {
 
   /// Attached this node to a [newParent].
   void attach(ParentNode newParent) {
+    assert(newParent != null);
     _parent = newParent;
     if (_configuration.key is GlobalKey) {
       final GlobalKey key = _configuration.key;
@@ -86,8 +98,8 @@ abstract class Node<N extends VirtualNode> {
 /// A node that has children.
 // TODO(yjbanov): add fast-track access to class
 abstract class ParentNode<N extends VirtualNode> extends Node<N> {
-  ParentNode(N configuration)
-      : super(configuration);
+  ParentNode(Tree tree, N configuration)
+      : super(tree, configuration);
 
   /// Whether any of this node's descentant nodes need to be updated.
   bool _hasDescendantsNeedingUpdate = true;
@@ -122,7 +134,7 @@ abstract class ParentNode<N extends VirtualNode> extends Node<N> {
 
 /// A node that has multiple children.
 abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNode<N> {
-  MultiChildNode(N configuration) : super(configuration);
+  MultiChildNode(Tree tree, N configuration) : super(tree, configuration);
 
   List<Node> _currentChildren;
 
@@ -203,7 +215,7 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
 
             List<Node> insertedChildren = <Node>[];
             for (VirtualNode vn in newChildren) {
-              Node child = vn.instantiate();
+              Node child = vn.instantiate(tree);
               child.attach(this);
               insertedChildren.add(child);
             }
@@ -257,7 +269,7 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
               }
 
               if (!updated) {
-                Node child = newChild.instantiate();
+                Node child = newChild.instantiate(tree);
                 child.attach(this);
                 if (refNode == null) {
                   nativeElement.append(child.nativeNode);
@@ -289,7 +301,7 @@ abstract class MultiChildNode<N extends MultiChildVirtualNode> extends ParentNod
     assert(newChildList != null && newChildList.isNotEmpty);
     html.Element nativeElement = nativeNode as html.Element;
     for (VirtualNode vn in newChildList) {
-      Node node = vn.instantiate();
+      Node node = vn.instantiate(tree);
       node.attach(this);
       _currentChildren.add(node);
       nativeElement.append(node.nativeNode);

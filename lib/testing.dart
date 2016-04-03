@@ -24,7 +24,14 @@ ApplicationTester runTestApp(Widget topLevelWidget) {
 
 class ApplicationTester {
   factory ApplicationTester(Widget topLevelWidget) {
-    htm.DivElement hostElement = new htm.DivElement();
+    const flutterTestHostElementId = 'flutter-test-host-element';
+    htm.Element hostElement = htm.document.querySelector('#$flutterTestHostElementId');
+    if (hostElement != null) {
+      hostElement.remove();
+    }
+    hostElement = new htm.DivElement()
+      ..id = flutterTestHostElementId;
+    htm.document.body.append(hostElement);
     Tree tree = new Tree(topLevelWidget, hostElement);
     ApplicationTester tester = new ApplicationTester._(hostElement, tree);
     tester.renderFrame();
