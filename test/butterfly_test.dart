@@ -223,6 +223,101 @@ main() {
       expect(tester.innerHtml, '<button>1</button>');
     });
   });
+
+  group('style', () {
+    test('applies single style', () {
+      var s = new Style('width: 10px;');
+      var widget = new WidgetWithStyle(s);
+      var tester = runTestApp(widget);
+      expect(tester.innerHtml, '<div class="${s.identifierClass}"></div>');
+    });
+  });
+
+  group('styles', () {
+    Style s1, s2, s3, s4, s5;
+    WidgetWithMultipleStyles widget;
+
+    setUp(() {
+      widget = new WidgetWithMultipleStyles();
+      s1 = new Style('width: 10px;');
+      s2 = new Style('height: 50px;');
+      s3 = new Style('color: green;');
+      s4 = new Style('max-height: 500px;');
+      s5 = new Style('min-height: 10px;');
+    });
+
+    void testStyles(List<Style> styles) {
+      widget.state.styles = styles;
+      var tester = runTestApp(widget);
+      var buf = new StringBuffer();
+      buf.write('<div');
+      if (styles != null && styles.isNotEmpty) {
+        buf.write(' class="');
+        buf.write(styles.map((s) => s.identifierClass).join(' '));
+        buf.write('"');
+      }
+      buf.write('></div>');
+      expect(tester.innerHtml, buf.toString());
+    }
+
+    test('applies multiple styles', () {
+      testStyles([s1, s2]);
+    });
+
+    test('appends styles from null', () {
+      testStyles(null);
+      testStyles([s1, s2]);
+    });
+
+    test('appends styles from empty', () {
+      testStyles([]);
+      testStyles([s1, s2]);
+    });
+
+    test('removes styles to null', () {
+      testStyles([s1, s2]);
+      testStyles(null);
+    });
+
+    test('removes styles to empty', () {
+      testStyles([s1, s2]);
+      testStyles([]);
+    });
+
+    test('inserts styles', () {
+      testStyles([s1, s5]);
+      testStyles([s1, s2, s3, s4, s5]);
+    });
+
+    test('removes styles in the middle', () {
+      testStyles([s1, s2, s3, s4, s5]);
+      testStyles([s1, s5]);
+    });
+
+    test('shuffles styles', () {
+      testStyles([s1, s2, s3, s4]);
+      testStyles([s4, s3, s1, s2]);
+    });
+  });
+}
+
+class WidgetWithStyle extends StatelessWidget {
+  WidgetWithStyle(this.style);
+
+  Style style;
+
+  build() => div(style: style)();
+}
+
+class WidgetWithMultipleStyles extends StatefulWidget {
+  final state = new WidgetWithMultipleStylesState();
+  createState() => state;
+}
+
+class WidgetWithMultipleStylesState extends State {
+  List<Style> styles;
+
+  build() => div(styles: styles)();
 }
 
 class UpdateTrackingRenderText extends RenderText {

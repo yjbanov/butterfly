@@ -21,17 +21,36 @@ final Expando<RenderElement> _backlink = new Expando<RenderElement>();
 
 /// Retained virtual mirror of the DOM Tree.
 class Tree {
-  Tree(this._topLevelWidget, this._hostElement) {
+  Tree(this._topLevelWidget, this._hostElement, [html.Node styleHost])
+      : _styleHost = styleHost ?? html.document.head {
     assert(_topLevelWidget != null);
     assert(_hostElement != null);
   }
 
   final Widget _topLevelWidget;
   final html.Element _hostElement;
+  final html.Node _styleHost;
 
   RenderNode _topLevelNode;
 
   final List<bool> _globalEventListeners = new List<bool>.filled(400, false);
+
+  StringBuffer _styleBuffer = new StringBuffer();
+
+  void registerStyle(Style style) {
+    assert(!style._isRegistered);
+    _styleBuffer.writeln('.${style.identifierClass} { ${style.css} }');
+  }
+
+  void _flushStyles() {
+    if (_styleBuffer.isEmpty) {
+      return;
+    }
+    var styleElement = new html.StyleElement()
+      ..appendText('${_styleBuffer}');
+    _styleHost.append(styleElement);
+    _styleBuffer = new StringBuffer();
+  }
 
   void _registerEventType(EventType type) {
     int index = type.index;
@@ -83,6 +102,7 @@ class Tree {
     } else {
       _topLevelNode.update(_topLevelNode.configuration);
     }
+    _flushStyles();
 
     assert(() {
       _debugCheckParentChildRelationships();

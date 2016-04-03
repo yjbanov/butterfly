@@ -225,7 +225,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderPa
             _currentChildren.removeRange(from, currTo);
           } else if (currTo == from && newTo > from) {
             // New children were inserted in the middle, insert them
-            Iterable<Node> newChildren = newChildList.getRange(from, newTo);
+            List<Node> newChildren = newChildList.sublist(from, newTo);
 
             List<RenderNode> insertedChildren = <RenderNode>[];
             for (Node vn in newChildren) {

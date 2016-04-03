@@ -30,15 +30,23 @@ class Event {
 /// A kind of node that maps directly to the render system's native element, for
 /// example an HTML element such as `<div>`, `<button>`.
 class Element extends MultiChildNode {
-  const Element(this.tag, {Key key, Map<String, String> attributes,
-      List<Node> children, this.props, this.eventListeners})
-    : this.attributes = attributes,
-      super(key: key, children: children);
+  const Element(this.tag, {
+    Key key,
+    Map<String, String> attributes,
+    List<Node> children,
+    this.props,
+    this.eventListeners,
+    this.style,
+    this.styles
+  }) : this.attributes = attributes,
+       super(key: key, children: children);
 
   final String tag;
   final Map<String, String> attributes;
   final PropSetter props;
   final Map<EventType, EventListener> eventListeners;
+  final Style style;
+  final List<Style> styles;
 
   @override
   RenderNode instantiate(Tree t) => new RenderElement(t, this);
@@ -61,7 +69,7 @@ class RenderElement extends RenderMultiChildParent<Element> with ElementProps {
       super(tree, configuration);
 
   @override
-  final html.Node nativeNode;
+  final html.Element nativeNode;
 
   @override
   void update(Element newConfiguration) {
@@ -69,8 +77,74 @@ class RenderElement extends RenderMultiChildParent<Element> with ElementProps {
       _updateAttributes(newConfiguration);
       _updateProps(newConfiguration);
       _updateEventListeners(newConfiguration.eventListeners);
+      _updateStyles(newConfiguration);
     }
     super.update(newConfiguration);
+  }
+
+  Style _appliedStyle;
+  List<Style> _appliedStyles;
+
+  void _addStyle(Style style) {
+    if (!style._isRegistered) {
+      tree.registerStyle(style);
+    }
+    nativeNode.classes.add(style.identifierClass);
+  }
+
+  void _updateStyles(Element newConfiguration) {
+    var style = newConfiguration.style;
+    if (!identical(_appliedStyle, style)) {
+      bool hasStyle = _appliedStyle != null;
+      bool willHaveStyle = style != null;
+
+      if (hasStyle && !willHaveStyle) {
+        nativeNode.classes.remove(_appliedStyle.identifierClass);
+      } else if (!hasStyle && willHaveStyle) {
+        _addStyle(style);
+      } else {
+        nativeNode.classes.remove(_appliedStyle.identifierClass);
+        _addStyle(style);
+      }
+    }
+    _appliedStyle = style;
+
+    var styles = newConfiguration.styles;
+    if (!identical(_appliedStyles, styles)) {
+      bool hasStyles = _appliedStyles != null && _appliedStyles.isNotEmpty;
+      bool willHaveStyles = styles != null && styles.isNotEmpty;
+
+      if (!hasStyles && !willHaveStyles) {
+        return;
+      }
+
+      if (hasStyles && !willHaveStyles) {
+        // Simply remove all
+        for (Style style in _appliedStyles) {
+          nativeNode.classes.remove(style.identifierClass);
+        }
+      } else if (!hasStyles && willHaveStyles) {
+        // Simply add all
+        for (Style style in styles) {
+          _addStyle(style);
+        }
+      } else {
+        // Do the diffing
+        int i = 0;
+        while (i < _appliedStyles.length && i < styles.length &&
+               identical(_appliedStyles[i], styles[i])) {
+          i++;
+        }
+        for (int j = i; j < _appliedStyles.length; j++) {
+          nativeNode.classes.remove(_appliedStyles[j].identifierClass);
+        }
+        while (i < styles.length) {
+          _addStyle(styles[i]);
+          i++;
+        }
+      }
+      _appliedStyles = styles;
+    }
   }
 
   void _updateEventListeners(Map<EventType, EventListener> eventListeners) {
@@ -107,10 +181,9 @@ class RenderElement extends RenderMultiChildParent<Element> with ElementProps {
 
   void _setAttributes(Element newConfiguration) {
     Map<String, String> attributes = newConfiguration.attributes;
-    html.Element nativeElement = nativeNode as html.Element;
     for (String attributeName in attributes.keys) {
       String value = attributes[attributeName];
-      nativeElement.setAttribute(attributeName, value);
+      nativeNode.setAttribute(attributeName, value);
     }
   }
 
@@ -122,18 +195,17 @@ class RenderElement extends RenderMultiChildParent<Element> with ElementProps {
       return;
     }
 
-    html.Element nativeElement = nativeNode as html.Element;
     for (String attributeName in newAttrs.keys) {
       String oldValue = oldAttrs[attributeName];
       String newValue = newAttrs[attributeName];
       assert(!(oldValue == null && newValue == null));
       if (oldValue == null && newValue != null) {
-        nativeElement.setAttribute(attributeName, newValue);
+        nativeNode.setAttribute(attributeName, newValue);
       } else if (oldValue != null && newValue == null) {
         // TODO(yjbanov): is there a more efficient way to do this?
-        nativeElement.attributes.remove(attributeName);
+        nativeNode.attributes.remove(attributeName);
       } else if (!looseIdentical(oldValue, newValue)) {
-        nativeElement.setAttribute(attributeName, newValue);
+        nativeNode.setAttribute(attributeName, newValue);
       }
     }
   }
