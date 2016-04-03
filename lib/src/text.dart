@@ -14,6 +14,15 @@
 
 part of flutter.web;
 
+/// A kind of node that maps directly to the render system's native node
+/// representing a text value.
+class Text extends Node {
+  final String value;
+  const Text(this.value, {Key key}) : super(key: key);
+
+  RenderNode instantiate(Tree t) => new RenderText(t, this);
+}
+
 /// A node that carries textual information. This node is immutable.
 class RenderText extends RenderNode<Text> {
   RenderText(Tree tree, Text configuration)

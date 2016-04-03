@@ -14,6 +14,55 @@
 
 part of flutter.web;
 
+/// A kind of node that's composed of other nodes.
+abstract class Widget extends Node {
+  const Widget({Key key}) : super(key: key);
+}
+
+/// A widget built out of other [Node]s and has no mutable state.
+///
+/// As a matter of good practice prefer making stateless widgets immutable, or
+/// even better, support `const`. Because mutations on a stateless widget do not
+/// make sense, immutabity sets the right expectation that the state cannot be
+/// altered.
+abstract class StatelessWidget extends Widget {
+  const StatelessWidget({Key key}) : super(key: key);
+
+  RenderNode instantiate(Tree t) => new RenderStatelessWidget(t, this);
+
+  Node build();
+}
+
+/// A widget that's built from a mutable [State] object.
+///
+/// As a matter of good practice, prefer making the widget class immutable, or
+/// even better, support `const`. However, the [State] object can be mutable. In
+/// fact, it should be mutable. If you find that the state object is immutable,
+/// consider switching to a [StatelessWidget].
+abstract class StatefulWidget extends Widget {
+  const StatefulWidget({Key key}) : super(key: key);
+
+  State createState();
+
+  RenderNode instantiate(Tree t) => new RenderStatefulWidget(t, this);
+}
+
+/// Mutable state of a [StatefulWidget].
+abstract class State<T extends StatefulWidget> {
+  RenderStatefulWidget _node;
+
+  Node build();
+
+  void scheduleUpdate() {
+    _node.scheduleUpdate();
+  }
+}
+
+// TODO: this begs for a better API
+void internalSetStateNode(State state, RenderStatefulWidget node) {
+  state._node = node;
+}
+
 class RenderStatelessWidget extends RenderParent<StatelessWidget> {
   RenderStatelessWidget(Tree tree, StatelessWidget configuration)
       : super(tree, configuration);

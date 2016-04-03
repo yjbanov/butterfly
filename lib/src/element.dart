@@ -14,6 +14,47 @@
 
 part of flutter.web;
 
+typedef void PropSetter(Props props);
+typedef void EventListener(Event event);
+
+/// An event emitted by an element.
+class Event {
+  Event(this.type, this.nativeEvent);
+
+  final EventType type;
+
+  /// The native HTML event that triggered this event.
+  final html.Event nativeEvent;
+}
+
+/// A kind of node that maps directly to the render system's native element, for
+/// example an HTML element such as `<div>`, `<button>`.
+class Element extends MultiChildNode {
+  const Element(this.tag, {Key key, Map<String, String> attributes,
+      List<Node> children, this.props, this.eventListeners})
+    : this.attributes = attributes,
+      super(key: key, children: children);
+
+  final String tag;
+  final Map<String, String> attributes;
+  final PropSetter props;
+  final Map<EventType, EventListener> eventListeners;
+
+  @override
+  RenderNode instantiate(Tree t) => new RenderElement(t, this);
+}
+
+abstract class Props {
+  /// A property on `<input>`
+  set checked(bool value);
+
+  /// A property on `<input>`
+  set value(String newValue);
+
+  /// A property on `<input>`
+  set type(String type);
+}
+
 class RenderElement extends RenderMultiChildParent<Element> with ElementProps {
   RenderElement(Tree tree, Element configuration)
     : nativeNode = new html.Element.tag(configuration.tag),

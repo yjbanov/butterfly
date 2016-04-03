@@ -14,6 +14,20 @@
 
 part of flutter.web;
 
+abstract class Node {
+  const Node({this.key});
+  final Key key;
+
+  RenderNode instantiate(Tree t);
+}
+
+abstract class MultiChildNode extends Node {
+  const MultiChildNode({Key key, this.children})
+    : super(key: key);
+
+  final List<Node> children;
+}
+
 /// Whether [node] can be updated from [configuration].
 ///
 /// This is used to decide whether a node should be moved, replaced, removed or

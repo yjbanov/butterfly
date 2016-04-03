@@ -21,7 +21,7 @@ import 'dart:html' as html;
 part 'src/convenience.dart';
 part 'src/element.dart';
 part 'src/event_type.dart';
-part 'src/framework.dart';
+part 'src/key.dart';
 part 'src/node.dart';
 part 'src/props.dart';
 part 'src/text.dart';
