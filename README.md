@@ -2,7 +2,7 @@
 
 A web framework for Dart based on Flutter's widget model. The goal of the
 project is conceptual and data model compatibility with Flutter. An explicit
-non-goal is "write once, run anywhere".
+non-goal is "write once, run anywhere". Butterfly shares no code with Flutter.
 
 *Disclaimer: This is a personal experiment. This is not an official Google product.*
 
@@ -14,6 +14,15 @@ non-goal is "write once, run anywhere".
 - Web framework
 - For Dart
 - Inspired by Flutter (transitively by ReactJS)
+
+## Who is Butterfly for?
+
+- For app developers who build mobile apps using Flutter, and who also need
+  to build web apps. Butterfly gives you a single conceptual model for writing
+  your apps for both web and mobile, and allows the reuse of big chunks of code.
+- For web developers, switching to Dart but prefer using a ReactJS-like app
+  framework.
+- For application developers who prefer functional-reactive programming style.
 
 ## Why Butterfly?
 
