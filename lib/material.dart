@@ -12,19 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html' as html;
-import 'package:butterfly/butterfly.dart';
-import 'package:butterfly/material.dart';
+library butterfly.material;
 
-main() {
-  runApp(new App(), html.document.querySelector('#app-host'));
-}
-
-class App extends StatelessWidget {
-  Node build() {
-    return div(attrs: {'id': 'greeting'})([
-      text('Hello, World!'),
-      new MaterialButton(child: text('Update')),
-    ]);
-  }
-}
+export 'src/material/button/material_button.dart';

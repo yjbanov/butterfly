@@ -12,19 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html' as html;
 import 'package:butterfly/butterfly.dart';
-import 'package:butterfly/material.dart';
 
-main() {
-  runApp(new App(), html.document.querySelector('#app-host'));
+import 'material_button.style.dart';
+
+class MaterialButton extends StatefulWidget {
+
+  MaterialButton({this.child});
+
+  final Node child;
+
+  _MaterialButtonState createState() => new _MaterialButtonState();
 }
 
-class App extends StatelessWidget {
+class _MaterialButtonState extends State<MaterialButton> {
   Node build() {
-    return div(attrs: {'id': 'greeting'})([
-      text('Hello, World!'),
-      new MaterialButton(child: text('Update')),
+    return div(style: matButton, attrs: {'style': 'background-color: red'})([
+      config.child
     ]);
   }
 }

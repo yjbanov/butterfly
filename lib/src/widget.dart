@@ -50,6 +50,8 @@ abstract class StatefulWidget extends Widget {
 /// Mutable state of a [StatefulWidget].
 abstract class State<T extends StatefulWidget> {
   RenderStatefulWidget _node;
+  T _config;
+  T get config => _config;
 
   Node build();
 
@@ -137,6 +139,7 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
       // Build the new configuration and decide whether to reuse the child node
       // or replace with a new one.
       _state = newConfiguration.createState();
+      _state._config = newConfiguration;
       internalSetStateNode(_state, this);
       Node newChildConfiguration = _state.build();
       if (_child != null && identical(newChildConfiguration.runtimeType, _child.configuration.runtimeType)) {

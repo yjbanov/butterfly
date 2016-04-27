@@ -464,14 +464,16 @@ class EventListeningWidget extends StatefulWidget {
 class EventListeningWidgetState extends State<EventListeningWidget> {
   int counter = 0;
 
+  _buttonClicked(Event event) {
+    expect(event.nativeEvent is html.MouseEvent, isTrue);
+    counter++;
+    scheduleUpdate();
+  }
+
   Node build() {
     return button(
       eventListeners: {
-        EventType.click: (Event event) {
-          expect(event.nativeEvent is html.MouseEvent, isTrue);
-          counter++;
-          scheduleUpdate();
-        }
+        EventType.click: _buttonClicked
       }
     )([
       text('$counter')

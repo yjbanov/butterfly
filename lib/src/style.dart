@@ -14,6 +14,16 @@
 
 part of butterfly;
 
+/// Key for mixins in style expressions.
+///
+/// Example:
+///
+///     Style matButton = style({
+///       mixin: someMixin,
+///       'align-items': 'center',
+///     });
+final String mixin = r'$mixin$';
+
 /// Describes an HTML element's CSS style.
 ///
 /// Butterfly encourages defining your styles in Dart code. You get the same
@@ -51,72 +61,74 @@ part of butterfly;
 ///       'border-radius': radius,
 ///     };
 ///
-///     final Style box = (
-///       new StyleBuilder()
-///         ..addMixin(borderRadius('10px'))
-///         ..['font'] = '100% $fontStack'
-///         ..['color'] = primaryColor
-///       ).buildStyle();
+///     final Style box = style({
+///       mixin: borderRadius('10px'),
+///       'font': '100% $fontStack',
+///       'color': primaryColor,
+///     });
 ///
 /// Now you can apply this style to an element:
 ///
 ///     build() => div(style: box);
 ///
+Style style(Map<String, dynamic> styleExpression) {
+  var buf = new StringBuffer();
+  _flatten(styleExpression).forEach((String property, dynamic value) {
+    if (value is String) {
+      buf.write('${property}: ${value};');
+    } else if (value is List) {
+      for (String subValue in value) {
+        buf.write('${property}: ${subValue};');
+      }
+    } else {
+      assert(() {
+        throw new ArgumentError.value(value.runtimeType, 'value type', 'Not supported');
+      });
+    }
+  });
+  return new Style(buf.toString());
+}
+
+/// A uniquely identifiable CSS style that may be applied to an HTML element.
 class Style {
   static int _idCounter = 1;
 
   Style(this.css) : identifierClass = 'bf${_idCounter++}';
 
+  /// A [Style] object is applied to an element by using [identifierClass] as
+  /// the CSS class.
   final String identifierClass;
+
+  /// A valid CSS property list.
+  ///
+  /// Example:
+  ///
+  ///     """
+  ///     height: 10px;
+  ///     width: 50px;
+  ///     """
   final String css;
 
   bool _isRegistered = false;
 }
 
-class StyleProperty {
-  StyleProperty(this.name, this.value);
-
-  final String name;
-  final String value;
-}
-
-class StyleBuilder {
-  final List<Map<String, String>> _mixins = <Map<String, String>>[];
-  final Map<String, String> _properties = <String, String>{};
-
-  void addMixin(Map<String, String> mixin) {
-    _mixins.add(mixin);
-  }
-
-  void addProperty(StyleProperty property) {
-    _properties[property.name] = property.value;
-  }
-
-  operator[]=(String name, String value) {
-    _properties[name] = value;
-  }
-
-  /// Returns flat map of CSS properties.
-  ///
-  /// Properties in mixins that come last take precedence over those that come
-  /// from mixins added earlier. Properties added using `operator[]=` have the
-  /// highest precedence.
-  Map<String, String> flatten() {
-    var flat = <String, String>{};
-    for (Map<String, String> mixin in _mixins) {
-      flat.addAll(mixin);
+Map<String, dynamic> _flatten(Map<String, dynamic> styleExpression) {
+  final flat = <String, dynamic>{};
+  styleExpression.forEach((String property, dynamic value) {
+    if (value is Map) {
+      assert(() {
+        if (!identical(property, mixin)) {
+          throw 'Mixin in style expression whose key is not `mixin`:\n'
+            'Property: ${property}\n'
+            'Style expression:\n'
+            '${styleExpression}';
+        }
+        return true;
+      });
+      flat.addAll(_flatten(value));
+    } else {
+      flat[property] = value;
     }
-    flat.addAll(_properties);
-    return flat;
-  }
-
-  /// Returns the final CSS of the style.
-  Style buildStyle() {
-    var buf = new StringBuffer();
-    var flat = flatten();
-    for (String property in flat) {
-      buf.write('${property}: ${flat[property]}');
-    }
-    return new Style(buf.toString());
-  }
+  });
+  return flat;
 }
