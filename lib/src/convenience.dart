@@ -136,7 +136,7 @@ VirtualElementBuilder input(String type, {Map<String, String> attrs, PropSetter 
       p.type = type;
     };
   }
-  return element('input', attrs: attrs, props: propSetter);
+  return element('input', attrs: attrs, props: propSetter, eventListeners: eventListeners, style: style, styles: styles);
 }
 
 VirtualElementBuilder checkbox({Map<String, String> attrs, PropSetter props,
