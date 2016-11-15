@@ -1,10 +1,12 @@
 # Butterfly
 
-A web framework for Dart based on Flutter's widget model. The goal of the
-project is conceptual and data model compatibility with Flutter. An explicit
-non-goal is "write once, run anywhere". Butterfly shares no code with Flutter.
+**WARNING: This is highly experimental**
 
-*Disclaimer: This is a personal experiment. This is not an official Google product.*
+**DISCLAIMER: This is a personal project. This is not an official Google product.**
+
+A web framework for Dart based on Flutter's widget model. The goal of the
+project is conceptual and data model compatibility with Flutter (see [Greencat](https://github.com/alexeieleusis/greencat) for some examples). An explicit
+non-goal is "write once, run anywhere". Butterfly shares no code with Flutter.
 
 ## What is Butterfly?
 
@@ -58,7 +60,7 @@ non-goal is "write once, run anywhere". Butterfly shares no code with Flutter.
   project; it shares all the same Dart libraries so the incremental cost of
   adding it to your project is minimal.
 - **Small**: starting application size is <40kb (minified + gzipped)
-- **Fast**: while it's hard to compare frameworks in terms of raw speed, this
+- **Fast**: while it is hard to compare frameworks in terms of raw speed, this
   framework does aim to give you great levels of control for efficient
   incremental UI updates. Because widgets in Butterfly are plain in-memory
   objects (a.k.a. virtual) the framework minimizes the number of DOM nodes by
