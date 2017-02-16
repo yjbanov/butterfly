@@ -71,7 +71,7 @@ final String mixin = r'$mixin$';
 ///
 ///     build() => div(style: box);
 ///
-Style style(Map<String, dynamic> styleExpression) {
+Style style(Map<String, Style> styleExpression) {
   var buf = new StringBuffer();
   _flatten(styleExpression).forEach((String property, dynamic value) {
     if (value is String) {
