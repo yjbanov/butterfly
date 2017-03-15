@@ -52,3 +52,8 @@ class Application {
     nextFrame();
   }
 }
+
+/// Top level function to interop with dart extension transpilation.
+Node Dx(String _) {
+  throw new Exception('Must transpile dart extensions before executing');
+}
