@@ -58,6 +58,11 @@ abstract class State<T extends StatefulWidget> {
   void scheduleUpdate() {
     _node.scheduleUpdate();
   }
+
+  /// Lifecycle method called before the widget is unmounted in the DOM.
+  ///
+  /// Perform cleanup like canceling stream subscriptions here.
+  void willUnmount() {}
 }
 
 // TODO: this begs for a better API
@@ -138,11 +143,15 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
     if (!identical(configuration, newConfiguration)) {
       // Build the new configuration and decide whether to reuse the child node
       // or replace with a new one.
+      // If there is an existing configuration, call it's #willUnmount lifecycle.
+      _state?.willUnmount();
       _state = newConfiguration.createState();
       _state._config = newConfiguration;
       internalSetStateNode(_state, this);
       Node newChildConfiguration = _state.build();
-      if (_child != null && identical(newChildConfiguration.runtimeType, _child.configuration.runtimeType)) {
+      if (_child != null &&
+          identical(newChildConfiguration.runtimeType,
+              _child.configuration.runtimeType)) {
         _child.update(newChildConfiguration);
       } else {
         _child?.detach();

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 @TestOn('browser')
-
 import 'dart:html' as html;
 
 import 'package:test/test.dart';
@@ -47,17 +46,12 @@ main() {
 
   group('element', () {
     test('renders simple element', () {
-      expect(
-        runTestApp(new SimpleElementWidget()).innerHtml,
-        '<div></div>'
-      );
+      expect(runTestApp(new SimpleElementWidget()).innerHtml, '<div></div>');
     });
 
     test('renders nested elements', () {
-      expect(
-        runTestApp(new NestedElementWidget()).innerHtml,
-        '<div><span></span><button></button></div>'
-      );
+      expect(runTestApp(new NestedElementWidget()).innerHtml,
+          '<div><span></span><button></button></div>');
     });
 
     test('updates the native nodes with new configuration', () {
@@ -76,13 +70,13 @@ main() {
       expect(div2, same(div1));
       expect(text2, same(text1));
     });
-
   });
 
   group('MultiChildNode', () {
     test('does not update if config is identical', () {
       var tester = runTestApp(new IdenticalConfigElement());
-      UpdateTrackingRenderText trackingNode = tester.findNodeOfType(UpdateTrackingRenderText);
+      UpdateTrackingRenderText trackingNode =
+          tester.findNodeOfType(UpdateTrackingRenderText);
 
       expect(tester.innerHtml, '<div>never updated</div>');
       expect(trackingNode.updateCount, 1);
@@ -95,14 +89,17 @@ main() {
     test('updates children if descendants need update', () {
       var widget = new ElementWithTrackingChild();
       var tester = runTestApp(widget);
-      RenderParent statefulNode = tester.findNodeOfConfigurationType(ElementWithTrackingChild);
-      UpdateTrackingRenderText trackingNode1 = tester.findNodeOfType(UpdateTrackingRenderText);
+      RenderParent statefulNode =
+          tester.findNodeOfConfigurationType(ElementWithTrackingChild);
+      UpdateTrackingRenderText trackingNode1 =
+          tester.findNodeOfType(UpdateTrackingRenderText);
       expect(trackingNode1.updateCount, 1);
 
       statefulNode.scheduleUpdate();
       tester.renderFrame();
 
-      UpdateTrackingRenderText trackingNode2 = tester.findNodeOfType(UpdateTrackingRenderText);
+      UpdateTrackingRenderText trackingNode2 =
+          tester.findNodeOfType(UpdateTrackingRenderText);
       expect(trackingNode2, same(trackingNode1));
       expect(trackingNode2.updateCount, 2);
     });
@@ -125,9 +122,7 @@ main() {
       testKeys(List<int> keys) {
         listState.childKeys = keys;
         tester.renderFrame();
-        var innerHtml = keys
-          .map((key) => '<span>${key}</span>')
-          .join();
+        var innerHtml = keys.map((key) => '<span>${key}</span>').join();
         expect(tester.innerHtml, '<div>${innerHtml}</div>');
       }
 
@@ -185,10 +180,8 @@ main() {
 
   group('attributes', () {
     test('are set', () {
-      expect(
-        runTestApp(new SimpleAttributesWidget()).innerHtml,
-        '<div id="this_is_id" width="300"></div>'
-      );
+      expect(runTestApp(new SimpleAttributesWidget()).innerHtml,
+          '<div id="this_is_id" width="300"></div>');
     });
   });
 
@@ -340,10 +333,7 @@ class UpdateTrackingText extends Text {
 
 class IdenticalConfigElement extends StatelessWidget {
   static const updateTracker = const UpdateTrackingText('never updated');
-  static const config = const Element(
-    'div',
-    children: const [updateTracker]
-  );
+  static const config = const Element('div', children: const [updateTracker]);
   build() => config;
 }
 
@@ -373,16 +363,16 @@ class SimpleElementWidget extends StatelessWidget {
 
 class NestedElementWidget extends StatelessWidget {
   Node build() => div()([
-    span()(),
-    button()(),
-  ]);
+        span()(),
+        button()(),
+      ]);
 }
 
 class SimpleAttributesWidget extends StatelessWidget {
   Node build() => div(attrs: {
-    'id': 'this_is_id',
-    'width': '300',
-  })();
+        'id': 'this_is_id',
+        'width': '300',
+      })();
 }
 
 class NodeUpdatingWidget extends StatefulWidget {
@@ -397,9 +387,7 @@ class NodeUpdatingWidgetState extends State<NodeUpdatingWidget> {
     scheduleUpdate();
   }
 
-  Node build() => div()([
-    text(_value)
-  ]);
+  Node build() => div()([text(_value)]);
 }
 
 class ChildListWidget extends StatefulWidget {
@@ -420,15 +408,10 @@ class ChildListWidgetState extends State<ChildListWidget> {
       return new Element('div');
     }
 
-    return div()(
-      _childKeys
-        .map((key) => new Element(
-          'span',
-          key: new ValueKey(key),
-          children: [text(key.toString())]
-        ))
-        .toList()
-    );
+    return div()(_childKeys
+        .map((key) => new Element('span',
+            key: new ValueKey(key), children: [text(key.toString())]))
+        .toList());
   }
 }
 
@@ -452,7 +435,7 @@ class ElementPropsWidgetState extends State<ElementPropsWidget> {
       },
       props: (p) => p
         ..value = value
-        ..checked = checked
+        ..checked = checked,
     )();
   }
 }
@@ -471,12 +454,7 @@ class EventListeningWidgetState extends State<EventListeningWidget> {
   }
 
   Node build() {
-    return button(
-      eventListeners: {
-        EventType.click: _buttonClicked
-      }
-    )([
-      text('$counter')
-    ]);
+    return button(eventListeners: {EventType.click: _buttonClicked})(
+        [text('$counter')]);
   }
 }
