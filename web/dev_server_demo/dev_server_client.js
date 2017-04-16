@@ -14,17 +14,20 @@
 
 // TODO(yjbanov): this should be moved served by the dev server and not included in the application code.
 
-/// WARNING: this is indended to be used for development only.
-///
-/// Synchronously (i.e. blocks the UI thread) sends [data] to [path]
-/// and returns the response.
-function developmentOnlySyncSend(path, data) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', path, false);
-  //                     ^
-  //                     |
-  //                     synchronous
-  xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
-  xhr.send(data);
-  return xhr.responseText;
+class Butterfly {
+    constructor() {}
+
+    /// Synchronously (i.e. blocks the UI thread) invokes a platform channel [method] and returns the result.
+    ///
+    /// [args] are encoded as JSON. The result is decoded as JSON.
+    invokePlatformChannelMethod(method, args) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', `/__butterfly_dev_channel__/${method}`, false /* synchronous */);
+      xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
+      xhr.send(JSON.stringify(args));
+      return JSON.parse(xhr.responseText);
+    }
+
 }
+
+butterfly = new Butterfly();

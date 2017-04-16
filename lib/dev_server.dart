@@ -13,11 +13,14 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as pathlib;
+
+import 'platform_channel.dart';
 
 /// Butterfly development server that serves the application.
 class ButterflyDevServer {
@@ -31,10 +34,12 @@ class ButterflyDevServer {
   }
 
   ButterflyDevServer._(this._server) {
+    _platformChannel.registerMethod('latency-benchmark', _latencyBenchmark);
     _listen();
   }
 
   final HttpServer _server;
+  final PlatformChannel _platformChannel = PlatformChannel.instance;
 
   Future<Null> _listen() async {
     await for (final request in _server) {
@@ -55,21 +60,21 @@ class ButterflyDevServer {
   }
 
   Future<Null> _serveDevRequest(HttpRequest request) async {
-    print('[TODO] Ooh, a dev request! How exciting! Dunno what to do with it yet.');
-    final method = request.uri.path.substring(_devChannelPath.length + 1);
-    if (method == 'latency-benchmark') {
-      await _serveLatencyBenchmark(request.response);
-    }
+    final methodName = request.uri.path.substring(_devChannelPath.length + 1);
+    dynamic arguments = await const JsonDecoder().bind(request.transform(const Utf8Decoder())).single;
+    final result = _platformChannel.invokeDart(methodName, arguments);
+    request.response.write(JSON.encode(result));
   }
 
   static final math.Random _rnd = new math.Random();
   static final List<int> _chars = '1234567890qwertyuiopasdfghjklzxcvbnm,./;[]`='.codeUnits;
 
-  Future<Null> _serveLatencyBenchmark(HttpResponse response) async {
-    response.headers.contentType = ContentType.TEXT;
+  dynamic _latencyBenchmark(_) {
+    final buf = new StringBuffer();
     for (int i = 0; i < 1024; i++) {
-      response.writeCharCode(_chars[_rnd.nextInt(_chars.length)]);
+      buf.writeCharCode(_chars[_rnd.nextInt(_chars.length)]);
     }
+    return buf.toString();
   }
 
   /// Serves static files. Supports directory listing.

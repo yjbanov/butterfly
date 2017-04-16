@@ -17,7 +17,7 @@ function testLatency() {
     let benchStart = performance.now();
     let iterations = 100;
     for (let i = 0; i < iterations; i++) {
-        let response = developmentOnlySyncSend('/__butterfly_dev_channel__/latency-benchmark', 'please render frame');
+        let response = butterfly.invokePlatformChannelMethod('latency-benchmark', 'please measure latency');
         recvByteCount += response.length;
     }
     let benchEnd = performance.now();
