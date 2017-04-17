@@ -82,11 +82,9 @@ class RenderStatelessWidget extends RenderParent<StatelessWidget> {
   }
 
   @override
-  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
-    parent.replaceChildNativeNode(oldNode, replacement);
+  void dispatchEvent(Event event) {
+    _child.dispatchEvent(event);
   }
-
-  html.Node get nativeNode => _child.nativeNode;
 
   @override
   void update(StatelessWidget newConfiguration) {
@@ -127,11 +125,9 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
   }
 
   @override
-  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
-    parent.replaceChildNativeNode(oldNode, replacement);
+  void dispatchEvent(Event event) {
+    _child.dispatchEvent(event);
   }
-
-  html.Node get nativeNode => _child.nativeNode;
 
   void scheduleUpdate() {
     _isDirty = true;

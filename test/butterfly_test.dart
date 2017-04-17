@@ -185,24 +185,6 @@ main() {
     });
   });
 
-  group('props', () {
-    test('are set', () {
-      var widget = new ElementPropsWidget();
-      var tester = runTestApp(widget);
-      html.InputElement input = tester.querySelectorAll('input').single;
-      expect(input.value, 'foo');
-      expect(input.checked, true);
-
-      widget.state.value = 'bar';
-      widget.state.checked = false;
-      widget.state.scheduleUpdate();
-      tester.renderFrame();
-
-      expect(input.value, 'bar');
-      expect(input.checked, false);
-    });
-  });
-
   group('events', () {
     test('are captured by listeners', () {
       var widget = new EventListeningWidget();
@@ -419,27 +401,6 @@ class ElementWithTrackingChild extends StatelessWidget {
   Node build() => new UpdateTrackingText('foo');
 }
 
-class ElementPropsWidget extends StatefulWidget {
-  ElementPropsWidgetState state = new ElementPropsWidgetState();
-  ElementPropsWidgetState createState() => state;
-}
-
-class ElementPropsWidgetState extends State<ElementPropsWidget> {
-  String value = 'foo';
-  bool checked = true;
-
-  Node build() {
-    return checkbox(
-      attrs: const {
-        'id': 'first-name',
-      },
-      props: (p) => p
-        ..value = value
-        ..checked = checked,
-    )();
-  }
-}
-
 class EventListeningWidget extends StatefulWidget {
   EventListeningWidgetState createState() => new EventListeningWidgetState();
 }
@@ -448,7 +409,6 @@ class EventListeningWidgetState extends State<EventListeningWidget> {
   int counter = 0;
 
   _buttonClicked(Event event) {
-    expect(event.nativeEvent is html.MouseEvent, isTrue);
     counter++;
     scheduleUpdate();
   }

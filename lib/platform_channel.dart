@@ -62,7 +62,7 @@ class PlatformChannel {
   ///
   /// [arguments] contains method call arguments, and is expected to be
   /// serializable (as of now to JSON).
-  void invokeJS(String method, dynamic arguments, ResultHandler handler) {
+  void invokeJS(String method, dynamic arguments, [ResultHandler handler]) {
     throw 'not implemented';
   }
 }

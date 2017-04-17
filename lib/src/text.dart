@@ -26,19 +26,15 @@ class Text extends Node {
 /// A node that carries textual information. This node is immutable.
 class RenderText extends RenderNode<Text> {
   RenderText(Tree tree, Text configuration)
-      : nativeNode = new html.Text(configuration.value),
-        super(tree, configuration) {
-    nativeNode.data = configuration.value;
-  }
-
-  @override
-  final html.Text nativeNode;
+      : super(tree, configuration);
 
   @override
   void visitChildren(_) {}
 
+  @override
+  void dispatchEvent(_) {}
+
   void update(Text newConfiguration) {
-    nativeNode.data = newConfiguration.value;
     super.update(newConfiguration);
   }
 

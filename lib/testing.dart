@@ -31,7 +31,7 @@ class ApplicationTester {
     hostElement = new html.DivElement()
       ..id = butterflyTestHostElementId;
     html.document.body.append(hostElement);
-    Tree tree = new Tree(topLevelWidget, hostElement);
+    Tree tree = new Tree(topLevelWidget);
     ApplicationTester tester = new ApplicationTester._(hostElement, tree);
     tester.renderFrame();
     return tester;

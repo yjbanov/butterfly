@@ -15,6 +15,7 @@
 import 'dart:html' as html;
 
 import 'package:butterfly/butterfly.dart';
+import 'package:butterfly/html_adapter.dart' as adapter;
 import 'store.dart';
 
 // TODO(yjbanov): maket these injectable
@@ -25,7 +26,7 @@ void main() {
   store.add(todoFactory.create('Foo', false));
   store.add(todoFactory.create('Bar', false));
   store.add(todoFactory.create('Baz', false));
-  runApp(new TodoApp(), html.document.querySelector('#app-host'));
+  adapter.runApp(new TodoApp(), html.document.querySelector('#app-host'));
 }
 
 class TodoApp extends StatefulWidget {
@@ -44,9 +45,9 @@ class TodoAppState extends State<TodoApp> {
         div(attrs: { 'class': 'view ${todoEdit == todo ? 'hidden' : ''}' })([
           input(
             'checkbox',
-            attrs: const { 'class': 'toggle' },
-            props: (Props props) {
-              props.checked = todo.completed;
+            attrs: {
+              'class': 'toggle',
+              'checked': attributePresentIf(todo.completed),
             },
             eventListeners: {
               EventType.click: (_) { completeMe(todo); }
@@ -64,9 +65,9 @@ class TodoAppState extends State<TodoApp> {
         div()([
           input(
             'text',
-            attrs: { 'class': 'edit ${todoEdit == todo ? 'visible': ''}' },
-            props: (Props props) {
-              props.value = todo.title;
+            attrs: {
+              'class': 'edit ${todoEdit == todo ? 'visible': ''}',
+              'value': todo.title,
             },
             eventListeners: {
               EventType.keyup: (Event event) { doneEditing(event, todo); }
@@ -88,7 +89,7 @@ class TodoAppState extends State<TodoApp> {
             'autofocus': '',
           }, eventListeners: {
             EventType.keyup: onKeyEnter((Event event) {
-              enterTodo(event.nativeEvent.target as html.InputElement);
+              enterTodo(event['value']);
             })
           })(),
         ]),
@@ -144,9 +145,8 @@ class TodoAppState extends State<TodoApp> {
     ]);
   }
 
-  void enterTodo(html.InputElement inputElement) {
-    addTodo(inputElement.value);
-    inputElement.value = '';
+  void enterTodo(String value) {
+    addTodo(value);
     scheduleUpdate();
   }
 
@@ -156,15 +156,12 @@ class TodoAppState extends State<TodoApp> {
   }
 
   void doneEditing(Event event, Todo todo) {
-    html.KeyEvent keyEvent = event.nativeEvent;
-    var keyCode = keyEvent.keyCode;
-    var target = keyEvent.target;
+    int keyCode = event['keyCode'];
     if (keyCode == 13) {
-      todo.title = target.value;
+      todo.title = event['value'];
       this.todoEdit = null;
     } else if (keyCode == 27) {
       this.todoEdit = null;
-      target.value = todo.title;
     }
     scheduleUpdate();
   }
@@ -185,7 +182,7 @@ class TodoAppState extends State<TodoApp> {
   }
 
   void toggleAll(Event event) {
-    var isComplete = (event.nativeEvent.target as html.InputElement).checked;
+    var isComplete = event['checked'];
     store.list.forEach((Todo todo) {
       todo.completed = isComplete;
     });

@@ -16,40 +16,37 @@ library butterfly;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:html' as html;
+
+import 'platform_channel.dart';
 
 part 'src/convenience.dart';
 part 'src/element.dart';
 part 'src/event_type.dart';
 part 'src/key.dart';
 part 'src/node.dart';
-part 'src/props.dart';
 part 'src/style.dart';
 part 'src/text.dart';
 part 'src/tree.dart';
 part 'src/util.dart';
 part 'src/widget.dart';
 
-// TODO(yjbanov): do not directly expose `dart:html` as we might want to support
-// alternative renderers (web-workers, web-socket).
-Application runApp(Widget topLevelWidget, html.Element hostElement) {
-  return new Application._(new Tree(topLevelWidget, hostElement))
-    ..nextFrame();
+Application runApp(Widget topLevelWidget) {
+  return new Application(new Tree(topLevelWidget));
 }
 
 class Application {
   final Tree _tree;
 
-  Application._(Tree this._tree);
+  Application(Tree this._tree) {
+    PlatformChannel.instance.registerMethod('render-frame', this._renderFrame);
+  }
 
-  // TODO: for some reason a blank animation frame takes 1/2 millisecond. That's
-  //       3% of CPU! Either find a way to reduce that dramatically, like 100x
-  //       or consider scheduling the next frame only when new state is
-  //       received.
-  Future<Null> nextFrame() async {
-    await html.window.animationFrame;
-    _tree.renderFrame();
-    nextFrame();
+  Map<String, dynamic> renderFrame() {
+    return _renderFrame(null);
+  }
+
+  Map<String, dynamic> _renderFrame(_) {
+    return _tree.renderFrame();
   }
 }
 
