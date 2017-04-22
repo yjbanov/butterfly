@@ -12,24 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html' as html;
-
 import 'package:butterfly/butterfly.dart';
-import 'package:butterfly/html_adapter.dart' as adapter;
-import 'store.dart';
 
 // TODO(yjbanov): maket these injectable
 Store store = new Store();
 TodoFactory todoFactory = new TodoFactory();
 
-void main() {
-  store.add(todoFactory.create('Foo', false));
-  store.add(todoFactory.create('Bar', false));
-  store.add(todoFactory.create('Baz', false));
-  adapter.runApp(new TodoApp(), html.document.querySelector('#app-host'));
-}
-
 class TodoApp extends StatefulWidget {
+  TodoApp() {
+    store.add(todoFactory.create('Foo', false));
+    store.add(todoFactory.create('Bar', false));
+    store.add(todoFactory.create('Baz', false));
+  }
+
   @override
   State createState() => new TodoAppState();
 }
@@ -192,5 +187,86 @@ class TodoAppState extends State<TodoApp> {
   void clearCompleted() {
     store.removeBy((Todo todo) => todo.completed);
     scheduleUpdate();
+  }
+}
+
+
+typedef void ChangeListener();
+
+/// A simple observable model object.
+///
+/// Extend it to get concrete observable objects.
+class Model {
+  List<ChangeListener> _listeners;
+
+  void addListener(ChangeListener listener) {
+    _listeners ??= <ChangeListener>[];
+    _listeners.add(listener);
+  }
+
+  void removeListener(ChangeListener listener) {
+    if (_listeners == null) return;
+    _listeners.removeWhere((l) => l == listener);
+  }
+
+  void objectDidChange() {
+    if (_listeners == null) return;
+    for (var listener in _listeners) {
+      listener();
+    }
+  }
+}
+
+abstract class KeyModel extends Model {
+  KeyModel(this.key);
+
+  final num key;
+}
+
+class Todo extends KeyModel {
+  Todo(num key, this._title, this._completed) : super(key);
+
+  String _title;
+  String get title => _title;
+  set title(String newTitle) {
+    if (newTitle != _title) {
+      _title = newTitle;
+      objectDidChange();
+    }
+  }
+
+  bool _completed;
+  bool get completed => _completed;
+  set completed(bool newCompleted) {
+    if (newCompleted != _completed) {
+      _completed = newCompleted;
+      objectDidChange();
+    }
+  }
+}
+
+class TodoFactory {
+  int _uid = 0;
+
+  int nextUid() => ++_uid;
+
+  Todo create(String title, bool isCompleted) {
+    return new Todo(this.nextUid(), title, isCompleted);
+  }
+}
+
+class Store<T extends KeyModel> {
+  List<T> list = <T>[];
+
+  void add(T record) {
+    list.add(record);
+  }
+
+  void remove(T record) {
+    list.remove(record);
+  }
+
+  void removeBy(bool callback(T t)) {
+    list.removeWhere(callback);
   }
 }

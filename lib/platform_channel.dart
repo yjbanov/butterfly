@@ -30,14 +30,9 @@
 /// and Dart code running inside WebAssembly.
 class PlatformChannel {
 
-  static final PlatformChannel _instance = new PlatformChannel._();
+  PlatformChannel();
 
-  /// Returns the platform channel.
-  static PlatformChannel get instance => _instance;
-
-  PlatformChannel._();
-
-  final Map<String, MethodInvocationHandler> _methods = <String, MethodInvocationHandler>{};
+  final Map<String, MethodInvocationHandler> _methods = {};
 
   /// Registers a method that can be invoked from the main JavaScript runtime.
   void registerMethod(String name, MethodInvocationHandler handler) {

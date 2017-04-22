@@ -15,12 +15,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as pathlib;
 
-import 'platform_channel.dart';
+import 'butterfly.dart';
 
 /// Butterfly development server that serves the application.
 class ButterflyDevServer {
@@ -34,12 +33,18 @@ class ButterflyDevServer {
   }
 
   ButterflyDevServer._(this._server) {
-    _platformChannel.registerMethod('latency-benchmark', _latencyBenchmark);
     _listen();
   }
 
   final HttpServer _server;
-  final PlatformChannel _platformChannel = PlatformChannel.instance;
+  final Map<String, ButterflyModule> _modules = {};
+
+  void serveModule(String moduleName, Node root) {
+    assert(moduleName.isNotEmpty);
+    assert(root != null);
+
+    _modules[moduleName] = new ButterflyModule(moduleName, root);
+  }
 
   Future<Null> _listen() async {
     await for (final request in _server) {
@@ -51,6 +56,8 @@ class ButterflyDevServer {
           await _serveStatic(request);
         }
       } catch(error, stackTrace) {
+        stderr.writeln(error);
+        stderr.writeln(stackTrace);
         request.response.writeln(error);
         request.response.writeln(stackTrace);
       } finally {
@@ -60,21 +67,19 @@ class ButterflyDevServer {
   }
 
   Future<Null> _serveDevRequest(HttpRequest request) async {
-    final methodName = request.uri.path.substring(_devChannelPath.length + 1);
-    dynamic arguments = await const JsonDecoder().bind(request.transform(const Utf8Decoder())).single;
-    final result = _platformChannel.invokeDart(methodName, arguments);
-    request.response.write(JSON.encode(result));
-  }
+    final fragments = pathlib.split(request.uri.path).skip(2).toList();
+    assert(fragments.length == 2);
+    final moduleName = fragments[0];
+    final methodName = fragments[1];
+    final module = _modules[moduleName];
 
-  static final math.Random _rnd = new math.Random();
-  static final List<int> _chars = '1234567890qwertyuiopasdfghjklzxcvbnm,./;[]`='.codeUnits;
-
-  dynamic _latencyBenchmark(_) {
-    final buf = new StringBuffer();
-    for (int i = 0; i < 1024; i++) {
-      buf.writeCharCode(_chars[_rnd.nextInt(_chars.length)]);
+    if (module == null) {
+      throw new StateError('Module "$moduleName" not found.');
     }
-    return buf.toString();
+
+    dynamic arguments = await const JsonDecoder().bind(request.transform(const Utf8Decoder())).single;
+    final result = module.platformChannel.invokeDart(methodName, arguments);
+    request.response.write(JSON.encode(result));
   }
 
   /// Serves static files. Supports directory listing.
@@ -83,10 +88,12 @@ class ButterflyDevServer {
       throw new StateError('Unsupported URI path: ${request.uri.path}');
     }
 
-    final path = './${request.uri.path.substring(1)}';
+    final path = request.uri.path == '/'
+      ? '${pathlib.current}/'
+      : pathlib.join(pathlib.current, '${request.uri.path.substring(1)}');
 
-    if (!pathlib.isWithin(pathlib.current, path)) {
-      throw new StateError('Refuse to serve files from outside of the '
+    if (!pathlib.equals(pathlib.current, path) && !pathlib.isWithin(pathlib.current, path)) {
+      throw new StateError('Refusing to serve files from outside of the '
           'project directory.');
     }
 

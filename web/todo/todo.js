@@ -12,15 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Runs a Butterfly inside a `dart:html` environment. Meant only for debugging
-/// purposes.
-library butterfly.html_adapter;
-
-import 'dart:html' as html;
-
-import 'butterfly.dart';
-
-// TODO(yjbanov): implement
-ButterflyModule createModule(String name, Node root, html.Element hostElement) {
-  return new ButterflyModule(name, root);
-}
+let hostElement = document.querySelector('#app-host');
+let module = butterfly.createModule('todo', hostElement);
+module.run();

@@ -1,4 +1,4 @@
-// Copyright 2016 Google Inc. All Rights Reserved.
+// Copyright 2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html' as html;
-import 'package:butterfly/html_adapter.dart' as adapter;
-import 'package:butterfly/butterfly.dart';
-import 'package:butterfly/material.dart';
+import 'dart:async';
 
-main() {
-  adapter.runApp(new App(), html.document.querySelector('#app-host'));
-}
+import 'package:butterfly/dev_server.dart';
+import 'package:butterfly/demos/todo.dart';
 
-class App extends StatelessWidget {
-  Node build() {
-    return div(attrs: {'id': 'greeting'})([
-      text('Hello, World!'),
-      new MaterialButton(child: text('Update')),
-    ]);
-  }
+Future<Null> main() async {
+  final devServer = await ButterflyDevServer.start(8082);
+  devServer.serveModule('todo', new TodoApp());
 }

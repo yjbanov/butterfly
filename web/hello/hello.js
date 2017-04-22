@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:async';
-
-import 'package:butterfly/dev_server.dart';
-
-Future<Null> main() async {
-  await ButterflyDevServer.start(8080);
-}
+let hostElement = document.querySelector('#app-host');
+let module = butterfly.createModule('hello', hostElement);
+module.run();

@@ -17,6 +17,7 @@ library butterfly.testing;
 import 'dart:html' as html;
 import 'butterfly.dart';
 
+// TODO(yjbanov): rewrite this in terms of modules.
 ApplicationTester runTestApp(Widget topLevelWidget) {
   return new ApplicationTester(topLevelWidget);
 }
@@ -31,7 +32,7 @@ class ApplicationTester {
     hostElement = new html.DivElement()
       ..id = butterflyTestHostElementId;
     html.document.body.append(hostElement);
-    Tree tree = new Tree(topLevelWidget);
+    Tree tree = new Tree(topLevelWidget, new PlatformChannel());
     ApplicationTester tester = new ApplicationTester._(hostElement, tree);
     tester.renderFrame();
     return tester;

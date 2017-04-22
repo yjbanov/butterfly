@@ -17,12 +17,12 @@ part of butterfly;
 /// Retained virtual mirror of the DOM Tree.
 class Tree {
   // TODO(yjbanov): top-level node doesn't have to be final. We can replace it.
-  Tree(this._topLevelWidget) {
+  Tree(this._topLevelWidget, this._platformChannel) {
     assert(_topLevelWidget != null);
   }
 
-  // TODO(yjbanov): make this just Node.
-  final Widget _topLevelWidget;
+  final Node _topLevelWidget;
+  final PlatformChannel _platformChannel;
 
   RenderNode _topLevelNode;
 
@@ -37,7 +37,7 @@ class Tree {
     if (_styleBuffer.isEmpty) {
       return;
     }
-    PlatformChannel.instance.invokeJS('install-style', '${_styleBuffer}');
+    _platformChannel.invokeJS('install-style', '${_styleBuffer}');
     _styleBuffer = new StringBuffer();
   }
 
@@ -63,6 +63,11 @@ class Tree {
       return true;
     });
     scheduleMicrotask(GlobalKey.notifyListeners);
+
+    // TODO(yjbanov): implement for realz.
+    return {
+      'create': '<h1>Hello, World!</h1>',
+    };
   }
 
   bool _debugCheckParentChildRelationships() {

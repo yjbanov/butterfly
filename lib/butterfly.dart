@@ -18,6 +18,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'platform_channel.dart';
+export 'platform_channel.dart';
 
 part 'src/convenience.dart';
 part 'src/element.dart';
@@ -30,24 +31,27 @@ part 'src/tree.dart';
 part 'src/util.dart';
 part 'src/widget.dart';
 
-Application runApp(Widget topLevelWidget) {
-  return new Application(new Tree(topLevelWidget));
-}
-
-class Application {
+class ButterflyModule {
+  final String _name;
   final Tree _tree;
+  final PlatformChannel platformChannel;
 
-  Application(Tree this._tree) {
-    PlatformChannel.instance.registerMethod('render-frame', this._renderFrame);
+  factory ButterflyModule(String name, Node root) {
+    final platformChannel = new PlatformChannel();
+    final tree = new Tree(root, platformChannel);
+    return new ButterflyModule._(name, tree, platformChannel);
   }
 
-  Map<String, dynamic> renderFrame() {
-    return _renderFrame(null);
+  ButterflyModule._(this._name, this._tree, this.platformChannel) {
+    platformChannel.registerMethod('render-frame', _renderFrame);
   }
 
   Map<String, dynamic> _renderFrame(_) {
     return _tree.renderFrame();
   }
+
+  @override
+  String toString() => '$ButterflyModule(${_name})';
 }
 
 /// Top level function to interop with dart extension transpilation.

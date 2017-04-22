@@ -12,15 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Runs a Butterfly inside a `dart:html` environment. Meant only for debugging
-/// purposes.
-library butterfly.html_adapter;
+import 'dart:async';
 
-import 'dart:html' as html;
+import 'package:butterfly/dev_server.dart';
+import 'package:butterfly/demos/hello.dart';
 
-import 'butterfly.dart';
-
-// TODO(yjbanov): implement
-ButterflyModule createModule(String name, Node root, html.Element hostElement) {
-  return new ButterflyModule(name, root);
+Future<Null> main() async {
+  final devServer = await ButterflyDevServer.start(8081);
+  devServer.serveModule('hello', new App());
 }
