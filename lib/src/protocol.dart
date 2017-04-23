@@ -1,0 +1,227 @@
+// Copyright 2017 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+part of butterfly;
+
+class ElementUpdate {
+  /// Appends the JSON representation of this update into [buffer].
+  bool render(Map<String, dynamic> js) {
+    bool wroteData = false;
+
+    if (_tag != "") {
+      js["tag"] = _tag;
+      wroteData = true;
+    }
+
+    if (_bid != "") {
+      js["bid"] = _bid;
+      wroteData = true;
+    }
+
+    if (_updateText) {
+      js["text"] = _text;
+      wroteData = true;
+    }
+
+    if (_removes.isNotEmpty) {
+      final jsRemoves = <int>[];
+      for (int index in _removes) {
+        jsRemoves.add(index);
+      }
+      js["remove"] = jsRemoves;
+      wroteData = true;
+    }
+
+    if (_moves.isNotEmpty) {
+      final jsMoves = <int>[];
+      for (Move move in _moves) {
+        jsMoves.add(move.insertionIndex);
+        jsMoves.add(move.moveFromIndex);
+      }
+      js["move"] = jsMoves;
+      wroteData = true;
+    }
+
+    if (_childElementInsertions.isNotEmpty) {
+      final jsInsertions = <Map<String, dynamic>>[];
+      for (ElementUpdate insertion in _childElementInsertions) {
+        final jsInsertion = <String, dynamic>{};
+        jsInsertion["index"] = insertion._index;
+        final buf = new StringBuffer();
+        insertion.printHtml(buf);
+        jsInsertion["html"] = buf.toString();
+        jsInsertions.add(jsInsertion);
+      }
+      js["insert"] = jsInsertions;
+      wroteData = true;
+    }
+
+    if (_childElementUpdates.isNotEmpty) {
+      final jsUpdates = <Map<String, dynamic>>[];
+      for (ElementUpdate update in _childElementUpdates) {
+        final childUpdate = <String, dynamic>{};
+        if (update.render(childUpdate)) {
+          jsUpdates.add(childUpdate);
+        }
+      }
+
+      if (jsUpdates.isNotEmpty) {
+        js["update-elements"] = jsUpdates;
+        wroteData = true;
+      }
+    }
+
+    if (_attributes.isNotEmpty) {
+      final jsAttrUpdates = <String, dynamic>{};
+      for (AttributeUpdate attrUpdate in _attributes) {
+        jsAttrUpdates[attrUpdate.name] = attrUpdate.value;
+      }
+      js["attrs"] = jsAttrUpdates;
+      wroteData = true;
+    }
+
+    if (_classNames.isNotEmpty) {
+      final jsClassNames = <String>[];
+      for (String className in _classNames) {
+        jsClassNames.add(className);
+      }
+      js["classes"] = jsClassNames;
+      wroteData = true;
+    }
+
+    if (wroteData) {
+      js["index"] = _index;
+    }
+
+    return wroteData;
+  }
+
+  /// Assumes that this element update is exlusively made of insertions and
+  /// renders it as a plain HTML into the given [buffer].
+  void printHtml(StringBuffer buf) {
+    if (_index != -1) {  // we don't print host tag.
+      buf..write("<")..write(_tag);
+
+      if (_key != "") {
+        buf..write(" _bkey=\"")..write(_key)..write("\"");
+      }
+
+      if (_attributes.isNotEmpty) {
+        for (final AttributeUpdate attr in _attributes) {
+          buf..write(" ")..write(attr.name)..write("=\"")..write(attr.value)..write("\"");
+        }
+      }
+
+      if (_classNames.isNotEmpty) {
+        buf..write(" class=\"");
+        for (final className in _classNames) {
+          buf..write(" ")..write(className);
+        }
+        buf..write("\"");
+      }
+
+      if (_bid != "") {
+        buf..write(" _bid=\"")..write(_bid)..write("\"");
+      }
+
+      buf..write(">");
+    }
+
+    if (_text != "") {
+      buf..write(_text);
+    }
+
+    for(final childElement in _childElementInsertions) {
+      childElement.printHtml(buf);
+    }
+
+    if (_index != -1) {
+      buf..write("</")..write(_tag)..write(">");
+    }
+  }
+
+  void removeChild(int index) { _removes.add(index); }
+
+  void moveChild(int insertionIndex, int moveFrom) {
+    _moves.add(new Move(insertionIndex, moveFrom));
+  }
+
+  ElementUpdate InsertChildElement(int insertionIndex) {
+    _childElementInsertions.add(new ElementUpdate._(insertionIndex));
+    return _childElementInsertions.last;
+  }
+
+  ElementUpdate UpdateChildElement(int index) {
+    _childElementUpdates.add(new ElementUpdate._(index));
+    return _childElementUpdates.last;
+  }
+
+  void UpdateTag(String tag) { _tag = tag; }
+
+  void UpdateKey(String key) { _key = key; }
+
+  void UpdateText(String text) { _text = text; _updateText = true; }
+
+  void UpdateAttribute(String name, String value) {
+    _attributes.add(new AttributeUpdate(name, value));
+  }
+
+  void UpdateBaristaId(String bid) {
+    _bid = bid;
+  }
+
+  void AddClassName(String name) {
+    _classNames.add(name);
+  }
+
+  ElementUpdate._(int index) : _index = index;
+
+  // insert-before index if this is being inserted.
+  // child index if this is being updated.
+  final int _index;
+
+  String _tag = "";
+  String _key = "";
+  String _bid = "";
+
+  bool _updateText = false;
+  String _text = "";
+
+  final List<int> _removes = <int>[];
+  final List<Move> _moves = <Move>[];
+
+  final List<ElementUpdate> _childElementInsertions = <ElementUpdate>[];
+  final List<ElementUpdate> _childElementUpdates = <ElementUpdate>[];
+  final List<AttributeUpdate> _attributes = <AttributeUpdate>[];
+  final List<String> _classNames = <String>[];
+}
+
+class AttributeUpdate {
+  final String name;
+  final String value;
+
+  AttributeUpdate(this.name, this.value);
+}
+
+class Move {
+  Move(int insertionIndex, int moveFromIndex)
+      : _insertionIndex = insertionIndex,
+        _moveFromIndex = moveFromIndex;
+
+  final int _insertionIndex;
+  final int _moveFromIndex;
+
+  int get insertionIndex => _insertionIndex;
+  int get moveFromIndex => _moveFromIndex;
+}

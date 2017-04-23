@@ -25,6 +25,7 @@ part 'src/element.dart';
 part 'src/event_type.dart';
 part 'src/key.dart';
 part 'src/node.dart';
+part 'src/protocol.dart';
 part 'src/style.dart';
 part 'src/text.dart';
 part 'src/tree.dart';
