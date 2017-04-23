@@ -15,6 +15,27 @@
 part of butterfly;
 
 class ElementUpdate {
+  ElementUpdate._(int index) : _index = index;
+
+  // insert-before index if this is being inserted.
+  // child index if this is being updated.
+  final int _index;
+
+  String _tag = "";
+  String _key = "";
+  String _bid = "";
+
+  bool _updateText = false;
+  String _text = "";
+
+  final List<int> _removes = <int>[];
+  final List<Move> _moves = <Move>[];
+
+  final List<ElementUpdate> _childElementInsertions = <ElementUpdate>[];
+  final List<ElementUpdate> _childElementUpdates = <ElementUpdate>[];
+  final List<AttributeUpdate> _attributes = <AttributeUpdate>[];
+  final List<String> _classNames = <String>[];
+
   /// Appends the JSON representation of this update into [buffer].
   bool render(Map<String, dynamic> js) {
     bool wroteData = false;
@@ -157,54 +178,33 @@ class ElementUpdate {
     _moves.add(new Move(insertionIndex, moveFrom));
   }
 
-  ElementUpdate InsertChildElement(int insertionIndex) {
+  ElementUpdate insertChildElement(int insertionIndex) {
     _childElementInsertions.add(new ElementUpdate._(insertionIndex));
     return _childElementInsertions.last;
   }
 
-  ElementUpdate UpdateChildElement(int index) {
+  ElementUpdate updateChildElement(int index) {
     _childElementUpdates.add(new ElementUpdate._(index));
     return _childElementUpdates.last;
   }
 
-  void UpdateTag(String tag) { _tag = tag; }
+  void updateTag(String tag) { _tag = tag; }
 
-  void UpdateKey(String key) { _key = key; }
+  void setKey(Key key) { _key = key.toString(); }
 
-  void UpdateText(String text) { _text = text; _updateText = true; }
+  void updateText(String text) { _text = text; _updateText = true; }
 
-  void UpdateAttribute(String name, String value) {
+  void updateAttribute(String name, String value) {
     _attributes.add(new AttributeUpdate(name, value));
   }
 
-  void UpdateBaristaId(String bid) {
+  void updateBaristaId(String bid) {
     _bid = bid;
   }
 
   void AddClassName(String name) {
     _classNames.add(name);
   }
-
-  ElementUpdate._(int index) : _index = index;
-
-  // insert-before index if this is being inserted.
-  // child index if this is being updated.
-  final int _index;
-
-  String _tag = "";
-  String _key = "";
-  String _bid = "";
-
-  bool _updateText = false;
-  String _text = "";
-
-  final List<int> _removes = <int>[];
-  final List<Move> _moves = <Move>[];
-
-  final List<ElementUpdate> _childElementInsertions = <ElementUpdate>[];
-  final List<ElementUpdate> _childElementUpdates = <ElementUpdate>[];
-  final List<AttributeUpdate> _attributes = <AttributeUpdate>[];
-  final List<String> _classNames = <String>[];
 }
 
 class AttributeUpdate {
@@ -224,4 +224,37 @@ class Move {
 
   int get insertionIndex => _insertionIndex;
   int get moveFromIndex => _moveFromIndex;
+}
+
+class TreeUpdate {
+  bool _createMode = false;
+  ElementUpdate _rootUpdate;
+
+  TreeUpdate() : _rootUpdate = new ElementUpdate._(0);
+
+  ElementUpdate createRootElement() {
+    _createMode = true;
+    return _rootUpdate;
+  }
+
+  ElementUpdate updateRootElement() {
+    _createMode = false;
+    return _rootUpdate;
+  }
+
+  Map<String, dynamic> render({int indent = 0}) {
+    final js = <String, dynamic>{};
+    if (_createMode) {
+      final html = new StringBuffer();
+      _rootUpdate.printHtml(html);
+      js["create"] = html.toString();
+    } else {
+      final jsRootUpdate = <String, dynamic>{};
+      if (_rootUpdate.render(jsRootUpdate)) {
+        js["update"] = jsRootUpdate;
+      }
+    }
+
+    return js;
+  }
 }

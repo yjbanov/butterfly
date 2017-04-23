@@ -28,7 +28,7 @@ abstract class Widget extends Node {
 abstract class StatelessWidget extends Widget {
   const StatelessWidget({Key key}) : super(key: key);
 
-  RenderNode instantiate(Tree t) => new RenderStatelessWidget(t, this);
+  RenderNode instantiate(Tree tree) => new RenderStatelessWidget(tree);
 
   Node build();
 }
@@ -44,7 +44,7 @@ abstract class StatefulWidget extends Widget {
 
   State createState();
 
-  RenderNode instantiate(Tree t) => new RenderStatefulWidget(t, this);
+  RenderNode instantiate(Tree tree) => new RenderStatefulWidget(tree);
 }
 
 /// Mutable state of a [StatefulWidget].
@@ -71,8 +71,7 @@ void internalSetStateNode(State state, RenderStatefulWidget node) {
 }
 
 class RenderStatelessWidget extends RenderParent<StatelessWidget> {
-  RenderStatelessWidget(Tree tree, StatelessWidget configuration)
-      : super(tree, configuration);
+  RenderStatelessWidget(Tree tree) : super(tree);
 
   RenderNode _child;
 
@@ -87,32 +86,32 @@ class RenderStatelessWidget extends RenderParent<StatelessWidget> {
   }
 
   @override
-  void update(StatelessWidget newConfiguration) {
+  void update(StatelessWidget newConfiguration, ElementUpdate update) {
     assert(newConfiguration != null);
     if (!identical(configuration, newConfiguration)) {
       // Build the new configuration and decide whether to reuse the child node
       // or replace with a new one.
       Node newChildConfiguration = newConfiguration.build();
       if (_child != null && _canUpdate(_child, newChildConfiguration)) {
-        _child.update(newChildConfiguration);
+        _child.update(newChildConfiguration, update);
       } else {
         // Replace child
         _child?.detach();
         _child = newChildConfiguration.instantiate(tree);
+        _child.update(newChildConfiguration, update);
         _child.attach(this);
       }
     } else if (hasDescendantsNeedingUpdate) {
       // Own configuration is the same, but some children are scheduled to be
       // updated.
-      _child.update(_child.configuration);
+      _child.update(_child.configuration, update);
     }
-    super.update(newConfiguration);
+    super.update(newConfiguration, update);
   }
 }
 
 class RenderStatefulWidget extends RenderParent<StatefulWidget> {
-  RenderStatefulWidget(Tree tree, StatefulWidget configuration)
-      : super(tree, configuration);
+  RenderStatefulWidget(Tree tree) : super(tree);
 
   State _state;
   State get state => _state;
@@ -134,7 +133,7 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
     super.scheduleUpdate();
   }
 
-  void update(StatefulWidget newConfiguration) {
+  void update(StatefulWidget newConfiguration, ElementUpdate update) {
     assert(newConfiguration != null);
     if (!identical(configuration, newConfiguration)) {
       // Build the new configuration and decide whether to reuse the child node
@@ -148,21 +147,22 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
       if (_child != null &&
           identical(newChildConfiguration.runtimeType,
               _child.configuration.runtimeType)) {
-        _child.update(newChildConfiguration);
+        _child.update(newChildConfiguration, update);
       } else {
         _child?.detach();
         _child = newChildConfiguration.instantiate(tree);
+        _child.update(newChildConfiguration, update);
         _child.attach(this);
       }
     } else if (_isDirty) {
-      _child.update(_state.build());
+      _child.update(_state.build(), update);
     } else if (hasDescendantsNeedingUpdate) {
       // Own configuration is the same, but some children are scheduled to be
       // updated.
-      _child.update(_child.configuration);
+      _child.update(_child.configuration, update);
     }
 
     _isDirty = false;
-    super.update(newConfiguration);
+    super.update(newConfiguration, update);
   }
 }

@@ -34,9 +34,10 @@ String attributePresentIf(bool condition) => condition
 /// A kind of node that maps directly to the render system's native element, for
 /// example an HTML element such as `<div>`, `<button>`.
 class Element extends MultiChildNode {
-  const Element(this.tag, {
+  Element(this.tag, {
     Key key,
-    Map<String, String> attributes,
+    List<Attribute> attributes,
+    this.text,
     List<Node> children,
     this.eventListeners,
     this.style,
@@ -45,26 +46,68 @@ class Element extends MultiChildNode {
        super(key: key, children: children);
 
   final String tag;
-  final Map<String, String> attributes;
+
+  final List<Attribute> attributes;
   final Map<EventType, EventListener> eventListeners;
   final Style style;
   final List<Style> styles;
+  final String text;
+
+  /// Barista ID.
+  ///
+  /// Used to uniquely identify this element when dispatching events.
+  String _bid;
 
   @override
-  RenderNode instantiate(Tree t) => new RenderElement(t, this);
+  RenderNode instantiate(Tree t) => new RenderElement(t);
+}
+
+class Attribute {
+  final String name;
+  final String value;
+
+  const Attribute(this.name, this.value);
 }
 
 class RenderElement extends RenderMultiChildParent<Element> {
-  RenderElement(Tree tree, Element configuration)
-    : super(tree, configuration);
+  RenderElement(Tree tree) : super(tree);
 
   /// An automatically generated global identifier, created to refer to this
   /// element later, e.g. when we need to dispatch an event to it.
   String _baristaId;
 
+  static int _baristaIdCounter = 0;
+  static String _nextBid() => '${_baristaIdCounter++}';
+
   @override
-  void update(Element newConfiguration) {
-    super.update(newConfiguration);
+  void update(Element newConfiguration, ElementUpdate update) {
+    // TODO(yjbanov): implement for realz
+    if (_configuration == null) {
+      update.updateTag(newConfiguration.tag);
+      final key = newConfiguration.key;
+
+      if (key != null) {
+        update.setKey(key);
+      }
+
+      if (newConfiguration.eventListeners != null && newConfiguration.eventListeners.isNotEmpty) {
+        if (newConfiguration._bid != null) {
+          update.updateBaristaId(newConfiguration._bid);
+        } else {
+          newConfiguration._bid = _nextBid();
+          update.updateBaristaId(newConfiguration._bid);
+        }
+      }
+
+      update.updateText(newConfiguration.text);
+
+      if (newConfiguration.attributes != null && newConfiguration.attributes.isNotEmpty) {
+        for (final attribute in newConfiguration.attributes) {
+          update.updateAttribute(attribute.name, attribute.value);
+        }
+      }
+    }
+    super.update(newConfiguration, update);
   }
 
   void dispatchEvent(Event event) {

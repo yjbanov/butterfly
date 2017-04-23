@@ -27,7 +27,6 @@ part 'src/key.dart';
 part 'src/node.dart';
 part 'src/protocol.dart';
 part 'src/style.dart';
-part 'src/text.dart';
 part 'src/tree.dart';
 part 'src/util.dart';
 part 'src/widget.dart';

@@ -47,9 +47,7 @@ class Event {
 
 /// A node in the retained tree instantiated from [Node]s.
 abstract class RenderNode<N extends Node> {
-  RenderNode(this._tree, Node configuration) {
-    update(configuration);
-  }
+  RenderNode(this._tree);
 
   /// The parent node of this node.
   RenderParent get parent => _parent;
@@ -97,7 +95,7 @@ abstract class RenderNode<N extends Node> {
   /// all necessary updates to `this` node and its children (if any) happen
   /// correctly. The overridden method must call `super.update` to finalize the
   /// update.
-  void update(N newConfiguration) {
+  void update(N newConfiguration, ElementUpdate update) {
     assert(newConfiguration != null);
     _configuration = newConfiguration;
     if (_configuration.key is GlobalKey) {
@@ -128,15 +126,14 @@ bool _canUpdate(RenderNode node, Node configuration) {
 }
 
 /// A node that has children.
-// TODO(yjbanov): add fast-track access to class
 abstract class RenderParent<N extends Node> extends RenderNode<N> {
-  RenderParent(Tree tree, N configuration)
-      : super(tree, configuration);
+  RenderParent(Tree tree) : super(tree);
 
   /// Whether any of this node's descentant nodes need to be updated.
   bool _hasDescendantsNeedingUpdate = true;
   bool get hasDescendantsNeedingUpdate => _hasDescendantsNeedingUpdate;
 
+  // TODO(yjbanov): rename to setState
   void scheduleUpdate() {
     _hasDescendantsNeedingUpdate = true;
     RenderParent parent = _parent;
@@ -153,15 +150,15 @@ abstract class RenderParent<N extends Node> extends RenderNode<N> {
   /// correctly. The overridden method must call `super.update` to finalize the
   /// update.
   @override
-  void update(N newConfiguration) {
+  void update(N newConfiguration, ElementUpdate update) {
     _hasDescendantsNeedingUpdate = false;
-    super.update(newConfiguration);
+    super.update(newConfiguration, update);
   }
 }
 
 /// A node that has multiple children.
 abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderParent<N> {
-  RenderMultiChildParent(Tree tree, N configuration) : super(tree, configuration);
+  RenderMultiChildParent(Tree tree) : super(tree);
 
   List<RenderNode> _currentChildren;
 
@@ -175,9 +172,22 @@ abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderPa
   }
 
   @override
-  void update(N newConfiguration) {
-    // TODO(yjbanov): implement
-    super.update(newConfiguration);
+  void update(N newConfiguration, ElementUpdate update) {
+    // TODO(yjbanov): implement for realz
+    if (_currentChildren == null) {
+      _currentChildren = <RenderNode>[];
+    }
+
+    if (_currentChildren.isEmpty && newConfiguration.children != null) {
+      for (final newChild in newConfiguration.children) {
+        RenderNode child = newChild.instantiate(tree);
+        child.update(newChild, update);
+        child.attach(this);
+        _currentChildren.add(child);
+      }
+    }
+
+    super.update(newConfiguration, update);
   }
 
   @override

@@ -17,7 +17,7 @@ import 'package:butterfly/material.dart';
 
 class App extends StatelessWidget {
   Node build() {
-    return div(attrs: {'id': 'greeting'})([
+    return div(attrs: [new Attribute('id', 'greeting')])([
       text('Hello, World!'),
       new MaterialButton(child: text('Update')),
     ]);

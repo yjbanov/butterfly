@@ -27,7 +27,7 @@ class MaterialButton extends StatefulWidget {
 
 class _MaterialButtonState extends State<MaterialButton> {
   Node build() {
-    return div(style: matButton, attrs: {'style': 'background-color: red'})([
+    return div(style: matButton, attrs: [new Attribute('style', 'background-color: red')])([
       config.child
     ]);
   }

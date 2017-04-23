@@ -50,11 +50,17 @@ class Tree {
   }
 
   Map<String, dynamic> renderFrame() {
+    final treeUpdate = new TreeUpdate();
+
     if (_topLevelNode == null) {
       _topLevelNode = _topLevelWidget.instantiate(this);
+      final rootInsertion = treeUpdate.createRootElement();
+      _topLevelNode.update(_topLevelWidget, rootInsertion);
     } else {
-      _topLevelNode.update(_topLevelNode.configuration);
+      final rootUpdate = treeUpdate.updateRootElement();
+      _topLevelNode.update(_topLevelNode.configuration, rootUpdate);
     }
+
     _flushStyles();
 
     assert(() {
@@ -64,10 +70,7 @@ class Tree {
     });
     scheduleMicrotask(GlobalKey.notifyListeners);
 
-    // TODO(yjbanov): implement for realz.
-    return {
-      'create': '<h1>Hello, World!</h1>',
-    };
+    return treeUpdate.render();
   }
 
   bool _debugCheckParentChildRelationships() {

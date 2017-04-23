@@ -14,156 +14,156 @@
 
 part of butterfly;
 
-Text text(String value, {Key key}) => new Text(value, key: key);
+Element text(String value, {Key key}) => new Element('span', text: value, key: key);
 
-VirtualElementBuilder element(String tag, {Key key, Map<String, String> attrs,
+VirtualElementBuilder element(String tag, {Key key, List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return new VirtualElementBuilder(tag, key, attrs, eventListeners, style, styles);
 }
 
-VirtualElementBuilder div({Map<String, String> attrs,
+VirtualElementBuilder div({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('div', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder section({Map<String, String> attrs,
+VirtualElementBuilder section({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('section', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder header({Map<String, String> attrs,
+VirtualElementBuilder header({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('header', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder footer({Map<String, String> attrs,
+VirtualElementBuilder footer({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('footer', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder h1({Map<String, String> attrs,
+VirtualElementBuilder h1({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('h1', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder h2({Map<String, String> attrs,
+VirtualElementBuilder h2({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('h2', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder h3({Map<String, String> attrs,
+VirtualElementBuilder h3({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('h3', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder h4({Map<String, String> attrs,
+VirtualElementBuilder h4({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('h4', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder h5({Map<String, String> attrs,
+VirtualElementBuilder h5({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('h5', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder h6({Map<String, String> attrs,
+VirtualElementBuilder h6({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('h6', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder ul({Map<String, String> attrs,
+VirtualElementBuilder ul({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('ul', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder li({Map<String, String> attrs,
+VirtualElementBuilder li({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('li', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder label({Map<String, String> attrs,
+VirtualElementBuilder label({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('label', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder span({Map<String, String> attrs,
+VirtualElementBuilder span({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('span', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder p({Map<String, String> attrs,
+VirtualElementBuilder p({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('p', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder a({Map<String, String> attrs,
+VirtualElementBuilder a({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('a', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder button({Map<String, String> attrs,
+VirtualElementBuilder button({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return element('button', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder input(String type, {Map<String, String> attrs,
+VirtualElementBuilder input(String type, {List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
-  Map<String, String> completeAttrs = <String, String>{
-    'type': type,
-  };
+  List<Attribute> completeAttrs = <Attribute>[
+    new Attribute('type', type),
+  ];
   completeAttrs.addAll(attrs);
   return element('input', attrs: completeAttrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder checkbox({Map<String, String> attrs,
+VirtualElementBuilder checkbox({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return input('checkbox', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder radio({Map<String, String> attrs,
+VirtualElementBuilder radio({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return input('radio', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder password({Map<String, String> attrs,
+VirtualElementBuilder password({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return input('password', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder submit({Map<String, String> attrs,
+VirtualElementBuilder submit({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return input('submit', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder textInput({Map<String, String> attrs,
+VirtualElementBuilder textInput({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return input('text', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
 }
 
-VirtualElementBuilder buttonInput({Map<String, String> attrs,
+VirtualElementBuilder buttonInput({List<Attribute> attrs,
     Map<EventType, EventListener> eventListeners, Style style, List<Style> styles}) {
   return input('button', attrs: attrs, eventListeners: eventListeners,
       style: style, styles: styles);
@@ -181,7 +181,7 @@ class VirtualElementBuilder {
 
   final String _tag;
   final Key _key;
-  final Map<String, String> _attributes;
+  final List<Attribute> _attributes;
   final Map<EventType, EventListener> _eventListeners;
   final Style _style;
   final List<Style> _styles;

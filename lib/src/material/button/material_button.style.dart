@@ -25,7 +25,7 @@ final Style matButton = style({
   'justify-content': 'center',
   'min-width': matButtonMinWidth,
   'min-height': matButtonMinHeight,
-  'padding': matButtonPadding,
+  'padding': '$matButtonPadding',
   'cursor': 'pointer',
   'outline': 'none',
   'text-transform': 'uppercase',
