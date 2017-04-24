@@ -25,8 +25,7 @@ class ElementUpdate {
   String _key = "";
   String _bid = "";
 
-  bool _updateText = false;
-  String _text = "";
+  String _text = null;
 
   final List<int> _removes = <int>[];
   final List<Move> _moves = <Move>[];
@@ -50,7 +49,7 @@ class ElementUpdate {
       wroteData = true;
     }
 
-    if (_updateText) {
+    if (_text != null) {
       js["text"] = _text;
       wroteData = true;
     }
@@ -159,7 +158,7 @@ class ElementUpdate {
       buf..write(">");
     }
 
-    if (_text != "") {
+    if (_text != null) {
       buf..write(_text);
     }
 
@@ -192,7 +191,7 @@ class ElementUpdate {
 
   void setKey(Key key) { _key = key.toString(); }
 
-  void updateText(String text) { _text = text; _updateText = true; }
+  void updateText(String text) { _text = text; }
 
   void updateAttribute(String name, String value) {
     _attributes.add(new AttributeUpdate(name, value));
@@ -202,7 +201,7 @@ class ElementUpdate {
     _bid = bid;
   }
 
-  void AddClassName(String name) {
+  void addClassName(String name) {
     _classNames.add(name);
   }
 }

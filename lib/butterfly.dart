@@ -33,17 +33,24 @@ part 'src/widget.dart';
 
 class ButterflyModule {
   final String _name;
-  final Tree _tree;
   final PlatformChannel platformChannel;
+  final Node _root;
+
+  Tree _tree;
 
   factory ButterflyModule(String name, Node root) {
     final platformChannel = new PlatformChannel();
-    final tree = new Tree(root, platformChannel);
-    return new ButterflyModule._(name, tree, platformChannel);
+    return new ButterflyModule._(name, root, platformChannel);
   }
 
-  ButterflyModule._(this._name, this._tree, this.platformChannel) {
+  ButterflyModule._(this._name, this._root, this.platformChannel) {
+    platformChannel.registerMethod('initialize', _initialize);
     platformChannel.registerMethod('render-frame', _renderFrame);
+  }
+
+  Map<String, dynamic> _initialize(_) {
+    _tree = new Tree(_root, platformChannel);
+    return null;
   }
 
   Map<String, dynamic> _renderFrame(_) {

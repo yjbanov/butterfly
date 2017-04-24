@@ -181,7 +181,8 @@ abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderPa
     if (_currentChildren.isEmpty && newConfiguration.children != null) {
       for (final newChild in newConfiguration.children) {
         RenderNode child = newChild.instantiate(tree);
-        child.update(newChild, update);
+        final childUpdate = update.insertChildElement(0);
+        child.update(newChild, childUpdate);
         child.attach(this);
         _currentChildren.add(child);
       }

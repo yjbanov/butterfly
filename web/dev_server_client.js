@@ -31,6 +31,7 @@ class ButterflyModule {
                 this._handleEvent(type, event);
             });
         });
+        this._initialize();
         this._renderFrame();
     }
 
@@ -43,6 +44,10 @@ class ButterflyModule {
       xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
       xhr.send(JSON.stringify(args));
       return JSON.parse(xhr.responseText);
+    }
+
+    _initialize() {
+        let diff = this._invokePlatformChannelMethod('initialize', '');
     }
 
     _renderFrame() {
