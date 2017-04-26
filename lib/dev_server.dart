@@ -58,8 +58,10 @@ class ButterflyDevServer {
       } catch(error, stackTrace) {
         stderr.writeln(error);
         stderr.writeln(stackTrace);
-        request.response.writeln(error);
-        request.response.writeln(stackTrace);
+        final errorResponse = <String, String>{
+          'error': '${error}\n${stackTrace}',
+        };
+        request.response.write(JSON.encode(errorResponse));
       } finally {
         await request.response.close();
       }

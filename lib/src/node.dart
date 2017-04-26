@@ -62,6 +62,7 @@ abstract class RenderNode<N extends Node> {
   final Tree _tree;
 
   void visitChildren(void visitor(RenderNode child));
+  bool canUpdateUsing(Node node);
 
   /// Remove this node from the tree.
   ///
@@ -178,6 +179,64 @@ abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderPa
       _currentChildren = <RenderNode>[];
     }
 
+    if (_configuration == newConfiguration) {
+      // No need to diff child lists.
+      if (hasDescendantsNeedingUpdate) {
+        for (int i = 0; i < _currentChildren.length; i++) {
+          _currentChildren[i].update(
+            newConfiguration.children[i],
+            update.updateChildElement(i),
+          );
+        }
+      }
+
+      super.update(newConfiguration, update);
+      return;
+    }
+
+    final List<Node> newChildren = newConfiguration.children;
+
+    // Simple case: used to have no children; children added
+    if (_currentChildren.isEmpty && newChildren != null) {
+      for (final newChild in newChildren) {
+        RenderNode child = newChild.instantiate(tree);
+        final childUpdate = update.insertChildElement(0);
+        child.update(newChild, childUpdate);
+        child.attach(this);
+        _currentChildren.add(child);
+      }
+
+      super.update(newConfiguration, update);
+      return;
+    }
+
+    // Simple case: remove all children if any
+    if (newChildren == null || newChildren.isEmpty) {
+      if (_currentChildren != null || _currentChildren.isNotEmpty) {
+        for (int i = 0; i < _currentChildren.length; i++) {
+          _currentChildren[i].detach();
+          update.removeChild(i);
+        }
+        _currentChildren = null;
+      }
+
+      super.update(newConfiguration, update);
+      return;
+    }
+
+    final List<_TrackedChild> currentChildren = <_TrackedChild>[];
+    final Map<Key, int> keyMap = <Key, int>{};
+
+    for (int baseIndex = 0; baseIndex < _currentChildren.length; baseIndex++) {
+      final RenderNode node = _currentChildren[baseIndex];
+      currentChildren.add(new _TrackedChild(baseIndex));
+      final Node config = node._configuration;
+      final Key key = config.key;
+      if (key != null) {
+        keyMap[key] = baseIndex;
+      }
+    }
+
     if (_currentChildren.isEmpty && newConfiguration.children != null) {
       for (final newChild in newConfiguration.children) {
         RenderNode child = newChild.instantiate(tree);
@@ -187,6 +246,110 @@ abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderPa
         _currentChildren.add(child);
       }
     }
+
+    List<int> sequence = <int>[];
+    List<_Target> targetList = <_Target>[];
+    int afterLastUsedUnkeyedChild = 0;
+    for (int i = 0; i < newChildren.length; i++) {
+      final Node node = newChildren[i];
+      final Key key = node.key;
+      int baseChild = currentChildren.length;
+      if (key != null) {
+        // TODO: rename to previousIndex
+        int baseEntry = keyMap[key];
+        if (baseEntry != null) {
+          _TrackedChild baseChild = currentChildren[baseEntry];
+          RenderNode currentChild = _currentChildren[baseChild.positionInCurrentChildren];
+          if (currentChild.canUpdateUsing(node)) {
+            final childUpdate = update.updateChildElement(baseChild.positionInCurrentChildren);
+            currentChild.update(node, childUpdate);
+          }
+        }
+      } else {
+        // Start with afterLastUsedUnkeyedChild and scan until the first child
+        // we can update. Use it. This approach is naive. It does not support
+        // swaps, for example. It does support removes though. For swaps, the
+        // developer is expected to use keys anyway.
+        int scanner = afterLastUsedUnkeyedChild;
+        while(scanner < currentChildren.length) {
+          RenderNode currentChild = _currentChildren[scanner];
+          if (currentChild.canUpdateUsing(node)) {
+            final childUpdate = update.updateChildElement(scanner);
+            currentChild.update(node, childUpdate);
+            baseChild = scanner;
+            afterLastUsedUnkeyedChild = scanner + 1;
+            break;
+          }
+          scanner++;
+        }
+      }
+
+      int baseIndex = -1;
+
+      if (baseChild != currentChildren.length) {
+        currentChildren[baseChild].shouldRetain = true;
+        sequence.add(baseIndex);
+      }
+
+      targetList.add(new _Target(node, baseIndex));
+    }
+
+    // Compute removes
+    for (int i = 0; i < currentChildren.length; i++) {
+      final currentChild = currentChildren[i];
+      if (!currentChild.shouldRetain) {
+        _currentChildren[currentChild.positionInCurrentChildren].detach();
+        update.removeChild(i);
+      }
+    }
+
+    // Compute inserts and updates
+    List<int> lis = computeLongestIncreasingSubsequence(sequence);
+    int insertionPoint = 0;
+    List<RenderNode> newChildVector = <RenderNode>[];
+    int baseCount = _currentChildren.length;
+    for (int i = 0; i < targetList.length; i++) {
+      _Target targetEntry = targetList[i];
+
+      // Three possibilities:
+      //   - it's a new child => its base index == -1
+      //   - it's a moved child => its base index != -1 && base index != insertion index
+      //   - it's a stationary child => its base index != -1 && base index == insertion index
+
+      // Index in the base list of the moved child, or -1
+      int baseIndex = targetEntry.baseIndex;
+      // Index in the base list before which target child must be inserted.
+      int insertionIndex = baseCount;
+      if (insertionPoint != lis.length) {
+        insertionIndex = lis[insertionPoint];
+        if (baseIndex == insertionIndex) {
+          // We've moved past the element in the target list that
+          // corresponds to the insertion point. Advance to the next one.
+          insertionPoint++;
+        }
+      }
+
+      if (baseIndex == -1) {
+        // New child
+        Node childNode = targetEntry.node;
+
+        // Lock the diff object so child nodes do not push diffs.
+        final childInsertion = update.insertChildElement(insertionIndex);
+        final childRenderNode = childNode.instantiate(_tree);
+        newChildVector.add(childRenderNode);
+        childRenderNode.update(childNode, childInsertion);
+        childRenderNode.attach(this);
+      } else {
+        if (baseIndex != insertionIndex) {
+          // Moved child
+          update.moveChild(insertionIndex, baseIndex);
+          newChildVector.add(_currentChildren[baseIndex]);
+        } else {
+          newChildVector.add(_currentChildren[baseIndex]);
+        }
+      }
+    }
+    _currentChildren = newChildVector;
 
     super.update(newConfiguration, update);
   }
@@ -199,4 +362,75 @@ abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderPa
       child.dispatchEvent(event);
     }
   }
+}
+
+class _TrackedChild {
+  _TrackedChild(this.positionInCurrentChildren);
+
+  final int positionInCurrentChildren;
+  bool shouldRetain = false;
+}
+
+class _Target {
+  _Target(this.node, this.baseIndex);
+
+  final Node node;
+  final int baseIndex;  // or -1
+}
+
+/// Computes the [longest increasing subsequence](http://en.wikipedia.org/wiki/Longest_increasing_subsequence).
+///
+/// Returns list of indices (rather than values) into [list].
+///
+/// Complexity: n*log(n)
+// TODO: heuristic idea, len(LIS) == 1 iff list is reversed, which in the
+// diff could be expressed extremely compactly
+List<int> computeLongestIncreasingSubsequence(List<int> list) {
+  final len = list.length;
+  final predecessors = <int>[];
+  final mins = <int>[0];
+  int longest = 0;
+  for (int i = 0; i < len; i++) {
+    // Binary search for the largest positive `j ≤ longest`
+    // such that `list[mins[j]] < list[i]`
+    int elem = list[i];
+    int lo = 1;
+    int hi = longest;
+    while (lo <= hi) {
+      int mid = (lo + hi) ~/ 2;
+      if (list[mins[mid]] < elem) {
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+
+    // After searching, `lo` is 1 greater than the
+    // length of the longest prefix of `list[i]`
+    int expansionIndex = lo;
+
+    // The predecessor of `list[i]` is the last index of
+    // the subsequence of length `newLongest - 1`
+    predecessors.add(mins[expansionIndex - 1]);
+    if (expansionIndex >= mins.length) {
+      mins.add(i);
+    } else {
+      mins[expansionIndex] = i;
+    }
+
+    if (expansionIndex > longest) {
+      // If we found a subsequence longer than any we've
+      // found yet, update `longest`
+      longest = expansionIndex;
+    }
+  }
+
+  // Reconstruct the longest subsequence
+  final seq = new List<int>(longest);
+  int k = mins[longest];
+  for (int i = longest - 1; i >= 0; i--) {
+    seq[i] = k;
+    k = predecessors[k];
+  }
+  return seq;
 }

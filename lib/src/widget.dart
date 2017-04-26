@@ -86,6 +86,11 @@ class RenderStatelessWidget extends RenderParent<StatelessWidget> {
   }
 
   @override
+  bool canUpdateUsing(Node node) {
+    return node.runtimeType == this._configuration.runtimeType;
+  }
+
+  @override
   void update(StatelessWidget newConfiguration, ElementUpdate update) {
     assert(newConfiguration != null);
     if (!identical(configuration, newConfiguration)) {
@@ -131,6 +136,11 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
   void scheduleUpdate() {
     _isDirty = true;
     super.scheduleUpdate();
+  }
+
+  @override
+  bool canUpdateUsing(Node node) {
+    return node.runtimeType == this._configuration.runtimeType;
   }
 
   void update(StatefulWidget newConfiguration, ElementUpdate update) {

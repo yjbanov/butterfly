@@ -44,7 +44,7 @@ class PlatformChannel {
     MethodInvocationHandler method = _methods[name];
     assert(() {
       if (method == null) {
-        throw 'Method ${method} is not registered. Register it using '
+        throw 'Method ${name} is not registered. Register it using '
             '"PlatformChannel.registerMethod"';
       }
       return true;

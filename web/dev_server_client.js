@@ -39,11 +39,15 @@ class ButterflyModule {
     ///
     /// [args] are encoded as JSON. The result is decoded as JSON.
     _invokePlatformChannelMethod(method, args) {
-      var xhr = new XMLHttpRequest();
+      let xhr = new XMLHttpRequest();
       xhr.open('POST', `/__butterfly_dev_channel__/${this.moduleName}/${method}`, false /* synchronous */);
       xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
       xhr.send(JSON.stringify(args));
-      return JSON.parse(xhr.responseText);
+      let result = JSON.parse(xhr.responseText);
+      if (result != null && result.hasOwnProperty('error')) {
+        throw result['error'];
+      }
+      return result;
     }
 
     _initialize() {
@@ -73,14 +77,14 @@ class ButterflyModule {
 
     _handleEvent(type, event) {
         // Look for the nearest parent with a _bid, then dispatch to it.
-        let bid = null;
+        let baristaId = null;
         let parent = event.target;
-        while(bid == null && parent && parent != document) {
-            bid = parent.getAttribute("_bid");
+        while(baristaId == null && parent && parent != document) {
+            baristaId = parent.getAttribute("_bid");
             parent = parent.parentNode;
         }
-        if (bid) {
-            dispatchEvent(type, bid, serializeEvent(type, event));
+        if (baristaId) {
+            this._invokePlatformChannelMethod('dispatch-event', serializeEvent(type, baristaId, event));
             this._renderFrame();
         } else {
             console.log(">>> caught event on target with no _bid:", event.target);
@@ -103,7 +107,7 @@ class ButterflyModule {
                         parent = parent.parentNode;
                     }
                 }
-                _applyElementUpdate(child, childUpdate);
+                this._applyElementUpdate(child, childUpdate);
             }
         }
         let removes = null;
@@ -202,7 +206,12 @@ function printPerf(category, start, end) {
     console.log('>>>', category, ':', end - start, 'ms');
 }
 
-function serializeEvent(type, event) {
+function serializeEvent(type, baristaId, event) {
+    let serializedEvent = {
+        'type': type,
+        'bid': baristaId
+    };
+
     let data = {};
     if (type == 'keyup') {
         data['keyCode'] = event.keyCode;
@@ -210,5 +219,6 @@ function serializeEvent(type, event) {
     if (event.target && event.target.value) {
         data['value'] = event.target.value;
     }
-    return JSON.stringify(data);
+    serializedEvent['data'] = data;
+    return serializedEvent;
 }

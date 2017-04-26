@@ -13,13 +13,18 @@
 // limitations under the License.
 
 import 'package:butterfly/butterfly.dart';
-import 'package:butterfly/material.dart';
 
 class App extends StatelessWidget {
   Node build() {
-    return div(attrs: [new Attribute('id', 'greeting')])([
+    return div(attrs: {'id': 'greeting'})([
       text('Hello, World!'),
-      new MaterialButton(child: text('Update')),
+      button(eventListeners: {
+        EventType.click: (_) {
+          print('Woohoo!');
+        }
+      })([
+        text('Update'),
+      ]),
     ]);
   }
 }

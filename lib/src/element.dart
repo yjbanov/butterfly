@@ -36,7 +36,7 @@ String attributePresentIf(bool condition) => condition
 class Element extends MultiChildNode {
   Element(this.tag, {
     Key key,
-    List<Attribute> attributes,
+    Map<String, String> attributes,
     this.text,
     List<Node> children,
     this.eventListeners,
@@ -47,26 +47,14 @@ class Element extends MultiChildNode {
 
   final String tag;
 
-  final List<Attribute> attributes;
+  final Map<String, String> attributes;
   final Map<EventType, EventListener> eventListeners;
   final Style style;
   final List<Style> styles;
   final String text;
 
-  /// Barista ID.
-  ///
-  /// Used to uniquely identify this element when dispatching events.
-  String _bid;
-
   @override
   RenderNode instantiate(Tree t) => new RenderElement(t);
-}
-
-class Attribute {
-  final String name;
-  final String value;
-
-  const Attribute(this.name, this.value);
 }
 
 class RenderElement extends RenderMultiChildParent<Element> {
@@ -80,9 +68,48 @@ class RenderElement extends RenderMultiChildParent<Element> {
   static String _nextBid() => '${_baristaIdCounter++}';
 
   @override
+  bool canUpdateUsing(Node node) {
+    return node is Element && node.tag == this._configuration.tag;
+  }
+
+  @override
   void update(Element newConfiguration, ElementUpdate update) {
     // TODO(yjbanov): implement for realz
-    if (_configuration == null) {
+    if (_configuration != null) {
+      if (_configuration.text != newConfiguration.text) {
+        update.updateText(newConfiguration.text);
+      }
+      if (newConfiguration.eventListeners != null && newConfiguration.eventListeners.isNotEmpty) {
+        if (_baristaId == null) {
+          _baristaId = _nextBid();
+          update.updateBaristaId(_baristaId);
+        }
+      }
+
+      final newAttrs = newConfiguration.attributes;
+      final oldAttrs = _configuration.attributes;
+      if (newAttrs != oldAttrs) {
+        // TODO(yjbanov): attribute updates are probaby sub-optimal.
+
+        // Find updates
+        for (String newName in newAttrs.keys) {
+          final newValue = newAttrs[newName];
+          if (oldAttrs[newName] != newValue) {
+            update.updateAttribute(newName, newValue);
+          }
+        }
+
+        // Find removes
+        for (final oldName in oldAttrs.keys) {
+          if (!newAttrs.containsKey(oldName)) {
+            // TODO(yjbanov): this won't go far. Need explicit "remove attribute" op.
+            update.updateAttribute(oldName, '');
+          }
+        }
+      }
+
+      // TODO(yjbanov): implement style diffing
+    } else {
       update.updateTag(newConfiguration.tag);
       final key = newConfiguration.key;
 
@@ -91,20 +118,18 @@ class RenderElement extends RenderMultiChildParent<Element> {
       }
 
       if (newConfiguration.eventListeners != null && newConfiguration.eventListeners.isNotEmpty) {
-        if (newConfiguration._bid != null) {
-          update.updateBaristaId(newConfiguration._bid);
-        } else {
-          newConfiguration._bid = _nextBid();
-          update.updateBaristaId(newConfiguration._bid);
+        if (_baristaId == null) {
+          _baristaId = _nextBid();
+          update.updateBaristaId(_baristaId);
         }
       }
 
       update.updateText(newConfiguration.text);
 
       if (newConfiguration.attributes != null && newConfiguration.attributes.isNotEmpty) {
-        for (final attribute in newConfiguration.attributes) {
-          update.updateAttribute(attribute.name, attribute.value);
-        }
+        newConfiguration.attributes.forEach((String name, String value) {
+          update.updateAttribute(name, value);
+        });
       }
     }
     super.update(newConfiguration, update);

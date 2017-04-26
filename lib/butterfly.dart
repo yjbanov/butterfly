@@ -44,8 +44,10 @@ class ButterflyModule {
   }
 
   ButterflyModule._(this._name, this._root, this.platformChannel) {
-    platformChannel.registerMethod('initialize', _initialize);
-    platformChannel.registerMethod('render-frame', _renderFrame);
+    platformChannel
+      ..registerMethod('initialize', _initialize)
+      ..registerMethod('render-frame', _renderFrame)
+      ..registerMethod('dispatch-event', _dispatchEvent);
   }
 
   Map<String, dynamic> _initialize(_) {
@@ -55,6 +57,14 @@ class ButterflyModule {
 
   Map<String, dynamic> _renderFrame(_) {
     return _tree.renderFrame();
+  }
+
+  Map<String, dynamic> _dispatchEvent(Map<String, dynamic> serializedEvent) {
+    String type = serializedEvent['type'];
+    String baristaId = serializedEvent['bid'];
+    dynamic data = serializedEvent['data'];
+    _tree.dispatchEvent(new Event(new EventType(type), baristaId, data));
+    return null;
   }
 
   @override
