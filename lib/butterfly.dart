@@ -37,6 +37,7 @@ class ButterflyModule {
   final Node _root;
 
   Tree _tree;
+  Tree get tree => _tree;
 
   factory ButterflyModule(String name, Node root) {
     final platformChannel = new PlatformChannel();
@@ -45,21 +46,21 @@ class ButterflyModule {
 
   ButterflyModule._(this._name, this._root, this.platformChannel) {
     platformChannel
-      ..registerMethod('initialize', _initialize)
-      ..registerMethod('render-frame', _renderFrame)
-      ..registerMethod('dispatch-event', _dispatchEvent);
+      ..registerMethod('initialize', initialize)
+      ..registerMethod('render-frame', renderFrame)
+      ..registerMethod('dispatch-event', dispatchEvent);
   }
 
-  Map<String, dynamic> _initialize(_) {
+  Map<String, dynamic> initialize([_]) {
     _tree = new Tree(_root, platformChannel);
     return null;
   }
 
-  Map<String, dynamic> _renderFrame(_) {
+  Map<String, dynamic> renderFrame([_]) {
     return _tree.renderFrame();
   }
 
-  Map<String, dynamic> _dispatchEvent(Map<String, dynamic> serializedEvent) {
+  Map<String, dynamic> dispatchEvent(Map<String, dynamic> serializedEvent) {
     String type = serializedEvent['type'];
     String baristaId = serializedEvent['bid'];
     dynamic data = serializedEvent['data'];

@@ -42,7 +42,7 @@ class ValueKey<T> extends Key {
     return value == typedOther.value;
   }
   int get hashCode => value.hashCode;
-  String toString() => '[\'$value\']';
+  String toString() => '$value';
 }
 
 /// A [Key] that is only equal to itself.

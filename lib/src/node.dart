@@ -237,16 +237,6 @@ abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderPa
       }
     }
 
-    if (_currentChildren.isEmpty && newConfiguration.children != null) {
-      for (final newChild in newConfiguration.children) {
-        RenderNode child = newChild.instantiate(tree);
-        final childUpdate = update.insertChildElement(0);
-        child.update(newChild, childUpdate);
-        child.attach(this);
-        _currentChildren.add(child);
-      }
-    }
-
     List<int> sequence = <int>[];
     List<_Target> targetList = <_Target>[];
     int afterLastUsedUnkeyedChild = 0;
@@ -255,13 +245,13 @@ abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderPa
       final Key key = node.key;
       int baseChild = currentChildren.length;
       if (key != null) {
-        // TODO: rename to previousIndex
-        int baseEntry = keyMap[key];
-        if (baseEntry != null) {
-          _TrackedChild baseChild = currentChildren[baseEntry];
-          RenderNode currentChild = _currentChildren[baseChild.positionInCurrentChildren];
+        int previousIndex = keyMap[key];
+        if (previousIndex != null) {
+          baseChild = previousIndex;
+          _TrackedChild trackedChild = currentChildren[previousIndex];
+          RenderNode currentChild = _currentChildren[trackedChild.positionInCurrentChildren];
           if (currentChild.canUpdateUsing(node)) {
-            final childUpdate = update.updateChildElement(baseChild.positionInCurrentChildren);
+            final childUpdate = update.updateChildElement(trackedChild.positionInCurrentChildren);
             currentChild.update(node, childUpdate);
           }
         }
@@ -284,14 +274,13 @@ abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderPa
         }
       }
 
-      int baseIndex = -1;
-
       if (baseChild != currentChildren.length) {
         currentChildren[baseChild].shouldRetain = true;
-        sequence.add(baseIndex);
+        sequence.add(baseChild);
+        targetList.add(new _Target(node, baseChild));
+      } else {
+        targetList.add(new _Target(node, -1));
       }
-
-      targetList.add(new _Target(node, baseIndex));
     }
 
     // Compute removes
@@ -429,7 +418,7 @@ List<int> computeLongestIncreasingSubsequence(List<int> list) {
   final seq = new List<int>(longest);
   int k = mins[longest];
   for (int i = longest - 1; i >= 0; i--) {
-    seq[i] = k;
+    seq[i] = list[k];
     k = predecessors[k];
   }
   return seq;

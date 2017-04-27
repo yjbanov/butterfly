@@ -15,7 +15,7 @@
 part of butterfly;
 
 class ElementUpdate {
-  ElementUpdate._(int index) : _index = index;
+  ElementUpdate(int index) : _index = index;
 
   // insert-before index if this is being inserted.
   // child index if this is being updated.
@@ -178,12 +178,12 @@ class ElementUpdate {
   }
 
   ElementUpdate insertChildElement(int insertionIndex) {
-    _childElementInsertions.add(new ElementUpdate._(insertionIndex));
+    _childElementInsertions.add(new ElementUpdate(insertionIndex));
     return _childElementInsertions.last;
   }
 
   ElementUpdate updateChildElement(int index) {
-    _childElementUpdates.add(new ElementUpdate._(index));
+    _childElementUpdates.add(new ElementUpdate(index));
     return _childElementUpdates.last;
   }
 
@@ -229,7 +229,7 @@ class TreeUpdate {
   bool _createMode = false;
   ElementUpdate _rootUpdate;
 
-  TreeUpdate() : _rootUpdate = new ElementUpdate._(0);
+  TreeUpdate() : _rootUpdate = new ElementUpdate(0);
 
   ElementUpdate createRootElement() {
     _createMode = true;

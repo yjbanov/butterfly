@@ -14,42 +14,25 @@
 
 library butterfly.testing;
 
-import 'dart:html' as html;
+import 'package:test/test.dart';
+
 import 'butterfly.dart';
 
-// TODO(yjbanov): rewrite this in terms of modules.
-ApplicationTester runTestApp(Widget topLevelWidget) {
-  return new ApplicationTester(topLevelWidget);
+WidgetTester testWidget(Node root) {
+  return new WidgetTester(root);
 }
 
-class ApplicationTester {
-  factory ApplicationTester(Widget topLevelWidget) {
-    const butterflyTestHostElementId = 'butterfly-test-host-element';
-    html.Element hostElement = html.document.querySelector('#$butterflyTestHostElementId');
-    if (hostElement != null) {
-      hostElement.remove();
-    }
-    hostElement = new html.DivElement()
-      ..id = butterflyTestHostElementId;
-    html.document.body.append(hostElement);
-    Tree tree = new Tree(topLevelWidget, new PlatformChannel());
-    ApplicationTester tester = new ApplicationTester._(hostElement, tree);
-    tester.renderFrame();
+class WidgetTester {
+  factory WidgetTester(Node root) {
+    final module = new ButterflyModule('test-module', root);
+    final tester = new WidgetTester._(module);
+    tester.module.initialize();
     return tester;
   }
 
-  ApplicationTester._(this.hostElement, this.tree);
+  WidgetTester._(this.module);
 
-  final html.Element hostElement;
-  final Tree tree;
-
-  String get innerHtml => hostElement.innerHtml;
-
-  html.Element querySelector(String selector) =>
-      hostElement.querySelector(selector);
-
-  html.ElementList<html.Element> querySelectorAll(String selector) =>
-      hostElement.querySelectorAll(selector);
+  final ButterflyModule module;
 
   RenderNode findNode(bool predicate(RenderNode node)) {
     RenderNode foundNode;
@@ -60,7 +43,7 @@ class ApplicationTester {
         node.visitChildren(findTrackingNode);
       }
     }
-    tree.visitChildren(findTrackingNode);
+    module.tree.visitChildren(findTrackingNode);
     return foundNode;
   }
 
@@ -70,7 +53,30 @@ class ApplicationTester {
   RenderNode findNodeOfConfigurationType(Type type) =>
       findNode((node) => node.configuration.runtimeType == type);
 
-  void renderFrame() {
-    tree.renderFrame();
+  Map<String, dynamic> renderFrame() {
+    return module.renderFrame();
+  }
+
+  // TODO(yjbanov): turn expect* methods into matchers.
+  void expectRenderCreate(String expectedHtml) {
+    final diff = renderFrame();
+    expect(diff, isNotNull);
+    expect(diff, contains('create'));
+    expect(diff['create'], expectedHtml);
+  }
+
+  void expectRenderNoop() {
+    final diff = renderFrame();
+    expect(diff, isNotNull);
+    expect(diff.keys, isEmpty);
+  }
+
+  void expectRenderUpdate(ElementUpdate update) {
+    final diff = renderFrame();
+    expect(diff, isNotNull);
+    expect(diff, contains('update'));
+    Map<String, dynamic> js = <String, dynamic>{};
+    update.render(js);
+    expect(diff['update'], js);
   }
 }
