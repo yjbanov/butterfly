@@ -36,14 +36,14 @@ String attributePresentIf(bool condition) => condition
 class Element extends MultiChildNode {
   Element(this.tag, {
     Key key,
-    Map<String, String> attributes,
-    this.text,
-    List<Node> children,
+    this.attributes,
     this.eventListeners,
     this.style,
-    this.styles
-  }) : this.attributes = attributes,
-       super(key: key, children: children);
+    this.styles,
+    this.classNames,
+    this.text,
+    List<Node> children,
+  }) : super(key: key, children: children);
 
   final String tag;
 
@@ -51,6 +51,7 @@ class Element extends MultiChildNode {
   final Map<EventType, EventListener> eventListeners;
   final Style style;
   final List<Style> styles;
+  final List<String> classNames;
   final String text;
 
   @override
@@ -63,6 +64,7 @@ class RenderElement extends RenderMultiChildParent<Element> {
   /// An automatically generated global identifier, created to refer to this
   /// element later, e.g. when we need to dispatch an event to it.
   String _baristaId;
+  String get baristaId => _baristaId;
 
   static int _baristaIdCounter = 0;
   static String _nextBid() => '${_baristaIdCounter++}';
@@ -74,43 +76,15 @@ class RenderElement extends RenderMultiChildParent<Element> {
 
   @override
   void update(Element newConfiguration, ElementUpdate update) {
-    // TODO(yjbanov): implement for realz
     if (_configuration != null) {
       if (_configuration.text != newConfiguration.text) {
         update.updateText(newConfiguration.text);
       }
-      if (newConfiguration.eventListeners != null && newConfiguration.eventListeners.isNotEmpty) {
-        if (_baristaId == null) {
-          _baristaId = _nextBid();
-          update.updateBaristaId(_baristaId);
-        }
-      }
-
-      final newAttrs = newConfiguration.attributes;
-      final oldAttrs = _configuration.attributes;
-      if (newAttrs != oldAttrs) {
-        // TODO(yjbanov): attribute updates are probaby sub-optimal.
-
-        // Find updates
-        for (String newName in newAttrs.keys) {
-          final newValue = newAttrs[newName];
-          if (oldAttrs[newName] != newValue) {
-            update.updateAttribute(newName, newValue);
-          }
-        }
-
-        // Find removes
-        for (final oldName in oldAttrs.keys) {
-          if (!newAttrs.containsKey(oldName)) {
-            // TODO(yjbanov): this won't go far. Need explicit "remove attribute" op.
-            update.updateAttribute(oldName, '');
-          }
-        }
-      }
-
-      // TODO(yjbanov): implement style diffing
+      _updateEventListeners(newConfiguration.eventListeners, update);
+      _updateAttributes(newConfiguration.attributes, update);
+      _updateStyles(newConfiguration, update);
     } else {
-      update.updateTag(newConfiguration.tag);
+      update.setTag(newConfiguration.tag);
       final key = newConfiguration.key;
 
       if (key != null) {
@@ -131,8 +105,107 @@ class RenderElement extends RenderMultiChildParent<Element> {
           update.updateAttribute(name, value);
         });
       }
+
+      _setStyles(newConfiguration, update);
     }
     super.update(newConfiguration, update);
+  }
+
+  void _updateEventListeners(Map<EventType, EventListener> eventListeners, ElementUpdate update) {
+    if (eventListeners != null && eventListeners.isNotEmpty) {
+      if (_baristaId == null) {
+        _baristaId = _nextBid();
+        update.updateBaristaId(_baristaId);
+      }
+    }
+  }
+
+  void _updateAttributes(Map<String, String> newAttrs, ElementUpdate update) {
+    final oldAttrs = _configuration.attributes;
+    if (newAttrs != oldAttrs) {
+      // TODO(yjbanov): attribute updates are probaby sub-optimal.
+
+      // Find updates
+      for (String newName in newAttrs.keys) {
+        final newValue = newAttrs[newName];
+        if (oldAttrs[newName] != newValue) {
+          update.updateAttribute(newName, newValue);
+        }
+      }
+
+      // Find removes
+      for (final oldName in oldAttrs.keys) {
+        if (!newAttrs.containsKey(oldName)) {
+          // TODO(yjbanov): this won't go far. Need explicit "remove attribute" op.
+          update.updateAttribute(oldName, '');
+        }
+      }
+    }
+  }
+
+  void _updateStyles(Element newConfig, ElementUpdate update) {
+    Style oldStyle = _configuration.style;
+    Style newStyle = newConfig.style;
+    List<Style> oldStyles = _configuration.styles;
+    List<Style> newStyles = newConfig.styles;
+    List<String> oldClassNames = _configuration.classNames;
+    List<String> newClassNames = newConfig.classNames;
+
+    if (newStyle != oldStyle ||
+        newStyles == null && oldStyles != null ||
+        newStyles != null && oldStyles == null ||
+        newClassNames == null && oldClassNames != null ||
+        newClassNames != null && oldClassNames == null ||
+        newStyles != null && newStyles.length != oldStyles.length ||
+        newClassNames != null && newClassNames.length != oldClassNames.length) {
+      if (newStyle != null) {
+        if (!newStyle._isRegistered) {
+          _tree.registerStyle(newStyle);
+        }
+        update.addClassName(newStyle.identifierClass);
+      }
+      if (newStyles != null) {
+        for (int i = 0; i < newStyles.length; i++) {
+          final Style style = newStyles[i];
+          if (!style._isRegistered) {
+            _tree.registerStyle(style);
+          }
+          update.addClassName(style.identifierClass);
+        }
+      }
+      if (newClassNames != null) {
+        for (int i = 0; i < newClassNames.length; i++) {
+          update.addClassName(newClassNames[i]);
+        }
+      }
+    }
+  }
+
+  void _setStyles(Element newConfig, ElementUpdate update) {
+    Style newStyle = newConfig.style;
+    List<Style> newStyles = newConfig.styles;
+    List<String> newClassNames = newConfig.classNames;
+
+    if (newStyle != null) {
+      if (!newStyle._isRegistered) {
+        _tree.registerStyle(newStyle);
+      }
+      update.addClassName(newStyle.identifierClass);
+    }
+    if (newStyles != null) {
+      for (int i = 0; i < newStyles.length; i++) {
+        final Style style = newStyles[i];
+        if (!style._isRegistered) {
+          _tree.registerStyle(style);
+        }
+        update.addClassName(style.identifierClass);
+      }
+    }
+    if (newClassNames != null) {
+      for (int i = 0; i < newClassNames.length; i++) {
+        update.addClassName(newClassNames[i]);
+      }
+    }
   }
 
   void dispatchEvent(Event event) {

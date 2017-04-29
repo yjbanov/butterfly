@@ -17,12 +17,12 @@ part of butterfly;
 /// Retained virtual mirror of the DOM Tree.
 class Tree {
   // TODO(yjbanov): top-level node doesn't have to be final. We can replace it.
-  Tree(this._topLevelWidget, this._platformChannel) {
+  Tree(this._topLevelWidget, this.platformChannel) {
     assert(_topLevelWidget != null);
   }
 
   final Node _topLevelWidget;
-  final PlatformChannel _platformChannel;
+  final PlatformChannel platformChannel;
 
   RenderNode _topLevelNode;
 
@@ -31,14 +31,6 @@ class Tree {
   void registerStyle(Style style) {
     assert(!style._isRegistered);
     _styleBuffer.writeln('.${style.identifierClass} { ${style.css} }');
-  }
-
-  void _flushStyles() {
-    if (_styleBuffer.isEmpty) {
-      return;
-    }
-    _platformChannel.invokeJS('install-style', '${_styleBuffer}');
-    _styleBuffer = new StringBuffer();
   }
 
   void dispatchEvent(Event event) {
@@ -61,7 +53,10 @@ class Tree {
       _topLevelNode.update(_topLevelNode.configuration, rootUpdate);
     }
 
-    _flushStyles();
+    if (_styleBuffer.isNotEmpty) {
+      treeUpdate.installStyles(_styleBuffer.toString());
+      _styleBuffer = new StringBuffer();
+    }
 
     assert(() {
       _debugCheckParentChildRelationships();

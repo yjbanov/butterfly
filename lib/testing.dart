@@ -53,6 +53,27 @@ class WidgetTester {
   RenderNode findNodeOfConfigurationType(Type type) =>
       findNode((node) => node.configuration.runtimeType == type);
 
+  RenderElement findElementNode({String byTag}) {
+    return findNode((n) {
+      if (n is! RenderElement) {
+        return false;
+      }
+
+      if (byTag != null && n.configuration.tag == byTag) {
+        return true;
+      }
+
+      return false;
+    });
+  }
+
+  State findStateOfType(Type type) {
+    RenderStatefulWidget renderWidget = findNode((node) {
+      return node is RenderStatefulWidget && node.state.runtimeType == type;
+    });
+    return renderWidget.state;
+  }
+
   Map<String, dynamic> renderFrame() {
     return module.renderFrame();
   }

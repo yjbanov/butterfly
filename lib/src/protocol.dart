@@ -145,8 +145,11 @@ class ElementUpdate {
 
       if (_classNames.isNotEmpty) {
         buf..write(" class=\"");
-        for (final className in _classNames) {
-          buf..write(" ")..write(className);
+        for (int i = 0; i < _classNames.length; i++) {
+          buf..write(_classNames[i]);
+          if (i + 1 < _classNames.length) {
+            buf..write(" ");
+          }
         }
         buf..write("\"");
       }
@@ -187,7 +190,7 @@ class ElementUpdate {
     return _childElementUpdates.last;
   }
 
-  void updateTag(String tag) { _tag = tag; }
+  void setTag(String tag) { _tag = tag; }
 
   void setKey(Key key) { _key = key.toString(); }
 
@@ -228,6 +231,7 @@ class Move {
 class TreeUpdate {
   bool _createMode = false;
   ElementUpdate _rootUpdate;
+  String _styleCss;
 
   TreeUpdate() : _rootUpdate = new ElementUpdate(0);
 
@@ -241,6 +245,10 @@ class TreeUpdate {
     return _rootUpdate;
   }
 
+  void installStyles(String styleCss) {
+    this._styleCss = styleCss;
+  }
+
   Map<String, dynamic> render({int indent = 0}) {
     final js = <String, dynamic>{};
     if (_createMode) {
@@ -252,6 +260,9 @@ class TreeUpdate {
       if (_rootUpdate.render(jsRootUpdate)) {
         js["update"] = jsRootUpdate;
       }
+    }
+    if (_styleCss != null) {
+      js["styles"] = _styleCss;
     }
 
     return js;

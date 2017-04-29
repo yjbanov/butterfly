@@ -105,7 +105,8 @@ main() {
 
       testCreate(List<int> keys) {
         listState.childKeys = keys;
-        var innerHtml = keys.map((key) => '<span _bkey="${key}">${key}</span>').join();
+        var innerHtml = keys
+            .map((key) => '<span _bkey="${key}">${key}</span>').join();
         tester.expectRenderCreate('<div>${innerHtml}</div>');
       }
 
@@ -120,7 +121,7 @@ main() {
         final update = new ElementUpdate(0);
         inserts.forEach((int key, int position) {
           update.insertChildElement(position)
-            ..updateTag('span')
+            ..setTag('span')
             ..setKey(new ValueKey('$key'))
             ..updateText('$key');
         });
@@ -201,21 +202,30 @@ main() {
 
   group('attributes', () {
     test('are set', () {
-      testWidget(new SimpleAttributesWidget()).expectRenderCreate('<div id="this_is_id" width="300"></div>');
+      testWidget(new SimpleAttributesWidget())
+          .expectRenderCreate('<div id="this_is_id" width="300"></div>');
     });
   });
 
   group('events', () {
     test('are captured by listeners', () {
-      var widget = new EventListeningWidget();
-      var tester = testWidget(widget);
-      expect(tester.innerHtml, '<button>0</button>');
-
-      var button = tester.querySelector('button') as html.ButtonElement;
-      button.click();
+      final widget = new EventListeningWidget();
+      final tester = testWidget(widget);
 
       tester.renderFrame();
-      expect(tester.innerHtml, '<button>1</button>');
+
+      final EventListeningWidgetState state =
+          tester.findStateOfType(EventListeningWidgetState);
+      expect(state.counter, 0);
+
+      RenderElement buttonElement = tester.findElementNode(byTag: 'button');
+      tester.module.dispatchEvent({
+        'type': 'click',
+        'bid': buttonElement.baristaId,
+      });
+
+      tester.renderFrame();
+      expect(state.counter, 1);
     });
   });
 
@@ -224,7 +234,7 @@ main() {
       var s = new Style('width: 10px;');
       var widget = new WidgetWithStyle(s);
       var tester = testWidget(widget);
-      expect(tester.innerHtml, '<div class="${s.identifierClass}"></div>');
+      tester.expectRenderCreate('<div class="${s.identifierClass}"></div>');
     });
   });
 
@@ -252,7 +262,7 @@ main() {
         buf.write('"');
       }
       buf.write('></div>');
-      expect(tester.innerHtml, buf.toString());
+      tester.expectRenderCreate(buf.toString());
     }
 
     test('applies multiple styles', () {
