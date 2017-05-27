@@ -36,7 +36,7 @@ class ElementUpdate {
   final List<String> _classNames = <String>[];
 
   /// Appends the JSON representation of this update into [buffer].
-  bool render(Map<String, dynamic> js) {
+  bool render(Map<String, Object> js) {
     bool wroteData = false;
 
     if (_tag != "") {
@@ -74,9 +74,9 @@ class ElementUpdate {
     }
 
     if (_childElementInsertions.isNotEmpty) {
-      final jsInsertions = <Map<String, dynamic>>[];
+      final jsInsertions = <Map<String, Object>>[];
       for (ElementUpdate insertion in _childElementInsertions) {
-        final jsInsertion = <String, dynamic>{};
+        final jsInsertion = <String, Object>{};
         jsInsertion["index"] = insertion._index;
         final buf = new StringBuffer();
         insertion.printHtml(buf);
@@ -88,9 +88,9 @@ class ElementUpdate {
     }
 
     if (_childElementUpdates.isNotEmpty) {
-      final jsUpdates = <Map<String, dynamic>>[];
+      final jsUpdates = <Map<String, Object>>[];
       for (ElementUpdate update in _childElementUpdates) {
-        final childUpdate = <String, dynamic>{};
+        final childUpdate = <String, Object>{};
         if (update.render(childUpdate)) {
           jsUpdates.add(childUpdate);
         }
@@ -103,7 +103,7 @@ class ElementUpdate {
     }
 
     if (_attributes.isNotEmpty) {
-      final jsAttrUpdates = <String, dynamic>{};
+      final jsAttrUpdates = <String, Object>{};
       for (AttributeUpdate attrUpdate in _attributes) {
         jsAttrUpdates[attrUpdate.name] = attrUpdate.value;
       }
@@ -131,38 +131,38 @@ class ElementUpdate {
   /// renders it as a plain HTML into the given [buffer].
   void printHtml(StringBuffer buf) {
     if (_index != -1) {  // we don't print host tag.
-      buf..write("<")..write(_tag);
+      buf.write("<${_tag}");
 
       if (_key != "") {
-        buf..write(" _bkey=\"")..write(_key)..write("\"");
+        buf.write(' _bkey="${_key}"');
       }
 
       if (_attributes.isNotEmpty) {
         for (final AttributeUpdate attr in _attributes) {
-          buf..write(" ")..write(attr.name)..write("=\"")..write(attr.value)..write("\"");
+          buf.write(' ${attr.name}="${attr.value}"');
         }
       }
 
       if (_classNames.isNotEmpty) {
-        buf..write(" class=\"");
+        buf.write(' class="');
         for (int i = 0; i < _classNames.length; i++) {
-          buf..write(_classNames[i]);
+          buf.write(_classNames[i]);
           if (i + 1 < _classNames.length) {
-            buf..write(" ");
+            buf.write(' ');
           }
         }
-        buf..write("\"");
+        buf.write('"');
       }
 
-      if (_bid != "") {
-        buf..write(" _bid=\"")..write(_bid)..write("\"");
+      if (_bid != '') {
+        buf.write(' _bid="${_bid}"');
       }
 
-      buf..write(">");
+      buf.write('>');
     }
 
     if (_text != null) {
-      buf..write(_text);
+      buf.write(_text);
     }
 
     for(final childElement in _childElementInsertions) {
@@ -170,7 +170,7 @@ class ElementUpdate {
     }
 
     if (_index != -1) {
-      buf..write("</")..write(_tag)..write(">");
+      buf.write('</${_tag}>');
     }
   }
 
@@ -190,9 +190,13 @@ class ElementUpdate {
     return _childElementUpdates.last;
   }
 
-  void setTag(String tag) { _tag = tag; }
+  void set tag(String tag) {
+    _tag = tag;
+  }
 
-  void setKey(Key key) { _key = key.toString(); }
+  void set key(Key key) {
+    _key = '${key}';
+  }
 
   void updateText(String text) { _text = text; }
 
@@ -217,23 +221,19 @@ class AttributeUpdate {
 }
 
 class Move {
-  Move(int insertionIndex, int moveFromIndex)
-      : _insertionIndex = insertionIndex,
-        _moveFromIndex = moveFromIndex;
+  Move(this.insertionIndex, this.moveFromIndex);
 
-  final int _insertionIndex;
-  final int _moveFromIndex;
-
-  int get insertionIndex => _insertionIndex;
-  int get moveFromIndex => _moveFromIndex;
+  final int insertionIndex;
+  final int moveFromIndex;
 }
 
 class TreeUpdate {
-  bool _createMode = false;
-  ElementUpdate _rootUpdate;
-  String _styleCss;
+  TreeUpdate();
 
-  TreeUpdate() : _rootUpdate = new ElementUpdate(0);
+  final ElementUpdate _rootUpdate = new ElementUpdate(0);
+
+  bool _createMode = false;
+  String _styleCss;
 
   ElementUpdate createRootElement() {
     _createMode = true;
@@ -249,20 +249,20 @@ class TreeUpdate {
     this._styleCss = styleCss;
   }
 
-  Map<String, dynamic> render({int indent = 0}) {
-    final js = <String, dynamic>{};
+  Map<String, Object> render({int indent = 0}) {
+    final js = <String, Object>{};
     if (_createMode) {
       final html = new StringBuffer();
       _rootUpdate.printHtml(html);
-      js["create"] = html.toString();
+      js['create'] = html.toString();
     } else {
-      final jsRootUpdate = <String, dynamic>{};
+      final jsRootUpdate = <String, Object>{};
       if (_rootUpdate.render(jsRootUpdate)) {
-        js["update"] = jsRootUpdate;
+        js['update'] = jsRootUpdate;
       }
     }
     if (_styleCss != null) {
-      js["styles"] = _styleCss;
+      js['styles'] = _styleCss;
     }
 
     return js;

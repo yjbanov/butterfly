@@ -74,7 +74,7 @@ class WidgetTester {
     return renderWidget.state;
   }
 
-  Map<String, dynamic> renderFrame() {
+  Map<String, Object> renderFrame() {
     return module.renderFrame();
   }
 
@@ -96,7 +96,7 @@ class WidgetTester {
     final diff = renderFrame();
     expect(diff, isNotNull);
     expect(diff, contains('update'));
-    Map<String, dynamic> js = <String, dynamic>{};
+    Map<String, Object> js = <String, Object>{};
     update.render(js);
     expect(diff['update'], js);
   }

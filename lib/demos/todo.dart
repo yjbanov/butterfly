@@ -14,7 +14,7 @@
 
 import 'package:butterfly/butterfly.dart';
 
-// TODO(yjbanov): maket these injectable
+// TODO(yjbanov): make these injectable
 Store store = new Store();
 TodoFactory todoFactory = new TodoFactory();
 
@@ -185,7 +185,7 @@ class TodoAppState extends State<TodoApp> {
   }
 
   void clearCompleted() {
-    store.removeBy((Todo todo) => todo.completed);
+    store.removeWhere((Todo todo) => todo.completed);
     scheduleUpdate();
   }
 }
@@ -266,7 +266,7 @@ class Store<T extends KeyModel> {
     list.remove(record);
   }
 
-  void removeBy(bool callback(T t)) {
-    list.removeWhere(callback);
+  void removeWhere(bool predicate(T t)) {
+    list.removeWhere(predicate);
   }
 }

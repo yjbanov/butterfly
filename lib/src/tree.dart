@@ -41,7 +41,7 @@ class Tree {
     visitor(_topLevelNode);
   }
 
-  Map<String, dynamic> renderFrame() {
+  Map<String, Object> renderFrame() {
     final treeUpdate = new TreeUpdate();
 
     if (_topLevelNode == null) {

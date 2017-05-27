@@ -69,6 +69,8 @@ class ButterflyDevServer {
   }
 
   Future<Null> _serveDevRequest(HttpRequest request) async {
+    // The URL format is /_butterfly/mobule, which first two being "/" and
+    // "_butterfly", which we don't need.
     final fragments = pathlib.split(request.uri.path).skip(2).toList();
     assert(fragments.length == 2);
     final moduleName = fragments[0];
@@ -79,7 +81,7 @@ class ButterflyDevServer {
       throw new StateError('Module "$moduleName" not found.');
     }
 
-    dynamic arguments = await const JsonDecoder().bind(request.transform(const Utf8Decoder())).single;
+    final arguments = await const JsonDecoder().bind(request.transform(const Utf8Decoder())).single;
     final result = module.platformChannel.invokeDart(methodName, arguments);
     request.response.write(JSON.encode(result));
   }

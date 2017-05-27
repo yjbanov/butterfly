@@ -121,8 +121,8 @@ main() {
         final update = new ElementUpdate(0);
         inserts.forEach((int key, int position) {
           update.insertChildElement(position)
-            ..setTag('span')
-            ..setKey(new ValueKey('$key'))
+            ..tag = 'span'
+            ..key = new ValueKey('$key')
             ..updateText('$key');
         });
         moves.forEach((int from, int to) {

@@ -51,16 +51,16 @@ class ButterflyModule {
       ..registerMethod('dispatch-event', dispatchEvent);
   }
 
-  Map<String, dynamic> initialize([_]) {
+  Map<String, Object> initialize([_]) {
     _tree = new Tree(_root, platformChannel);
     return null;
   }
 
-  Map<String, dynamic> renderFrame([_]) {
+  Map<String, Object> renderFrame([_]) {
     return _tree.renderFrame();
   }
 
-  Map<String, dynamic> dispatchEvent(Map<String, dynamic> serializedEvent) {
+  Map<String, Object> dispatchEvent(Map<String, Object> serializedEvent) {
     String type = serializedEvent['type'];
     String baristaId = serializedEvent['bid'];
     dynamic data = serializedEvent['data'];
@@ -69,7 +69,7 @@ class ButterflyModule {
   }
 
   @override
-  String toString() => '$ButterflyModule(${_name})';
+  String toString() => '$ButterflyModule($_name)';
 }
 
 /// Top level function to interop with dart extension transpilation.

@@ -39,7 +39,7 @@ class Event {
   final String targetBaristaId;
 
   /// Event data.
-  final Map<String, dynamic> data;
+  final Map<String, Object> data;
 
   /// Returns a value from [data].
   dynamic operator[](String key) => data[key];

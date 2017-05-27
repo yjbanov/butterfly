@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+'use strict';
+
 // TODO(yjbanov): this should be moved served by the dev server and not included in the application code.
 
 function printStats() {
@@ -196,7 +198,7 @@ class ButterflyModule {
     }
 }
 
-butterfly = {
+window.butterfly = {
     createModule: function(name, hostElement) {
       return new ButterflyModule(name, hostElement);
     }

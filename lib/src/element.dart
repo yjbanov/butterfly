@@ -84,11 +84,11 @@ class RenderElement extends RenderMultiChildParent<Element> {
       _updateAttributes(newConfiguration.attributes, update);
       _updateStyles(newConfiguration, update);
     } else {
-      update.setTag(newConfiguration.tag);
+      update.tag = newConfiguration.tag;
       final key = newConfiguration.key;
 
       if (key != null) {
-        update.setKey(key);
+        update.key = key;
       }
 
       if (newConfiguration.eventListeners != null && newConfiguration.eventListeners.isNotEmpty) {
@@ -126,7 +126,7 @@ class RenderElement extends RenderMultiChildParent<Element> {
       // TODO(yjbanov): attribute updates are probaby sub-optimal.
 
       // Find updates
-      for (String newName in newAttrs.keys) {
+      for (final newName in newAttrs.keys) {
         final newValue = newAttrs[newName];
         if (oldAttrs[newName] != newValue) {
           update.updateAttribute(newName, newValue);
