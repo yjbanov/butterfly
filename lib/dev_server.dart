@@ -23,7 +23,9 @@ import 'butterfly.dart';
 
 /// Butterfly development server that serves the application.
 class ButterflyDevServer {
-  static const String _devChannelPath = '/__butterfly_dev_channel__';
+  static const String _devChannelNamespace = '_butterfly';
+  static const String _devChannelPath = '/${_devChannelNamespace}';
+  static const String _devServerClientFile = 'dev_server_client.js';
 
   /// Starts a development server listening on the given [port] number.
   static Future<ButterflyDevServer> start(int port) async {
@@ -72,9 +74,16 @@ class ButterflyDevServer {
     // The URL format is /_butterfly/mobule, which first two being "/" and
     // "_butterfly", which we don't need.
     final fragments = pathlib.split(request.uri.path).skip(2).toList();
+
+    if (fragments.last == _devServerClientFile) {
+      await _serveDevServerClientFile(request);
+      return;
+    }
+
     assert(fragments.length == 2);
     final moduleName = fragments[0];
     final methodName = fragments[1];
+
     final module = _modules[moduleName];
 
     if (module == null) {
@@ -84,6 +93,30 @@ class ButterflyDevServer {
     final arguments = await const JsonDecoder().bind(request.transform(const Utf8Decoder())).single;
     final result = module.platformChannel.invokeDart(methodName, arguments);
     request.response.write(JSON.encode(result));
+  }
+
+  Future<Null> _serveDevServerClientFile(HttpRequest request) async {
+    final packagesFile = new File('.packages');
+
+    if (!await packagesFile.exists()) {
+      throw new StateError('.packages file not found. Have you run pub get?');
+    }
+
+    List<String> packageInfoParts = await packagesFile
+        .openRead()
+        .transform(const Utf8Decoder())
+        .transform(const LineSplitter())
+        .map((line) => line.split(':'))
+        .firstWhere((parts) => parts[0] == 'butterfly',
+            defaultValue: () => null);
+
+    if (packageInfoParts == null) {
+      throw new StateError('"butterfly" package not found in .packages file. Please check your pubspec.yaml and run pub get again.');
+    }
+
+    final file = new File('${packageInfoParts.last}/${_devServerClientFile}');
+    request.response.headers.contentType = ContentType.parse(mime.lookupMimeType('.js'));
+    await file.openRead().pipe(request.response);
   }
 
   /// Serves static files. Supports directory listing.
