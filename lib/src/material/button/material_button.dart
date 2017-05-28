@@ -17,7 +17,6 @@ import 'package:butterfly/butterfly.dart';
 import 'material_button.style.dart';
 
 class MaterialButton extends StatefulWidget {
-
   MaterialButton({this.child});
 
   final Node child;
@@ -27,8 +26,7 @@ class MaterialButton extends StatefulWidget {
 
 class _MaterialButtonState extends State<MaterialButton> {
   Node build() {
-    return div(style: matButton, attrs: {'style': 'background-color: red'})([
-      config.child
-    ]);
+    return div(style: matButton, attrs: {'style': 'background-color: red'})(
+        [config.child]);
   }
 }

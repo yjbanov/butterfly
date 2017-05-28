@@ -43,6 +43,7 @@ class WidgetTester {
         node.visitChildren(findTrackingNode);
       }
     }
+
     module.tree.visitChildren(findTrackingNode);
     return foundNode;
   }

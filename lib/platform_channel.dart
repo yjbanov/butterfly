@@ -29,7 +29,6 @@
 /// Implements communication between code running in the main JavaScript runtime
 /// and Dart code running inside WebAssembly.
 class PlatformChannel {
-
   PlatformChannel();
 
   final Map<String, MethodInvocationHandler> _methods = {};

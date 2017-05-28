@@ -57,7 +57,7 @@ class ButterflyDevServer {
         } else {
           await _serveStatic(request);
         }
-      } catch(error, stackTrace) {
+      } catch (error, stackTrace) {
         stderr.writeln(error);
         stderr.writeln(stackTrace);
         final errorResponse = <String, String>{
@@ -90,7 +90,9 @@ class ButterflyDevServer {
       throw new StateError('Module "$moduleName" not found.');
     }
 
-    final arguments = await const JsonDecoder().bind(request.transform(const Utf8Decoder())).single;
+    final arguments = await const JsonDecoder()
+        .bind(request.transform(const Utf8Decoder()))
+        .single;
     final result = module.platformChannel.invokeDart(methodName, arguments);
     request.response.write(JSON.encode(result));
   }
@@ -111,11 +113,13 @@ class ButterflyDevServer {
             defaultValue: () => null);
 
     if (packageInfoParts == null) {
-      throw new StateError('"butterfly" package not found in .packages file. Please check your pubspec.yaml and run pub get again.');
+      throw new StateError(
+          '"butterfly" package not found in .packages file. Please check your pubspec.yaml and run pub get again.');
     }
 
     final file = new File('${packageInfoParts.last}/${_devServerClientFile}');
-    request.response.headers.contentType = ContentType.parse(mime.lookupMimeType('.js'));
+    request.response.headers.contentType =
+        ContentType.parse(mime.lookupMimeType('.js'));
     await file.openRead().pipe(request.response);
   }
 
@@ -126,10 +130,11 @@ class ButterflyDevServer {
     }
 
     final path = request.uri.path == '/'
-      ? '${pathlib.current}/'
-      : pathlib.join(pathlib.current, '${request.uri.path.substring(1)}');
+        ? '${pathlib.current}/'
+        : pathlib.join(pathlib.current, '${request.uri.path.substring(1)}');
 
-    if (!pathlib.equals(pathlib.current, path) && !pathlib.isWithin(pathlib.current, path)) {
+    if (!pathlib.equals(pathlib.current, path) &&
+        !pathlib.isWithin(pathlib.current, path)) {
       throw new StateError('Refusing to serve files from outside of the '
           'project directory.');
     }
@@ -145,8 +150,8 @@ class ButterflyDevServer {
         request.response.headers.contentType = ContentType.HTML;
         await for (final item in dir.list()) {
           final relativePath = pathlib.relative(item.path, from: dir.path);
-          request.response.writeln(
-              '<a href="${relativePath}">${relativePath}</a><br>');
+          request.response
+              .writeln('<a href="${relativePath}">${relativePath}</a><br>');
         }
       } else {
         request.response.statusCode = HttpStatus.MOVED_TEMPORARILY;
@@ -154,7 +159,8 @@ class ButterflyDevServer {
       }
     } else if (pathType == FileSystemEntityType.FILE) {
       final file = new File(path);
-      request.response.headers.contentType = ContentType.parse(mime.lookupMimeType(path));
+      request.response.headers.contentType =
+          ContentType.parse(mime.lookupMimeType(path));
       await file.openRead().pipe(request.response);
     } else if (pathType == FileSystemEntityType.LINK) {
       request.response.statusCode = 500;

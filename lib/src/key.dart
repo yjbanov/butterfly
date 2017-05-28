@@ -36,11 +36,11 @@ class ValueKey<T> extends Key {
   const ValueKey(this.value) : super.constructor();
   final T value;
   bool operator ==(dynamic other) {
-    if (other is! ValueKey<T>)
-      return false;
+    if (other is! ValueKey<T>) return false;
     final ValueKey<T> typedOther = other;
     return value == typedOther.value;
   }
+
   int get hashCode => value.hashCode;
   String toString() => '$value';
 }
@@ -59,11 +59,11 @@ class ObjectKey extends Key {
   const ObjectKey(this.value) : super.constructor();
   final Object value;
   bool operator ==(dynamic other) {
-    if (other is! ObjectKey)
-      return false;
+    if (other is! ObjectKey) return false;
     final ObjectKey typedOther = other;
     return identical(value, typedOther.value);
   }
+
   int get hashCode => identityHashCode(value);
   String toString() => '[${value.runtimeType}(${value.hashCode})]';
 }
@@ -74,15 +74,19 @@ typedef void GlobalKeyRemoveListener(GlobalKey key);
 /// used by components that need to communicate with other components across the
 /// application's element
 abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
-  const GlobalKey.constructor() : super.constructor(); // so that subclasses can call us, since the Key() factory constructor shadows the implicit constructor
+  const GlobalKey.constructor()
+      : super.constructor(); // so that subclasses can call us, since the Key() factory constructor shadows the implicit constructor
 
   /// Constructs a LabeledGlobalKey, which is a GlobalKey with a label used for debugging.
   /// The label is not used for comparing the identity of the key.
-  factory GlobalKey({ String debugLabel }) => new LabeledGlobalKey<T>(debugLabel); // the label is purely for debugging purposes and is otherwise ignored
+  factory GlobalKey({String debugLabel}) => new LabeledGlobalKey<T>(
+      debugLabel); // the label is purely for debugging purposes and is otherwise ignored
 
-  static final Map<GlobalKey, RenderNode> _registry = new Map<GlobalKey, RenderNode>();
+  static final Map<GlobalKey, RenderNode> _registry =
+      new Map<GlobalKey, RenderNode>();
   static final Map<GlobalKey, int> _debugDuplicates = new Map<GlobalKey, int>();
-  static final Map<GlobalKey, Set<GlobalKeyRemoveListener>> _removeListeners = new Map<GlobalKey, Set<GlobalKeyRemoveListener>>();
+  static final Map<GlobalKey, Set<GlobalKeyRemoveListener>> _removeListeners =
+      new Map<GlobalKey, Set<GlobalKeyRemoveListener>>();
   static final Set<GlobalKey> _removedKeys = new Set<GlobalKey>();
 
   void register(RenderNode element) {
@@ -127,28 +131,31 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
     return null;
   }
 
-  static void registerRemoveListener(GlobalKey key, GlobalKeyRemoveListener listener) {
+  static void registerRemoveListener(
+      GlobalKey key, GlobalKeyRemoveListener listener) {
     assert(key != null);
-    Set<GlobalKeyRemoveListener> listeners =
-        _removeListeners.putIfAbsent(key, () => new Set<GlobalKeyRemoveListener>());
+    Set<GlobalKeyRemoveListener> listeners = _removeListeners.putIfAbsent(
+        key, () => new Set<GlobalKeyRemoveListener>());
     bool added = listeners.add(listener);
     assert(added);
   }
 
-  static void unregisterRemoveListener(GlobalKey key, GlobalKeyRemoveListener listener) {
+  static void unregisterRemoveListener(
+      GlobalKey key, GlobalKeyRemoveListener listener) {
     assert(key != null);
     assert(_removeListeners.containsKey(key));
     bool removed = _removeListeners[key].remove(listener);
-    if (_removeListeners[key].isEmpty)
-      _removeListeners.remove(key);
+    if (_removeListeners[key].isEmpty) _removeListeners.remove(key);
     assert(removed);
   }
 
   static bool debugCheckForDuplicates() {
     String message = '';
     for (GlobalKey key in _debugDuplicates.keys) {
-      message += 'The following GlobalKey was found multiple times among mounted elements: $key (${_debugDuplicates[key]} instances)\n';
-      message += 'The most recently registered instance is: ${_registry[key]}\n';
+      message +=
+          'The following GlobalKey was found multiple times among mounted elements: $key (${_debugDuplicates[key]} instances)\n';
+      message +=
+          'The most recently registered instance is: ${_registry[key]}\n';
     }
     if (!_debugDuplicates.isEmpty)
       throw new StateError('Incorrect GlobalKey usage: $message');
@@ -156,12 +163,12 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
   }
 
   static void notifyListeners() {
-    if (_removedKeys.isEmpty)
-      return;
+    if (_removedKeys.isEmpty) return;
     try {
       for (GlobalKey key in _removedKeys) {
         if (!_registry.containsKey(key) && _removeListeners.containsKey(key)) {
-          Set<GlobalKeyRemoveListener> localListeners = new Set<GlobalKeyRemoveListener>.from(_removeListeners[key]);
+          Set<GlobalKeyRemoveListener> localListeners =
+              new Set<GlobalKeyRemoveListener>.from(_removeListeners[key]);
           for (GlobalKeyRemoveListener listener in localListeners)
             listener(key);
         }
@@ -170,7 +177,6 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
       _removedKeys.clear();
     }
   }
-
 }
 
 /// Each LabeledGlobalKey instance is a unique key.
@@ -179,7 +185,8 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
 class LabeledGlobalKey<T extends State<StatefulWidget>> extends GlobalKey<T> {
   const LabeledGlobalKey(this._debugLabel) : super.constructor();
   final String _debugLabel;
-  String toString() => '[GlobalKey ${_debugLabel != null ? _debugLabel : hashCode}]';
+  String toString() =>
+      '[GlobalKey ${_debugLabel != null ? _debugLabel : hashCode}]';
 }
 
 /// A kind of [GlobalKey] that takes its identity from the object used as its value.
@@ -190,11 +197,11 @@ class GlobalObjectKey extends GlobalKey {
   const GlobalObjectKey(this.value) : super.constructor();
   final Object value;
   bool operator ==(dynamic other) {
-    if (other is! GlobalObjectKey)
-      return false;
+    if (other is! GlobalObjectKey) return false;
     final GlobalObjectKey typedOther = other;
     return identical(value, typedOther.value);
   }
+
   int get hashCode => identityHashCode(value);
   String toString() => '[$runtimeType ${value.runtimeType}(${value.hashCode})]';
 }

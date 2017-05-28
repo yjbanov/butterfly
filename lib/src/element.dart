@@ -27,14 +27,14 @@ const attributeAbsent = '__absent__';
 
 /// Converts a boolean [condition] into [attributePresent] and
 /// [attributeAbsent].
-String attributePresentIf(bool condition) => condition
-    ? attributePresent
-    : attributeAbsent;
+String attributePresentIf(bool condition) =>
+    condition ? attributePresent : attributeAbsent;
 
 /// A kind of node that maps directly to the render system's native element, for
 /// example an HTML element such as `<div>`, `<button>`.
 class Element extends MultiChildNode {
-  Element(this.tag, {
+  Element(
+    this.tag, {
     Key key,
     this.attributes,
     this.eventListeners,
@@ -43,7 +43,8 @@ class Element extends MultiChildNode {
     this.classNames,
     this.text,
     List<Node> children,
-  }) : super(key: key, children: children);
+  })
+      : super(key: key, children: children);
 
   final String tag;
 
@@ -91,7 +92,8 @@ class RenderElement extends RenderMultiChildParent<Element> {
         update.key = key;
       }
 
-      if (newConfiguration.eventListeners != null && newConfiguration.eventListeners.isNotEmpty) {
+      if (newConfiguration.eventListeners != null &&
+          newConfiguration.eventListeners.isNotEmpty) {
         if (_baristaId == null) {
           _baristaId = _nextBid();
           update.updateBaristaId(_baristaId);
@@ -100,7 +102,8 @@ class RenderElement extends RenderMultiChildParent<Element> {
 
       update.updateText(newConfiguration.text);
 
-      if (newConfiguration.attributes != null && newConfiguration.attributes.isNotEmpty) {
+      if (newConfiguration.attributes != null &&
+          newConfiguration.attributes.isNotEmpty) {
         newConfiguration.attributes.forEach((String name, String value) {
           update.updateAttribute(name, value);
         });
@@ -111,7 +114,8 @@ class RenderElement extends RenderMultiChildParent<Element> {
     super.update(newConfiguration, update);
   }
 
-  void _updateEventListeners(Map<EventType, EventListener> eventListeners, ElementUpdate update) {
+  void _updateEventListeners(
+      Map<EventType, EventListener> eventListeners, ElementUpdate update) {
     if (eventListeners != null && eventListeners.isNotEmpty) {
       if (_baristaId == null) {
         _baristaId = _nextBid();

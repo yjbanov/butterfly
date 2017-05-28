@@ -33,7 +33,8 @@ const matTransparentWhite = 'rgba(255, 255, 255, ${matDarkOpacityStrong})';
 const matLightTransparentBlack = 'rgba(0, 0, 0, ${matOpacityLight})';
 const matLightTransparentWhite = 'rgba(255, 255, 255, ${matDarkOpacityLight})';
 const matLighterTransparentBlack = 'rgba(0, 0, 0, ${matOpacityLighter})';
-const matLighterTransparentWhite = 'rgba(255, 255, 255, ${matDarkOpacityLighter})';
+const matLighterTransparentWhite =
+    'rgba(255, 255, 255, ${matDarkOpacityLighter})';
 
 /// Red
 const matRed50 = '#fbe9e7';
@@ -89,7 +90,6 @@ const matPurpleA400 = '#d500f9';
 const matPurpleA700 = '#aa00ff';
 const matPurple = '${matPurple500}';
 
-
 /// Deep Purples
 const matDeepPurple50 = '#ede7f6';
 const matDeepPurple100 = '#d1c4e9';
@@ -107,7 +107,6 @@ const matDeepPurpleA200 = '#7c4dff';
 const matDeepPurpleA400 = '#651fff';
 const matDeepPurpleA700 = '#6200ea';
 const matDeepPurple = '${matDeepPurple500}';
-
 
 /// Indigo
 const matIndigo50 = '#e8eaf6';
@@ -127,7 +126,6 @@ const matIndigoA400 = '#3d5afe';
 const matIndigoA700 = '#304ffe';
 const matIndigo = '${matIndigo500}';
 
-
 /// Google Blue
 const matBlue50 = '#e8f0fe';
 const matBlue100 = '#c6dafc';
@@ -145,7 +143,6 @@ const matBlueA200 = '#448aff';
 const matBlueA400 = '#2979ff';
 const matBlueA700 = '#2962ff';
 const matBlue = '${matBlue500}';
-
 
 /// Light Blues
 const matLightBlue50 = '#e1f5fe';
@@ -165,7 +162,6 @@ const matLightBlueA400 = '#00b0ff';
 const matLightBlueA700 = '#0091ea';
 const matLightBlue = '${matLightBlue500}';
 
-
 /// Cyan
 const matCyan50 = '#e0f7fa';
 const matCyan100 = '#b2ebf2';
@@ -183,7 +179,6 @@ const matCyanA200 = '#18ffff';
 const matCyanA400 = '#00e5ff';
 const matCyanA700 = '#00b8d4';
 const matCyan = '${matCyan500}';
-
 
 /// Teals
 const matTeal50 = '#e0f2f1';
@@ -203,7 +198,6 @@ const matTealA400 = '#1de9b6';
 const matTealA700 = '#00bfa5';
 const matTeal = '${matTeal500}';
 
-
 /// Google Green
 const matGreen50 = '#e2f3eb';
 const matGreen100 = '#b7e1cd';
@@ -221,8 +215,6 @@ const matGreenA200 = '#69f0ae';
 const matGreenA400 = '#00e676';
 const matGreenA700 = '#00c853';
 const matGreen = '${matGreen500}';
-
-
 
 /// Light Greens
 const matLightGreen50 = '#f1f8e9';
@@ -370,7 +362,6 @@ const matGray800 = '${matGrey800}';
 const matGray900 = '${matGrey900}';
 const matGray = '${matGray500}';
 
-
 /// Blue Greys
 const matBlueGrey50 = '#eceff1';
 const matBlueGrey100 = '#cfd8dc';
@@ -383,7 +374,6 @@ const matBlueGrey700 = '#455a64';
 const matBlueGrey800 = '#37474f';
 const matBlueGrey900 = '#263238';
 const matBlueGrey = '${matBlueGrey500}';
-
 
 /// Vanilla colors listed in external facing spec
 

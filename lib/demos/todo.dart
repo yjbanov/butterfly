@@ -37,47 +37,45 @@ class TodoAppState extends State<TodoApp> {
   Node build() {
     var listItems = store.list.map((Todo todo) {
       return li()([
-        div(attrs: { 'class': 'view ${todoEdit == todo ? 'hidden' : ''}' })([
-          input(
-            'checkbox',
-            attrs: {
-              'class': 'toggle',
-              'checked': attributePresentIf(todo.completed),
-            },
-            eventListeners: {
-              EventType.click: (_) { completeMe(todo); }
-            })(),
-          label(eventListeners: {
-            EventType.dblclick: (_) { editTodo(todo); }
-          })([text(todo.title)]),
-          button(
-            attrs: const { 'class': 'destroy' },
-            eventListeners: {
-              EventType.click: (_) { deleteMe(todo); }
+        div(attrs: {'class': 'view ${todoEdit == todo ? 'hidden' : ''}'})([
+          input('checkbox', attrs: {
+            'class': 'toggle',
+            'checked': attributePresentIf(todo.completed),
+          }, eventListeners: {
+            EventType.click: (_) {
+              completeMe(todo);
             }
-          )(),
+          })(),
+          label(eventListeners: {
+            EventType.dblclick: (_) {
+              editTodo(todo);
+            }
+          })([text(todo.title)]),
+          button(attrs: const {
+            'class': 'destroy'
+          }, eventListeners: {
+            EventType.click: (_) {
+              deleteMe(todo);
+            }
+          })(),
         ]),
         div()([
-          input(
-            'text',
-            attrs: {
-              'class': 'edit ${todoEdit == todo ? 'visible': ''}',
-              'value': todo.title,
-            },
-            eventListeners: {
-              EventType.keyup: (Event event) { doneEditing(event, todo); }
+          input('text', attrs: {
+            'class': 'edit ${todoEdit == todo ? 'visible': ''}',
+            'value': todo.title,
+          }, eventListeners: {
+            EventType.keyup: (Event event) {
+              doneEditing(event, todo);
             }
-          )()
+          })()
         ]),
       ]);
     }).toList();
 
     return div()([
-      section(attrs: const { 'id': 'todoapp' })([
-        header(attrs: const { 'id': 'header' })([
-          h1()([
-            text('todos')
-          ]),
+      section(attrs: const {'id': 'todoapp'})([
+        header(attrs: const {'id': 'header'})([
+          h1()([text('todos')]),
           input('text', attrs: const {
             'id': 'new-todo',
             'placeholder': 'What needs to be done?',
@@ -88,53 +86,45 @@ class TodoAppState extends State<TodoApp> {
             })
           })(),
         ]),
-        section(attrs: const { 'id': 'main' })([
-          input('checkbox', attrs: const { 'id': 'toggle-all' }, eventListeners: {
-            EventType.click: toggleAll
-          })(),
-          label(attrs: const { 'for': 'toggle-all' })([
-            text('Mark all as complete')
-          ]),
-          ul(attrs: const { 'id': 'todo-list' })(listItems),
+        section(attrs: const {'id': 'main'})([
+          input('checkbox',
+              attrs: const {'id': 'toggle-all'},
+              eventListeners: {EventType.click: toggleAll})(),
+          label(attrs: const {'for': 'toggle-all'})(
+              [text('Mark all as complete')]),
+          ul(attrs: const {'id': 'todo-list'})(listItems),
         ]),
-        footer(attrs: const { 'id': 'footer' })([
-          span(attrs: const { 'id': 'todo-count' })(),
+        footer(attrs: const {'id': 'footer'})([
+          span(attrs: const {'id': 'todo-count'})(),
           // Dunno what this does, but it's in the angular2 version
-          div(attrs: const { 'class': 'hidden' })(),
-          ul(attrs: const { 'id': 'filters' })([
+          div(attrs: const {'class': 'hidden'})(),
+          ul(attrs: const {'id': 'filters'})([
             li()([
-              a(attrs: const { 'href': '#/', 'class': 'selected' })([
-                text('All')
-              ]),
+              a(attrs: const {'href': '#/', 'class': 'selected'})(
+                  [text('All')]),
             ]),
             li()([
-              a(attrs: const { 'href': '#/active' })([
-                text('Active')
-              ]),
+              a(attrs: const {'href': '#/active'})([text('Active')]),
             ]),
             li()([
-              a(attrs: const { 'href': '#/completed' })([
-                text('Completed')
-              ]),
+              a(attrs: const {'href': '#/completed'})([text('Completed')]),
             ]),
           ]),
-          button(
-            attrs: const { 'id': 'clear-completed' },
-            eventListeners: {
-              EventType.click: (_) { clearCompleted(); }
+          button(attrs: const {
+            'id': 'clear-completed'
+          }, eventListeners: {
+            EventType.click: (_) {
+              clearCompleted();
             }
-          )([
-            text('Clear completed')
-          ]),
+          })([text('Clear completed')]),
         ]),
       ]),
-      footer(attrs: const { 'id': 'info' })([
+      footer(attrs: const {'id': 'info'})([
         p()([text('Double-click to edit a todo')]),
         p()([
           text('Created using '),
-          a(attrs: const { 'href': 'https://github.com/yjbanov/butterfly' })([
-            text('Butterfly')
-          ]),
+          a(attrs: const {'href': 'https://github.com/yjbanov/butterfly'})(
+              [text('Butterfly')]),
         ]),
       ]),
     ]);
@@ -189,7 +179,6 @@ class TodoAppState extends State<TodoApp> {
     scheduleUpdate();
   }
 }
-
 
 typedef void ChangeListener();
 

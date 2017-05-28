@@ -26,10 +26,9 @@ part of butterfly;
 /// evaluate the conditional during compilation and inline the entire function.
 ///
 /// See: dartbug.com/22496, dartbug.com/25270
-const _IS_DART_VM = !identical(1.0, 1);  // a hack
-bool looseIdentical(a, b) => _IS_DART_VM
-  ? _looseIdentical(a, b)
-  : identical(a, b);
+const _IS_DART_VM = !identical(1.0, 1); // a hack
+bool looseIdentical(a, b) =>
+    _IS_DART_VM ? _looseIdentical(a, b) : identical(a, b);
 
 /// This function is intentionally separated from `looseIdentical` to keep the
 /// number of AST nodes low enough for `dart2js` to inline the code.
@@ -63,9 +62,7 @@ bool get assertionsEnabled {
 /// cost.
 Map fixedMap(Map map) {
   assert(map != null);
-  return assertionsEnabled
-    ? new UnmodifiableMapView(map)
-    : map;
+  return assertionsEnabled ? new UnmodifiableMapView(map) : map;
 }
 
 /// Creates an immutable wrapper for [list] in checked mode.
@@ -74,7 +71,5 @@ Map fixedMap(Map map) {
 /// cost.
 List fixedList(List list) {
   assert(list != null);
-  return assertionsEnabled
-    ? new UnmodifiableListView(list)
-    : list;
+  return assertionsEnabled ? new UnmodifiableListView(list) : list;
 }

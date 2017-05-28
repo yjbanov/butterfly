@@ -42,7 +42,7 @@ class Event {
   final Map<String, Object> data;
 
   /// Returns a value from [data].
-  dynamic operator[](String key) => data[key];
+  dynamic operator [](String key) => data[key];
 }
 
 /// A node in the retained tree instantiated from [Node]s.
@@ -107,8 +107,7 @@ abstract class RenderNode<N extends Node> {
 }
 
 abstract class MultiChildNode extends Node {
-  const MultiChildNode({Key key, this.children})
-    : super(key: key);
+  const MultiChildNode({Key key, this.children}) : super(key: key);
 
   final List<Node> children;
 }
@@ -138,7 +137,7 @@ abstract class RenderParent<N extends Node> extends RenderNode<N> {
   void scheduleUpdate() {
     _hasDescendantsNeedingUpdate = true;
     RenderParent parent = _parent;
-    while(parent != null) {
+    while (parent != null) {
       parent._hasDescendantsNeedingUpdate = true;
       parent = parent.parent;
     }
@@ -158,7 +157,8 @@ abstract class RenderParent<N extends Node> extends RenderNode<N> {
 }
 
 /// A node that has multiple children.
-abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderParent<N> {
+abstract class RenderMultiChildParent<N extends MultiChildNode>
+    extends RenderParent<N> {
   RenderMultiChildParent(Tree tree) : super(tree);
 
   List<RenderNode> _currentChildren;
@@ -249,9 +249,11 @@ abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderPa
         if (previousIndex != null) {
           baseChild = previousIndex;
           _TrackedChild trackedChild = currentChildren[previousIndex];
-          RenderNode currentChild = _currentChildren[trackedChild.positionInCurrentChildren];
+          RenderNode currentChild =
+              _currentChildren[trackedChild.positionInCurrentChildren];
           if (currentChild.canUpdateUsing(node)) {
-            final childUpdate = update.updateChildElement(trackedChild.positionInCurrentChildren);
+            final childUpdate = update
+                .updateChildElement(trackedChild.positionInCurrentChildren);
             currentChild.update(node, childUpdate);
           }
         }
@@ -261,7 +263,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode> extends RenderPa
         // swaps, for example. It does support removes though. For swaps, the
         // developer is expected to use keys anyway.
         int scanner = afterLastUsedUnkeyedChild;
-        while(scanner < currentChildren.length) {
+        while (scanner < currentChildren.length) {
           RenderNode currentChild = _currentChildren[scanner];
           if (currentChild.canUpdateUsing(node)) {
             final childUpdate = update.updateChildElement(scanner);
@@ -364,7 +366,7 @@ class _Target {
   _Target(this.node, this.baseIndex);
 
   final Node node;
-  final int baseIndex;  // or -1
+  final int baseIndex; // or -1
 }
 
 /// Computes the [longest increasing subsequence](http://en.wikipedia.org/wiki/Longest_increasing_subsequence).

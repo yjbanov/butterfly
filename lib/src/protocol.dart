@@ -130,7 +130,8 @@ class ElementUpdate {
   /// Assumes that this element update is exlusively made of insertions and
   /// renders it as a plain HTML into the given [buffer].
   void printHtml(StringBuffer buf) {
-    if (_index != -1) {  // we don't print host tag.
+    if (_index != -1) {
+      // we don't print host tag.
       buf.write("<${_tag}");
 
       if (_key != "") {
@@ -165,7 +166,7 @@ class ElementUpdate {
       buf.write(_text);
     }
 
-    for(final childElement in _childElementInsertions) {
+    for (final childElement in _childElementInsertions) {
       childElement.printHtml(buf);
     }
 
@@ -174,7 +175,9 @@ class ElementUpdate {
     }
   }
 
-  void removeChild(int index) { _removes.add(index); }
+  void removeChild(int index) {
+    _removes.add(index);
+  }
 
   void moveChild(int insertionIndex, int moveFrom) {
     _moves.add(new Move(insertionIndex, moveFrom));
@@ -198,7 +201,9 @@ class ElementUpdate {
     _key = '${key}';
   }
 
-  void updateText(String text) { _text = text; }
+  void updateText(String text) {
+    _text = text;
+  }
 
   void updateAttribute(String name, String value) {
     _attributes.add(new AttributeUpdate(name, value));

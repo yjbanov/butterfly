@@ -82,7 +82,8 @@ Style style(Map<String, Style> styleExpression) {
       }
     } else {
       assert(() {
-        throw new ArgumentError.value(value.runtimeType, 'value type', 'Not supported');
+        throw new ArgumentError.value(
+            value.runtimeType, 'value type', 'Not supported');
       });
     }
   });
@@ -119,9 +120,9 @@ Map<String, dynamic> _flatten(Map<String, dynamic> styleExpression) {
       assert(() {
         if (!identical(property, mixin)) {
           throw 'Mixin in style expression whose key is not `mixin`:\n'
-            'Property: ${property}\n'
-            'Style expression:\n'
-            '${styleExpression}';
+              'Property: ${property}\n'
+              'Style expression:\n'
+              '${styleExpression}';
         }
         return true;
       });

@@ -15,63 +15,63 @@
 const displayFlex = const {
   'display': const [
     '-webkit-flex',
-    'flex',         // Spec
+    'flex', // Spec
   ],
 };
 
 const displayInlineFlex = const {
   'display': const [
     '-webkit-inline-flex',
-    'inline-flex',         // Spec
+    'inline-flex', // Spec
   ],
 };
 
 Map flexDirection(String direction) => {
-  '-webkit-flex-direction': direction,
-  'flex-direction': direction,
-};
+      '-webkit-flex-direction': direction,
+      'flex-direction': direction,
+    };
 
 Map alignItems(String direction) => {
-  '-webkit-align-items': direction,
-  'align-items': direction,
-};
+      '-webkit-align-items': direction,
+      'align-items': direction,
+    };
 
 Map alignSelf(String direction) => {
-  '-webkit-align-self': direction,
-  'align-self': direction,
-};
+      '-webkit-align-self': direction,
+      'align-self': direction,
+    };
 
 Map alignContent(String direction) => {
-  '-webkit-align-content': direction,
-  'align-content': direction,
-};
+      '-webkit-align-content': direction,
+      'align-content': direction,
+    };
 
 Map justifyContent(String direction) => {
-  '-webkit-justify-content': direction,
-  'justify-content': direction,
-};
+      '-webkit-justify-content': direction,
+      'justify-content': direction,
+    };
 
 Map flexWrap(String wrap) => {
-  '-webkit-flex-wrap': wrap,
-  'flex-wrap': wrap,
-};
+      '-webkit-flex-wrap': wrap,
+      'flex-wrap': wrap,
+    };
 
 Map flexBasis(String amount) => {
-  '-webkit-flex-basis': amount,
-  'flex-basis': amount,
-};
+      '-webkit-flex-basis': amount,
+      'flex-basis': amount,
+    };
 
 Map flexGrow(String amount) => {
-  '-webkit-flex-grow': amount,
-  'flex-grow': amount,
-};
+      '-webkit-flex-grow': amount,
+      'flex-grow': amount,
+    };
 
 Map flexShrink(String amount) => {
-  '-webkit-flex-shrink': amount,
-  'flex-shrink': amount,
-};
+      '-webkit-flex-shrink': amount,
+      'flex-shrink': amount,
+    };
 
 Map flex(String values) => {
-  '-webkit-flex': values,
-  'flex': values,
-};
+      '-webkit-flex': values,
+      'flex': values,
+    };

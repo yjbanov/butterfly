@@ -122,12 +122,14 @@ class EventType {
   static const popstate = const EventType('popstate');
   static const progress = const EventType('progress');
   static const push = const EventType('push');
-  static const pushsubscriptionchange = const EventType('pushsubscriptionchange');
+  static const pushsubscriptionchange =
+      const EventType('pushsubscriptionchange');
   static const ratechange = const EventType('ratechange');
   static const readystatechange = const EventType('readystatechange');
   static const reset = const EventType('reset');
   static const resize = const EventType('resize');
-  static const resourcetimingbufferfull = const EventType('resourcetimingbufferfull');
+  static const resourcetimingbufferfull =
+      const EventType('resourcetimingbufferfull');
   static const result = const EventType('result');
   static const resume = const EventType('resume');
   static const scroll = const EventType('scroll');
@@ -175,8 +177,8 @@ class EventType {
   int get hashCode => name.hashCode;
 
   @override
-  operator==(Object other) => other.runtimeType == EventType &&
-      (other as EventType).name == name;
+  operator ==(Object other) =>
+      other.runtimeType == EventType && (other as EventType).name == name;
 
   @override
   String toString() => '$EventType($name)';

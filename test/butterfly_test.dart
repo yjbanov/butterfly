@@ -35,8 +35,7 @@ main() {
 
       // Now with the actual change
       widget.state.value = 'updated';
-      tester.expectRenderUpdate(new ElementUpdate(0)
-        ..updateText('updated'));
+      tester.expectRenderUpdate(new ElementUpdate(0)..updateText('updated'));
     });
   });
 
@@ -105,8 +104,8 @@ main() {
 
       testCreate(List<int> keys) {
         listState.childKeys = keys;
-        var innerHtml = keys
-            .map((key) => '<span _bkey="${key}">${key}</span>').join();
+        var innerHtml =
+            keys.map((key) => '<span _bkey="${key}">${key}</span>').join();
         tester.expectRenderCreate('<div>${innerHtml}</div>');
       }
 
@@ -134,7 +133,11 @@ main() {
 
       test('appends new children added to previously empty child list', () {
         testCreate([]);
-        testUpdate(keys: [1, 2, 3], inserts: {
+        testUpdate(keys: [
+          1,
+          2,
+          3
+        ], inserts: {
           1: 0,
           2: 0,
           3: 0,
@@ -143,7 +146,13 @@ main() {
 
       test('appends new children added to previously non-empty child list', () {
         testCreate([1, 2]);
-        testUpdate(keys: [1, 2, 3, 4, 5], inserts: {
+        testUpdate(keys: [
+          1,
+          2,
+          3,
+          4,
+          5
+        ], inserts: {
           3: 2,
           4: 2,
           5: 2,
@@ -167,7 +176,12 @@ main() {
 
       test('inserts children in the middle', () {
         testCreate([1, 4]);
-        testUpdate(keys: [1, 2, 3, 4], inserts: {
+        testUpdate(keys: [
+          1,
+          2,
+          3,
+          4
+        ], inserts: {
           2: 1,
           3: 1,
         });
@@ -175,7 +189,18 @@ main() {
 
       test('replaces range with a longer range', () {
         testCreate([1, 2, 3, 4, 9]);
-        testUpdate(keys: [1, 5, 6, 7, 8, 9], removes: [1, 2, 3], inserts: {
+        testUpdate(keys: [
+          1,
+          5,
+          6,
+          7,
+          8,
+          9
+        ], removes: [
+          1,
+          2,
+          3
+        ], inserts: {
           5: 4,
           6: 4,
           7: 4,
@@ -185,14 +210,27 @@ main() {
 
       test('replaces range with a shorter range', () {
         testCreate([1, 2, 3, 4]);
-        testUpdate(keys: [1, 10, 4], removes: [1, 2], inserts: {
+        testUpdate(keys: [
+          1,
+          10,
+          4
+        ], removes: [
+          1,
+          2
+        ], inserts: {
           10: 3,
         });
       });
 
       test('moves children', () {
         testCreate([1, 2, 3, 4, 5]);
-        testUpdate(keys: [1, 4, 3, 2, 5], moves: {
+        testUpdate(keys: [
+          1,
+          4,
+          3,
+          2,
+          5
+        ], moves: {
           3: 1,
           2: 1,
         });
@@ -420,8 +458,8 @@ class ChildListWidgetState extends State<ChildListWidget> {
     }
 
     return div()(_childKeys
-        .map((key) => new Element('span',
-            key: new ValueKey(key), text: key.toString()))
+        .map((key) =>
+            new Element('span', key: new ValueKey(key), text: key.toString()))
         .toList());
   }
 }
