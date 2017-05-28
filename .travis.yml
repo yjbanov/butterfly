@@ -1,0 +1,10 @@
+language: dart
+sudo: false
+dart: stable
+script:
+  - pub run test -p vm
+  - dartfmt -n --set-exit-if-changed lib/ test/ bin/
+  - dartanalyzer --fatal-warnings bin/ lib/ test/
+cache:
+  directories:
+    - $HOME/.pub-cache
