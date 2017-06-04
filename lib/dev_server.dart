@@ -40,11 +40,15 @@ class ButterflyDevServer {
     @required int applicationPort,
   }) async {
     final vmServiceInfo = await developer.Service.getInfo();
-    final server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, applicationPort);
+    final server =
+        await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, applicationPort);
     _initLogger();
-    _devLogger.info('Butterfly dev server listening on http://localhost:$applicationPort');
-    _devLogger.info('Observatory server listening on ${vmServiceInfo.serverUri}');
-    _devLogger.info('Automatic hot-reload command: butterfly watch ${vmServiceInfo.serverUri.port}');
+    _devLogger.info(
+        'Butterfly dev server listening on http://localhost:$applicationPort');
+    _devLogger
+        .info('Observatory server listening on ${vmServiceInfo.serverUri}');
+    _devLogger.info(
+        'Automatic hot-reload command: butterfly watch ${vmServiceInfo.serverUri.port}');
     return new ButterflyDevServer._(server);
   }
 
@@ -193,15 +197,15 @@ class ButterflyDevServer {
 void _initLogger() {
   final pen = new ansi.AnsiPen();
   final welcomeMessage = r'''
-  ____          _    _                __  _        
- |  _ \        | |  | |              / _|| |       
- | |_) | _   _ | |_ | |_  ___  _ __ | |_ | | _   _ 
+  ____          _    _                __  _
+ |  _ \        | |  | |              / _|| |
+ | |_) | _   _ | |_ | |_  ___  _ __ | |_ | | _   _
  |  _ < | | | || __|| __|/ _ \| '__||  _|| || | | |
  | |_) || |_| || |_ | |_|  __/| |   | |  | || |_| |
  |____/  \__,_| \__| \__|\___||_|   |_|  |_| \__, |
                                               __/ |
-                                             |___/  
-  dev server version 0.0.1.     
+                                             |___/
+  dev server version 0.0.1.
 ''';
   pen.magenta();
   print(pen.write(welcomeMessage) + '\n\n');
@@ -217,6 +221,8 @@ void _initLogger() {
     } else {
       pen.red();
     }
-    print('$timestamp ' + pen.write('${rec.loggerName} - ') + pen.write('${rec.message}'));
+    print('$timestamp ' +
+        pen.write('${rec.loggerName} - ') +
+        pen.write('${rec.message}'));
   });
 }
