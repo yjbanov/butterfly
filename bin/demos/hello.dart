@@ -18,6 +18,6 @@ import 'package:butterfly/dev_server.dart';
 import 'package:butterfly/demos/hello.dart';
 
 Future<Null> main() async {
-  final devServer = await ButterflyDevServer.start(8081);
+  final devServer = await ButterflyDevServer.start(applicationPort: 8081);
   devServer.serveModule('hello', new App());
 }

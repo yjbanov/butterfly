@@ -14,8 +14,10 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as pathlib;
 import 'package:ansicolor/ansicolor.dart' as ansi;
@@ -30,11 +32,19 @@ class ButterflyDevServer {
   static const String _devServerClientFile = 'dev_server_client.js';
   static final Logger _devLogger = new Logger('ButterflyDevServer');
 
-  /// Starts a development server listening on the given [port] number.
-  static Future<ButterflyDevServer> start(int port) async {
-    final server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
+  /// Starts a development server.
+  ///
+  /// HTTP and WebSocket requests from the browser must arrive on the
+  /// [applicationPort].
+  static Future<ButterflyDevServer> start({
+    @required int applicationPort,
+  }) async {
+    final vmServiceInfo = await developer.Service.getInfo();
+    final server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, applicationPort);
     _initLogger();
-    _devLogger.info('Butterfly dev server listening on http://localhost:$port');
+    _devLogger.info('Butterfly dev server listening on http://localhost:$applicationPort');
+    _devLogger.info('Observatory server listening on ${vmServiceInfo.serverUri}');
+    _devLogger.info('Automatic hot-reload command: butterfly watch ${vmServiceInfo.serverUri.port}');
     return new ButterflyDevServer._(server);
   }
 
@@ -54,7 +64,7 @@ class ButterflyDevServer {
 
   Future<Null> _listen() async {
     await for (final request in _server) {
-      _devLogger.info('[HTTP] ${request.method} ${request.uri}');
+      _devLogger.fine('[HTTP] ${request.method} ${request.uri}');
       try {
         if (request.uri.path.startsWith(_devChannelPath)) {
           await _serveDevRequest(request);
@@ -196,7 +206,7 @@ void _initLogger() {
   pen.magenta();
   print(pen.write(welcomeMessage) + '\n\n');
 
-  Logger.root.level = Level.ALL;
+  Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((LogRecord rec) {
     pen.blue();
     final timestamp = pen.write('${rec.time}:');
@@ -207,6 +217,6 @@ void _initLogger() {
     } else {
       pen.red();
     }
-    print('$timestamp ' + pen.write('${rec.message}'));
+    print('$timestamp ' + pen.write('${rec.loggerName} - ') + pen.write('${rec.message}'));
   });
 }

@@ -18,6 +18,6 @@ import 'package:butterfly/dev_server.dart';
 import 'package:butterfly/demos/todo.dart';
 
 Future<Null> main() async {
-  final devServer = await ButterflyDevServer.start(8082);
+  final devServer = await ButterflyDevServer.start(applicationPort: 8082);
   devServer.serveModule('todo', new TodoApp());
 }
