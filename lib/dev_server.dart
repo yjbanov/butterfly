@@ -40,6 +40,15 @@ class ButterflyDevServer {
     @required int applicationPort,
   }) async {
     final vmServiceInfo = await developer.Service.getInfo();
+
+    if (vmServiceInfo.serverUri == null) {
+      throw new DevServerError(
+        'Observatory not available. Butterfly dev server cannot function '
+            'without it. Please, restart the dev server with --observe option '
+            'or run it in debug mode in the IDE (e.g. ItelliJ).',
+      );
+    }
+
     final server =
         await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, applicationPort);
     _initLogger();
@@ -188,6 +197,18 @@ class ButterflyDevServer {
       throw new StateError('Unsupported path type: ${pathType}');
     }
   }
+}
+
+/// An error related to the Butterfly dev server.
+class DevServerError extends Error {
+  /// Creates an error with a message.
+  DevServerError(this.message);
+
+  /// Error message.
+  final String message;
+
+  @override
+  String toString() => '$DevServerError: $message';
 }
 
 /// Configures the logger to print messages to the command line.
