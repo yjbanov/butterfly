@@ -17,6 +17,7 @@ library butterfly;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:logging/logging.dart';
 import 'platform_channel.dart';
 export 'platform_channel.dart';
 
@@ -35,6 +36,7 @@ class ButterflyModule {
   final String _name;
   final PlatformChannel platformChannel;
   final Node _root;
+  final Logger _logger;
 
   Tree _tree;
   Tree get tree => _tree;
@@ -44,7 +46,9 @@ class ButterflyModule {
     return new ButterflyModule._(name, root, platformChannel);
   }
 
-  ButterflyModule._(this._name, this._root, this.platformChannel) {
+  ButterflyModule._(String name, this._root, this.platformChannel)
+      : _logger = new Logger('module:$name'),
+        _name = name {
     platformChannel
       ..registerMethod('initialize', initialize)
       ..registerMethod('render-frame', renderFrame)
@@ -52,6 +56,7 @@ class ButterflyModule {
   }
 
   Map<String, Object> initialize([_]) {
+    _logger.info('initializing');
     _tree = new Tree(_root, platformChannel);
     return null;
   }

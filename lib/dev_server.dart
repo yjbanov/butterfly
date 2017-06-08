@@ -14,8 +14,10 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as pathlib;
 import 'package:ansicolor/ansicolor.dart' as ansi;
@@ -30,11 +32,32 @@ class ButterflyDevServer {
   static const String _devServerClientFile = 'dev_server_client.js';
   static final Logger _devLogger = new Logger('ButterflyDevServer');
 
-  /// Starts a development server listening on the given [port] number.
-  static Future<ButterflyDevServer> start(int port) async {
-    final server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
+  /// Starts a development server.
+  ///
+  /// HTTP and WebSocket requests from the browser must arrive on the
+  /// [applicationPort].
+  static Future<ButterflyDevServer> start({
+    @required int applicationPort,
+  }) async {
+    final vmServiceInfo = await developer.Service.getInfo();
+
+    if (vmServiceInfo.serverUri == null) {
+      throw new DevServerError(
+        'Observatory not available. Butterfly dev server cannot function '
+            'without it. Please, restart the dev server with --observe option '
+            'or run it in debug mode in the IDE (e.g. ItelliJ).',
+      );
+    }
+
+    final server =
+        await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, applicationPort);
     _initLogger();
-    _devLogger.info('Butterfly dev server listening on http://localhost:$port');
+    _devLogger.info(
+        'Butterfly dev server listening on http://localhost:$applicationPort');
+    _devLogger
+        .info('Observatory server listening on ${vmServiceInfo.serverUri}');
+    _devLogger.info(
+        'Automatic hot-reload command: butterfly watch ${vmServiceInfo.serverUri.port}');
     return new ButterflyDevServer._(server);
   }
 
@@ -54,7 +77,7 @@ class ButterflyDevServer {
 
   Future<Null> _listen() async {
     await for (final request in _server) {
-      _devLogger.info('[HTTP] ${request.method} ${request.uri}');
+      _devLogger.fine('[HTTP] ${request.method} ${request.uri}');
       try {
         if (request.uri.path.startsWith(_devChannelPath)) {
           await _serveDevRequest(request);
@@ -176,6 +199,18 @@ class ButterflyDevServer {
   }
 }
 
+/// An error related to the Butterfly dev server.
+class DevServerError extends Error {
+  /// Creates an error with a message.
+  DevServerError(this.message);
+
+  /// Error message.
+  final String message;
+
+  @override
+  String toString() => '$DevServerError: $message';
+}
+
 /// Configures the logger to print messages to the command line.
 ///
 /// In the future, this could be expanded to send logs to the browser
@@ -183,20 +218,20 @@ class ButterflyDevServer {
 void _initLogger() {
   final pen = new ansi.AnsiPen();
   final welcomeMessage = r'''
-  ____          _    _                __  _        
- |  _ \        | |  | |              / _|| |       
- | |_) | _   _ | |_ | |_  ___  _ __ | |_ | | _   _ 
+  ____          _    _                __  _
+ |  _ \        | |  | |              / _|| |
+ | |_) | _   _ | |_ | |_  ___  _ __ | |_ | | _   _
  |  _ < | | | || __|| __|/ _ \| '__||  _|| || | | |
  | |_) || |_| || |_ | |_|  __/| |   | |  | || |_| |
  |____/  \__,_| \__| \__|\___||_|   |_|  |_| \__, |
                                               __/ |
-                                             |___/  
-  dev server version 0.0.1.     
+                                             |___/
+  dev server version 0.0.1.
 ''';
   pen.magenta();
   print(pen.write(welcomeMessage) + '\n\n');
 
-  Logger.root.level = Level.ALL;
+  Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((LogRecord rec) {
     pen.blue();
     final timestamp = pen.write('${rec.time}:');
@@ -207,6 +242,8 @@ void _initLogger() {
     } else {
       pen.red();
     }
-    print('$timestamp ' + pen.write('${rec.message}'));
+    print('$timestamp ' +
+        pen.write('${rec.loggerName} - ') +
+        pen.write('${rec.message}'));
   });
 }
