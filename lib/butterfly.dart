@@ -76,8 +76,3 @@ class ButterflyModule {
   @override
   String toString() => '$ButterflyModule($_name)';
 }
-
-/// Top level function to interop with dart extension transpilation.
-Node Dx(String _) {
-  throw new Exception('Must transpile dart extensions before executing');
-}
