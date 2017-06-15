@@ -2,9 +2,12 @@ language: dart
 sudo: false
 dart: stable
 script:
+  - cd package/butterfly
+  - pub get
   - pub run test -p vm
   - dartfmt -n --set-exit-if-changed lib/ test/ bin/
   - dartanalyzer --fatal-warnings bin/ lib/ test/
 cache:
   directories:
     - $HOME/.pub-cache
+
