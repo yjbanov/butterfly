@@ -97,7 +97,7 @@ class ButterflyDevServer {
   }
 
   Future<Null> _serveDevRequest(HttpRequest request) async {
-    // The URL format is /_butterfly/mobule, which first two being "/" and
+    // The URL format is /_butterfly/module, which first two being "/" and
     // "_butterfly", which we don't need.
     final fragments = pathlib.split(request.uri.path).skip(2).toList();
 
