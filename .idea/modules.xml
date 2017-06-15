@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/package/butterfly/butterfly.iml" filepath="$PROJECT_DIR$/package/butterfly/butterfly.iml" />
+      <module fileurl="file://$PROJECT_DIR$/examples/hello/hello.iml" filepath="$PROJECT_DIR$/examples/hello/hello.iml" />
+      <module fileurl="file://$PROJECT_DIR$/examples/todo/todo.iml" filepath="$PROJECT_DIR$/examples/todo/todo.iml" />
+    </modules>
+  </component>
+</project>
