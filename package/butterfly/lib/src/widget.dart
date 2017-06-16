@@ -47,6 +47,8 @@ abstract class StatefulWidget extends Widget {
   RenderNode instantiate(Tree tree) => new RenderStatefulWidget(tree);
 }
 
+typedef dynamic StateSettingFunction();
+
 /// Mutable state of a [StatefulWidget].
 abstract class State<T extends StatefulWidget> {
   RenderStatefulWidget _node;
@@ -55,7 +57,15 @@ abstract class State<T extends StatefulWidget> {
 
   Node build();
 
-  void scheduleUpdate() {
+  @protected
+  void setState(StateSettingFunction fn) {
+    assert(() {
+      if (fn == null) {
+        throw new ArgumentError.notNull('fn');
+      }
+      return true;
+    });
+    fn();
     _node.scheduleUpdate();
   }
 

@@ -115,8 +115,9 @@ main() {
         Map<int, int> moves = const {},
         List<int> removes = const [],
       }) {
-        listState.childKeys = keys;
-        listState.scheduleUpdate();
+        listState.setState(() {
+          listState.childKeys = keys;
+        });
         final update = new ElementUpdate(0);
         inserts.forEach((int key, int position) {
           update.insertChildElement(position)
@@ -400,8 +401,9 @@ class ChangingTextWidget extends StatefulWidget {
 class ChangingTextWidgetState extends State<ChangingTextWidget> {
   String _value = 'initial';
   set value(String newValue) {
-    _value = newValue;
-    scheduleUpdate();
+    setState(() {
+      _value = newValue;
+    });
   }
 
   Node build() => text(_value);
@@ -433,8 +435,9 @@ class NodeUpdatingWidget extends StatefulWidget {
 class NodeUpdatingWidgetState extends State<NodeUpdatingWidget> {
   String _value = 'initial';
   set value(String newValue) {
-    _value = newValue;
-    scheduleUpdate();
+    setState(() {
+      _value = newValue;
+    });
   }
 
   Node build() => div()([text(_value)]);
@@ -450,6 +453,11 @@ class ChildListWidgetState extends State<ChildListWidget> {
   List<int> _childKeys;
   set childKeys(List<int> keys) {
     _childKeys = keys;
+  }
+
+  @override
+  setState(StateSettingFunction fn) {
+    super.setState(fn);
   }
 
   Node build() {
@@ -476,8 +484,9 @@ class EventListeningWidgetState extends State<EventListeningWidget> {
   int counter = 0;
 
   _buttonClicked(Event event) {
-    counter++;
-    scheduleUpdate();
+    setState(() {
+      counter++;
+    });
   }
 
   Node build() {

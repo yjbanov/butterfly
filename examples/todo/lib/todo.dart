@@ -14,15 +14,16 @@
 
 import 'package:butterfly/butterfly.dart';
 
-// TODO(yjbanov): make these injectable
-Store store = new Store();
-TodoFactory todoFactory = new TodoFactory();
+Store _store;
+TodoFactory _todoFactory;
 
 class TodoApp extends StatefulWidget {
   TodoApp() {
-    store.add(todoFactory.create('Foo', false));
-    store.add(todoFactory.create('Bar', false));
-    store.add(todoFactory.create('Baz', false));
+    _store = new Store();
+    _todoFactory = new TodoFactory();
+    _store.add(_todoFactory.create('Foo', false));
+    _store.add(_todoFactory.create('Bar', false));
+    _store.add(_todoFactory.create('Baz', false));
   }
 
   @override
@@ -35,7 +36,7 @@ class TodoAppState extends State<TodoApp> {
   TodoAppState();
 
   Node build() {
-    var listItems = store.list.map((Todo todo) {
+    var listItems = _store.list.map((Todo todo) {
       return li()([
         div(attrs: {'class': 'view ${todoEdit == todo ? 'hidden' : ''}'})([
           input('checkbox', attrs: {
@@ -131,52 +132,60 @@ class TodoAppState extends State<TodoApp> {
   }
 
   void enterTodo(String value) {
-    addTodo(value);
-    scheduleUpdate();
+    setState(() {
+      addTodo(value);
+    });
   }
 
   void editTodo(Todo todo) {
-    this.todoEdit = todo;
-    scheduleUpdate();
+    setState(() {
+      this.todoEdit = todo;
+    });
   }
 
   void doneEditing(Event event, Todo todo) {
-    int keyCode = event['keyCode'];
-    if (keyCode == 13) {
-      todo.title = event['value'];
-      this.todoEdit = null;
-    } else if (keyCode == 27) {
-      this.todoEdit = null;
-    }
-    scheduleUpdate();
+    setState(() {
+      int keyCode = event['keyCode'];
+      if (keyCode == 13) {
+        todo.title = event['value'];
+        this.todoEdit = null;
+      } else if (keyCode == 27) {
+        this.todoEdit = null;
+      }
+    });
   }
 
   void addTodo(String newTitle) {
-    store.add(todoFactory.create(newTitle, false));
-    scheduleUpdate();
+    setState(() {
+      _store.add(_todoFactory.create(newTitle, false));
+    });
   }
 
   void completeMe(Todo todo) {
-    todo.completed = !todo.completed;
-    scheduleUpdate();
+    setState(() {
+      todo.completed = !todo.completed;
+    });
   }
 
   void deleteMe(Todo todo) {
-    store.remove(todo);
-    scheduleUpdate();
+    setState(() {
+      _store.remove(todo);
+    });
   }
 
   void toggleAll(Event event) {
-    var isComplete = event['checked'];
-    store.list.forEach((Todo todo) {
-      todo.completed = isComplete;
+    setState(() {
+      var isComplete = event['checked'];
+      _store.list.forEach((Todo todo) {
+        todo.completed = isComplete;
+      });
     });
-    scheduleUpdate();
   }
 
   void clearCompleted() {
-    store.removeWhere((Todo todo) => todo.completed);
-    scheduleUpdate();
+    setState(() {
+      _store.removeWhere((Todo todo) => todo.completed);
+    });
   }
 }
 

@@ -18,6 +18,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'platform_channel.dart';
 export 'platform_channel.dart';
 
