@@ -12,21 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:butterfly/butterfly.dart';
+part of butterfly;
 
-import 'material_button.style.dart';
-
-class MaterialButton extends StatefulWidget {
-  MaterialButton({this.child});
-
+class Anchor extends StatelessWidget {
+  final String id;
+  final String ref;
+  final List<String> classNames;
   final Node child;
 
-  _MaterialButtonState createState() => new _MaterialButtonState();
-}
+  const Anchor({
+    @required this.ref,
+    this.id,
+    this.classNames,
+    this.child,
+  });
 
-class _MaterialButtonState extends State<MaterialButton> {
-  Node build() {
-    return div(style: matButton, attrs: {'style': 'background-color: red'})(
-        [config.child]);
-  }
+  @override
+  Node build() => new Element(
+        'a',
+        attributes: {
+          'id': id,
+          'ref': ref,
+        },
+        classNames: classNames,
+        children: child != null ? [child] : const [],
+      );
 }

@@ -37,98 +37,116 @@ class TodoAppState extends State<TodoApp> {
 
   Node build() {
     var listItems = _store.list.map((Todo todo) {
-      return li()([
-        div(attrs: {'class': 'view ${todoEdit == todo ? 'hidden' : ''}'})([
-          input('checkbox', attrs: {
-            'class': 'toggle',
-            'checked': attributePresentIf(todo.completed),
-          }, eventListeners: {
-            EventType.click: (_) {
+      return new Row(children: [
+        new Column(classNames: [
+          'view',
+          '${todoEdit == todo ? 'hidden' : ''}',
+        ], children: [
+          new Checkbox(
+            classNames: const ['toggle'],
+            checked: todo.completed ? true : null,
+            onClick: (_) {
               completeMe(todo);
-            }
-          })(),
-          label(eventListeners: {
-            EventType.dblclick: (_) {
+            },
+          ),
+          new DoubleClickArena(
+            onDoubleClick: (_) {
               editTodo(todo);
-            }
-          })([text(todo.title)]),
-          button(attrs: const {
-            'class': 'destroy'
-          }, eventListeners: {
-            EventType.click: (_) {
+            },
+            child: new Text(todo.title),
+          ),
+          new Button(
+            classNames: const ['destroy'],
+            onClick: (_) {
               deleteMe(todo);
-            }
-          })(),
+            },
+          ),
         ]),
-        div()([
-          input('text', attrs: {
-            'class': 'edit ${todoEdit == todo ? 'visible': ''}',
-            'value': todo.title,
-          }, eventListeners: {
-            EventType.keyup: (Event event) {
-              doneEditing(event, todo);
-            }
-          })()
-        ]),
+        new Container(
+          child: new Element(
+            'input',
+            classNames: ['edit', '${todoEdit == todo ? 'visible': ''}'],
+            attributes: {
+              'type': 'text',
+              'value': todo.title,
+            },
+            eventListeners: {
+              EventType.keyup: (Event event) {
+                doneEditing(event, todo);
+              }
+            },
+          ),
+        )
       ]);
     }).toList();
 
-    return div()([
-      section(attrs: const {'id': 'todoapp'})([
-        header(attrs: const {'id': 'header'})([
-          h1()([text('todos')]),
-          input('text', attrs: const {
-            'id': 'new-todo',
-            'placeholder': 'What needs to be done?',
-            'autofocus': '',
-          }, eventListeners: {
-            EventType.keyup: onKeyEnter((Event event) {
-              enterTodo(event['value']);
-            })
-          })(),
-        ]),
-        section(attrs: const {'id': 'main'})([
-          input('checkbox',
-              attrs: const {'id': 'toggle-all'},
-              eventListeners: {EventType.click: toggleAll})(),
-          label(attrs: const {'for': 'toggle-all'})(
-              [text('Mark all as complete')]),
-          ul(attrs: const {'id': 'todo-list'})(listItems),
-        ]),
-        footer(attrs: const {'id': 'footer'})([
-          span(attrs: const {'id': 'todo-count'})(),
-          // Dunno what this does, but it's in the angular2 version
-          div(attrs: const {'class': 'hidden'})(),
-          ul(attrs: const {'id': 'filters'})([
-            li()([
-              a(attrs: const {'href': '#/', 'class': 'selected'})(
-                  [text('All')]),
+    return new Container(
+      decoration: const BoxDecoration(
+        color: const Color.rgba(0xf, 0xf, 0xf, 1.0),
+      ),
+      margin: new EdgeInsets(
+        top: 130.0,
+        right: 0.0,
+        bottom: 40.0,
+        left: 0.0,
+      ),
+      child: new Column(
+        children: [
+          new Column(id: 'todoapp', children: [
+            new Column(id: 'header', children: [
+              new Text(
+                'todos',
+                style: const TextStyle(fontWeight: 16.0),
+              ),
+              new Element('input', attributes: {
+                'id': 'new-todo',
+                'placeholder': 'What needs to be done?',
+                'autofocus': true,
+                'type': 'text',
+              }, eventListeners: {
+                EventType.keyup: onKeyEnter((Event event) {
+                  enterTodo(event['value']);
+                })
+              }),
             ]),
-            li()([
-              a(attrs: const {'href': '#/active'})([text('Active')]),
+            new Column(id: 'main', children: [
+              new Checkbox(
+                id: 'toggle-all',
+                onClick: toggleAll,
+              ),
+              new Text('Mark all as complete'),
+              new Column(id: 'todo-list', children: listItems),
+              new Column(id: 'footer', children: [
+                new Container(id: 'todo-count'),
+                new Container(classNames: ['hidden']),
+                new Column(id: 'filters', children: [
+                  new Anchor(
+                      ref: '#/',
+                      classNames: ['selected'],
+                      child: new Text('All'),),
+                  new Anchor(ref: '#/active', child: new Text('Active')),
+                  new Anchor(ref: '#/completed', child: new Text('Completed')),
+                ]),
+                new Button(
+                  id: 'clear-completed',
+                  onClick: (_) {
+                    clearCompleted();
+                  },
+                  child: new Text('Clear completed'),
+                ),
+              ]),
+              new Column(id: 'info', children: [
+                new Text('Double-click to edit a todo'),
+                new Text('Created using '),
+                new Anchor(
+                    ref: 'https://github.com/yjbanov/butterfly',
+                    child: const Text('Butterfly')),
+              ]),
             ]),
-            li()([
-              a(attrs: const {'href': '#/completed'})([text('Completed')]),
-            ]),
-          ]),
-          button(attrs: const {
-            'id': 'clear-completed'
-          }, eventListeners: {
-            EventType.click: (_) {
-              clearCompleted();
-            }
-          })([text('Clear completed')]),
-        ]),
-      ]),
-      footer(attrs: const {'id': 'info'})([
-        p()([text('Double-click to edit a todo')]),
-        p()([
-          text('Created using '),
-          a(attrs: const {'href': 'https://github.com/yjbanov/butterfly'})(
-              [text('Butterfly')]),
-        ]),
-      ]),
-    ]);
+          ])
+        ],
+      ),
+    );
   }
 
   void enterTodo(String value) {

@@ -22,7 +22,6 @@ import 'package:meta/meta.dart';
 import 'platform_channel.dart';
 export 'platform_channel.dart';
 
-part 'src/convenience.dart';
 part 'src/element.dart';
 part 'src/event_type.dart';
 part 'src/key.dart';
@@ -32,6 +31,12 @@ part 'src/style.dart';
 part 'src/tree.dart';
 part 'src/util.dart';
 part 'src/widget.dart';
+part 'src/layout.dart';
+part 'src/text.dart';
+part 'src/table.dart';
+part 'src/input.dart';
+part 'src/foundation.dart';
+part 'src/anchor.dart';
 
 class ButterflyModule {
   final String _name;

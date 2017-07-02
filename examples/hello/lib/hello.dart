@@ -16,15 +16,16 @@ import 'package:butterfly/butterfly.dart';
 
 class App extends StatelessWidget {
   Node build() {
-    return div(attrs: {'id': 'greeting'})([
-      text('Hello, World!'),
-      button(eventListeners: {
-        EventType.click: (_) {
-          print('Woohoo!');
-        }
-      })([
-        text('Update'),
-      ]),
-    ]);
+    return new Column(
+      children: [
+        new Text('Hello, World!'),
+        new ButtonInput(
+          onClick: (_) {
+            print('Woohoo!');
+          },
+          child: new Text('Click Me!'),
+        ),
+      ],
+    );
   }
 }
