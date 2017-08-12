@@ -25,16 +25,178 @@ const attributePresent = '__present__';
 /// The opposite of [attributePresent].
 const attributeAbsent = '__absent__';
 
+int _butterflyIdCounter = 0;
+String _nextButterflyId() => '${_butterflyIdCounter++}';
+
 /// Converts a boolean [condition] into [attributePresent] and
 /// [attributeAbsent].
 String attributePresentIf(bool condition) =>
     condition ? attributePresent : attributeAbsent;
 
-/// A kind of node that maps directly to the render system's native element, for
-/// example an HTML element such as `<div>`, `<button>`.
-class Element extends MultiChildNode {
-  Element(
-    this.tag, {
+/// A node that maps to an HTML element and can have multiple children.
+///
+/// Most of the time you will pick a widget from a library that's implemented
+/// using this base class. Library authors may extend this class (but do not
+/// have to) as a convenience to implement specialized widgets, such as buttons,
+/// checkboxes and text fields, backed by an HTML element.
+abstract class ElementBase extends MultiChildNode {
+  const ElementBase(this.tag, {Key key, List<Node> children})
+      : super(key: key, children: children);
+
+  /// The tag of the HTML element, such as `<div>`.
+  final String tag;
+}
+
+/// The render node counterpart for the [ElementBase].
+///
+/// It is expected (but not mandated) that a concrete implementation of an
+/// [ElementBase] would have its render node extend this class. It provides
+/// conveniences, such as [butterflyId], `tag` and `key` syncing. An implementor
+/// would only need to implement the syncinc logic behind widget-specific
+/// properties.
+///
+/// A note on [canUpdateUsing], it expected that an implementation is based on
+/// the type of the widget rather than element `tag`. There is a limited number
+/// of HTML tags, but a wide variety of widgets that can be implemented using
+/// the them. A `<div>` that represents an expansion panel has nothing in common
+/// with a `<div>` that represents an icon button, and therefore cannot be
+/// updated using an icon button configuration. Contrast this to the general-
+/// purpose [Element] class, which places no special semantics on the element
+/// it is working with. It is perfectly OK to have any element configuration be
+/// updated using any other element configuration, as long as the tag is the
+/// same (element tags are immutable).
+abstract class RenderElementBase<N extends ElementBase>
+    extends RenderMultiChildParent<N> {
+  RenderElementBase(Tree tree) : super(tree);
+
+  /// An automatically generated global identifier, created to refer to this
+  /// element later, e.g. when we need to dispatch an event to it.
+  String _butterflyId;
+  String get butterflyId => _butterflyId;
+
+  @protected
+  void ensureButterflyId(ElementUpdate update) {
+    if (_butterflyId == null) {
+      _butterflyId = _nextButterflyId();
+      update.updateBaristaId(_butterflyId);
+    }
+  }
+
+  @mustCallSuper
+  @override
+  void update(N newConfiguration, ElementUpdate update) {
+    if (_configuration != null) {
+      assert(_configuration.tag == newConfiguration.tag);
+    } else {
+      update.tag = newConfiguration.tag;
+      final key = newConfiguration.key;
+
+      if (key != null) {
+        update.key = key;
+      }
+    }
+    super.update(newConfiguration, update);
+  }
+}
+
+/// Like [ElementBase] but has exactly one child.
+///
+/// Use this class to implement custom elements that semantically have exactly
+/// one child. It is more efficient than [ElementBase], which allows arbitrary
+/// number of children.
+abstract class SingleChildElementBase extends SingleChildParent {
+  const SingleChildElementBase(this.tag, {Key key, Node child})
+      : super(key: key, child: child);
+
+  /// The tag of the HTML element, such as `<div>`.
+  final String tag;
+}
+
+/// The render node counterpart for [SingleChildElementBase], like
+/// [RenderElementBase] but has exactly one child.
+abstract class RenderSingleChildElementBase<N extends SingleChildElementBase>
+    extends RenderSingleChildParent<N> {
+  RenderSingleChildElementBase(Tree tree) : super(tree);
+
+  /// An automatically generated global identifier, created to refer to this
+  /// element later, e.g. when we need to dispatch an event to it.
+  String _butterflyId;
+  String get butterflyId => _butterflyId;
+
+  @protected
+  void ensureButterflyId(ElementUpdate update) {
+    if (_butterflyId == null) {
+      _butterflyId = _nextButterflyId();
+      update.updateBaristaId(_butterflyId);
+    }
+  }
+
+  @mustCallSuper
+  @override
+  void update(N newConfiguration, ElementUpdate update) {
+    if (_configuration != null) {
+      assert(_configuration.tag == newConfiguration.tag);
+    } else {
+      update.tag = newConfiguration.tag;
+      final key = newConfiguration.key;
+
+      if (key != null) {
+        update.key = key;
+      }
+    }
+    super.update(newConfiguration, update);
+  }
+}
+
+/// Like [ElementBase] but has no children.
+abstract class LeafElementBase extends Node {
+  const LeafElementBase(this.tag, {Key key}) : super(key: key);
+
+  /// The tag of the HTML element, such as `<div>`.
+  final String tag;
+}
+
+/// The render node counterpart for [LeafElementBase], like
+/// [RenderElementBase] but no children.
+abstract class RenderLeafElementBase<N extends LeafElementBase>
+    extends RenderNode<N> {
+  RenderLeafElementBase(Tree tree) : super(tree);
+
+  /// An automatically generated global identifier, created to refer to this
+  /// element later, e.g. when we need to dispatch an event to it.
+  String _butterflyId;
+  String get butterflyId => _butterflyId;
+
+  @protected
+  void ensureButterflyId(ElementUpdate update) {
+    if (_butterflyId == null) {
+      _butterflyId = _nextButterflyId();
+      update.updateBaristaId(_butterflyId);
+    }
+  }
+
+  @mustCallSuper
+  @override
+  void update(N newConfiguration, ElementUpdate update) {
+    if (_configuration != null) {
+      assert(_configuration.tag == newConfiguration.tag);
+    } else {
+      update.tag = newConfiguration.tag;
+      final key = newConfiguration.key;
+
+      if (key != null) {
+        update.key = key;
+      }
+    }
+    super.update(newConfiguration, update);
+  }
+}
+
+/// A generic HTML element, useful when you want a simple ad hoc element such
+/// as `<div>`, `<button>`.
+class Element extends ElementBase {
+  const Element(
+    String tag, {
     Key key,
     this.attributes,
     this.eventListeners,
@@ -44,9 +206,7 @@ class Element extends MultiChildNode {
     this.text,
     List<Node> children,
   })
-      : super(key: key, children: children);
-
-  final String tag;
+      : super(tag, key: key, children: children);
 
   final Map<String, String> attributes;
   final Map<EventType, EventListener> eventListeners;
@@ -59,16 +219,8 @@ class Element extends MultiChildNode {
   RenderNode instantiate(Tree t) => new RenderElement(t);
 }
 
-class RenderElement extends RenderMultiChildParent<Element> {
+class RenderElement extends RenderElementBase<Element> {
   RenderElement(Tree tree) : super(tree);
-
-  /// An automatically generated global identifier, created to refer to this
-  /// element later, e.g. when we need to dispatch an event to it.
-  String _baristaId;
-  String get baristaId => _baristaId;
-
-  static int _baristaIdCounter = 0;
-  static String _nextBid() => '${_baristaIdCounter++}';
 
   @override
   bool canUpdateUsing(Node node) {
@@ -85,19 +237,9 @@ class RenderElement extends RenderMultiChildParent<Element> {
       _updateAttributes(newConfiguration.attributes, update);
       _updateStyles(newConfiguration, update);
     } else {
-      update.tag = newConfiguration.tag;
-      final key = newConfiguration.key;
-
-      if (key != null) {
-        update.key = key;
-      }
-
       if (newConfiguration.eventListeners != null &&
           newConfiguration.eventListeners.isNotEmpty) {
-        if (_baristaId == null) {
-          _baristaId = _nextBid();
-          update.updateBaristaId(_baristaId);
-        }
+        ensureButterflyId(update);
       }
 
       update.updateText(newConfiguration.text);
@@ -117,10 +259,7 @@ class RenderElement extends RenderMultiChildParent<Element> {
   void _updateEventListeners(
       Map<EventType, EventListener> eventListeners, ElementUpdate update) {
     if (eventListeners != null && eventListeners.isNotEmpty) {
-      if (_baristaId == null) {
-        _baristaId = _nextBid();
-        update.updateBaristaId(_baristaId);
-      }
+      ensureButterflyId(update);
     }
   }
 
@@ -212,8 +351,9 @@ class RenderElement extends RenderMultiChildParent<Element> {
     }
   }
 
+  @override
   void dispatchEvent(Event event) {
-    if (this._baristaId == event.targetBaristaId) {
+    if (this.butterflyId == event.targetBaristaId) {
       final listener = _configuration.eventListeners[event.type];
       if (listener != null) {
         listener(event);

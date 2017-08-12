@@ -32,6 +32,8 @@ part 'src/style.dart';
 part 'src/tree.dart';
 part 'src/util.dart';
 part 'src/widget.dart';
+part 'src/basic/container.dart';
+part 'src/basic/events.dart';
 
 class ButterflyModule {
   final String _name;
@@ -68,9 +70,9 @@ class ButterflyModule {
 
   Map<String, Object> dispatchEvent(Map<String, Object> serializedEvent) {
     String type = serializedEvent['type'];
-    String baristaId = serializedEvent['bid'];
+    String butterflyId = serializedEvent['bid'];
     dynamic data = serializedEvent['data'];
-    _tree.dispatchEvent(new Event(new EventType(type), baristaId, data));
+    _tree.dispatchEvent(new Event(new EventType(type), butterflyId, data));
     return null;
   }
 

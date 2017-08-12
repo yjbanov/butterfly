@@ -17,32 +17,13 @@ part of butterfly;
 /// Configures the state of the UI.
 ///
 /// This class is at the core of the framework.
+@immutable
 abstract class Node {
   const Node({this.key});
 
   final Key key;
 
-  RenderNode instantiate(Tree t);
-}
-
-/// Function that receives an [event].
-typedef void EventListener(Event event);
-
-/// An event emitted by an element.
-class Event {
-  Event(this.type, this.targetBaristaId, this.data);
-
-  /// Event type, e.g. [EventType.click].
-  final EventType type;
-
-  /// ID of the target.
-  final String targetBaristaId;
-
-  /// Event data.
-  final Map<String, Object> data;
-
-  /// Returns a value from [data].
-  dynamic operator [](String key) => data[key];
+  RenderNode instantiate(Tree tree);
 }
 
 /// A node in the retained tree instantiated from [Node]s.
@@ -96,6 +77,7 @@ abstract class RenderNode<N extends Node> {
   /// all necessary updates to `this` node and its children (if any) happen
   /// correctly. The overridden method must call `super.update` to finalize the
   /// update.
+  @mustCallSuper
   void update(N newConfiguration, ElementUpdate update) {
     assert(newConfiguration != null);
     _configuration = newConfiguration;
@@ -106,6 +88,29 @@ abstract class RenderNode<N extends Node> {
   }
 }
 
+/// Function that receives an [event].
+typedef void EventListener(Event event);
+
+/// An event emitted by an element.
+@immutable
+class Event {
+  Event(this.type, this.targetBaristaId, this.data);
+
+  /// Event type, e.g. [EventType.click].
+  final EventType type;
+
+  /// ID of the target.
+  final String targetBaristaId;
+
+  /// Event data.
+  final Map<String, Object> data;
+
+  /// Returns a value from [data].
+  dynamic operator [](String key) => data[key];
+}
+
+/// A type of node that has a flat list of children.
+@immutable
 abstract class MultiChildNode extends Node {
   const MultiChildNode({Key key, this.children}) : super(key: key);
 
@@ -150,9 +155,133 @@ abstract class RenderParent<N extends Node> extends RenderNode<N> {
   /// correctly. The overridden method must call `super.update` to finalize the
   /// update.
   @override
+  @mustCallSuper
   void update(N newConfiguration, ElementUpdate update) {
     _hasDescendantsNeedingUpdate = false;
     super.update(newConfiguration, update);
+  }
+}
+
+/// A node that decorates its child's element.
+///
+/// Contrast this class with [SingleChildParent], which creates its own element
+/// that wraps that of its child.
+@experimental
+@immutable
+abstract class Decoration extends Node {
+  const Decoration({Key key, @required this.child}) : super(key: key);
+
+  /// The only child of this node.
+  ///
+  /// Cannot be `null`.
+  final Node child;
+
+  RenderDecoration instantiate(Tree tree);
+}
+
+abstract class RenderDecoration<N extends Decoration> extends RenderParent {
+  RenderDecoration(Tree tree) : super(tree);
+
+  RenderNode _currentChild;
+
+  @override
+  void visitChildren(void visitor(RenderNode child)) {
+    if (_currentChild != null) {
+      visitor(_currentChild);
+    }
+  }
+
+  @override
+  @mustCallSuper
+  void update(N newConfiguration, ElementUpdate update) {
+    if (newConfiguration == _currentChild._configuration) {
+      if (hasDescendantsNeedingUpdate) {
+        _currentChild.update(newConfiguration.child, update);
+      }
+      return;
+    }
+
+    final childConfig = newConfiguration.child;
+    if (_currentChild == null || !_currentChild.canUpdateUsing(childConfig)) {
+      RenderNode child = childConfig.instantiate(tree);
+      child.update(childConfig, update);
+      child.attach(this);
+      _currentChild = child;
+    } else {
+      _currentChild.update(childConfig, update);
+    }
+
+    super.update(newConfiguration, update);
+  }
+
+  @override
+  void dispatchEvent(Event event) {
+    _configuration.child.dispatchEvent(event);
+  }
+}
+
+/// A node that has exactly one child.
+@experimental
+@immutable
+abstract class SingleChildParent extends Node {
+  // TODO(yjbanov): assert non-null child when const assert are supported by dart2js
+  const SingleChildParent({Key key, @required this.child}) : super(key: key);
+
+  /// The only child of this node.
+  ///
+  /// Cannot be `null`.
+  final Node child;
+
+  RenderSingleChildParent instantiate(Tree tree);
+}
+
+abstract class RenderSingleChildParent<N extends SingleChildParent>
+    extends RenderParent {
+  RenderSingleChildParent(Tree tree) : super(tree);
+
+  RenderNode _currentChild;
+
+  @override
+  void visitChildren(void visitor(RenderNode child)) {
+    if (_currentChild != null) {
+      visitor(_currentChild);
+    }
+  }
+
+  @override
+  @mustCallSuper
+  void update(N newConfiguration, ElementUpdate update) {
+    if (newConfiguration == _currentChild._configuration) {
+      if (hasDescendantsNeedingUpdate) {
+        final childUpdate = update.updateChildElement(0);
+        _currentChild.update(newConfiguration.child, childUpdate);
+      }
+      return;
+    }
+
+    final childConfig = newConfiguration.child;
+    if (_currentChild == null || !_currentChild.canUpdateUsing(childConfig)) {
+      if (_currentChild != null) {
+        _currentChild.detach();
+        update.removeChild(0);
+      }
+
+      RenderNode child = childConfig.instantiate(tree);
+      final childUpdate = update.insertChildElement(0);
+      child.update(childConfig, childUpdate);
+      child.attach(this);
+      _currentChild = child;
+    } else {
+      final childUpdate = update.updateChildElement(0);
+      _currentChild.update(childConfig, childUpdate);
+    }
+
+    super.update(newConfiguration, update);
+  }
+
+  @override
+  void dispatchEvent(Event event) {
+    _configuration.child.dispatchEvent(event);
   }
 }
 
@@ -165,7 +294,9 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
 
   @override
   void visitChildren(void visitor(RenderNode child)) {
-    if (_currentChildren == null) return;
+    if (_currentChildren == null) {
+      return;
+    }
 
     for (RenderNode child in _currentChildren) {
       visitor(child);
@@ -173,6 +304,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
   }
 
   @override
+  @mustCallSuper
   void update(N newConfiguration, ElementUpdate update) {
     // TODO(yjbanov): implement for realz
     if (_currentChildren == null) {

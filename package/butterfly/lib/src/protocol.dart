@@ -34,6 +34,7 @@ class ElementUpdate {
   final List<ElementUpdate> _childElementUpdates = <ElementUpdate>[];
   final List<AttributeUpdate> _attributes = <AttributeUpdate>[];
   final List<String> _classNames = <String>[];
+  final Map<String, String> _style = <String, String>{};
 
   /// Appends the JSON representation of this update into [buffer].
   bool render(Map<String, Object> js) {
@@ -120,6 +121,11 @@ class ElementUpdate {
       wroteData = true;
     }
 
+    if (_style.isNotEmpty) {
+      js['style'] = _style;
+      wroteData = true;
+    }
+
     if (wroteData) {
       js["index"] = _index;
     }
@@ -152,6 +158,14 @@ class ElementUpdate {
             buf.write(' ');
           }
         }
+        buf.write('"');
+      }
+
+      if (_style.isNotEmpty) {
+        buf.write(' style="');
+        _style.forEach((String name, String value) {
+          buf.write('$name:$value;');
+        });
         buf.write('"');
       }
 
@@ -215,6 +229,10 @@ class ElementUpdate {
 
   void addClassName(String name) {
     _classNames.add(name);
+  }
+
+  void setStyleAttribute(String name, String value) {
+    _style[name] = value;
   }
 }
 

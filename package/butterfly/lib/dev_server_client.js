@@ -79,14 +79,14 @@ class ButterflyModule {
 
     _handleEvent(type, event) {
         // Look for the nearest parent with a _bid, then dispatch to it.
-        let baristaId = null;
+        let butterflyId = null;
         let parent = event.target;
-        while(baristaId == null && parent && parent != document) {
-            baristaId = parent.getAttribute("_bid");
+        while(butterflyId == null && parent && parent != document) {
+            butterflyId = parent.getAttribute("_bid");
             parent = parent.parentNode;
         }
-        if (baristaId) {
-            this._invokePlatformChannelMethod('dispatch-event', serializeEvent(type, baristaId, event));
+        if (butterflyId) {
+            this._invokePlatformChannelMethod('dispatch-event', serializeEvent(type, butterflyId, event));
             this._renderFrame();
         } else {
             console.log(">>> caught event on target with no _bid:", event.target);
@@ -156,6 +156,15 @@ class ButterflyModule {
             }
         }
 
+        if (update.hasOwnProperty("style")) {
+            let style = update["style"];
+            for (let name in style) {
+              if (style.hasOwnProperty(name)) {
+                element.style[name] = style[name];
+              }
+            }
+        }
+
         if (removes != null) {
             for (let i = 0; i < removes.length; i++) {
                 removes[i].remove();
@@ -208,10 +217,10 @@ function printPerf(category, start, end) {
     console.log('>>>', category, ':', end - start, 'ms');
 }
 
-function serializeEvent(type, baristaId, event) {
+function serializeEvent(type, butterflyId, event) {
     let serializedEvent = {
         'type': type,
-        'bid': baristaId
+        'bid': butterflyId
     };
 
     let data = {};

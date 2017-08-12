@@ -260,7 +260,7 @@ main() {
       RenderElement buttonElement = tester.findElementNode(byTag: 'button');
       tester.module.dispatchEvent({
         'type': 'click',
-        'bid': buttonElement.baristaId,
+        'bid': buttonElement.butterflyId,
       });
 
       tester.renderFrame();
@@ -348,7 +348,7 @@ main() {
 class WidgetWithStyle extends StatelessWidget {
   WidgetWithStyle(this.style);
 
-  Style style;
+  final Style style;
 
   build() => div(style: style)();
 }
@@ -444,7 +444,7 @@ class NodeUpdatingWidgetState extends State<NodeUpdatingWidget> {
 }
 
 class ChildListWidget extends StatefulWidget {
-  ChildListWidgetState state = new ChildListWidgetState();
+  final ChildListWidgetState state = new ChildListWidgetState();
 
   ChildListWidgetState createState() => state;
 }
