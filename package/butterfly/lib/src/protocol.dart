@@ -234,6 +234,10 @@ class ElementUpdate {
   void setStyleAttribute(String name, String value) {
     _style[name] = value;
   }
+
+  void removeStyleAttribute(String name) {
+    _style.remove(name);
+  }
 }
 
 class AttributeUpdate {
