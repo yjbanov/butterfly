@@ -190,6 +190,9 @@ abstract class RenderLeafElementBase<N extends LeafElementBase>
     }
     super.update(newConfiguration, update);
   }
+
+  @override
+  void visitChildren(_) {}
 }
 
 /// A generic HTML element, useful when you want a simple ad hoc element such

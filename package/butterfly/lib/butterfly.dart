@@ -35,6 +35,8 @@ part 'src/widget.dart';
 part 'src/basic/container.dart';
 part 'src/basic/events.dart';
 part 'src/basic/layout.dart';
+part 'src/basic/elements.dart';
+part 'src/basic/tags.dart';
 
 class ButterflyModule {
   final String _name;
