@@ -29,7 +29,8 @@ class EventRecognizer extends Decoration {
   final EventListener listener;
 
   @override
-  RenderNode instantiate(Tree tree) => new RenderEventRecognizer(tree);
+  RenderEventRecognizer instantiate(Tree tree) =>
+      new RenderEventRecognizer(tree);
 }
 
 class RenderEventRecognizer extends RenderDecoration<EventRecognizer> {

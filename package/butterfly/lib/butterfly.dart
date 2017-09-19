@@ -80,3 +80,8 @@ class ButterflyModule {
   @override
   String toString() => '$ButterflyModule($_name)';
 }
+
+/// Error used to report contract violations.
+class ButterflyError extends AssertionError {
+  ButterflyError(String message) : super(message);
+}

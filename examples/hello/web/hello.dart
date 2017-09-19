@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-let hostElement = document.querySelector('#app-host');
-let module = butterfly.createModule('todo', hostElement);
-module.run();
+import 'dart:async';
+
+import 'package:butterfly/js.dart';
+import 'package:hello/hello.dart';
+
+Future<Null> main() async {
+  start('hello', '#app-host', new App());
+}

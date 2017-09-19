@@ -14,36 +14,34 @@
 
 import * as sync from './sync.js';
 
-export class ButterflyModule extends sync.ButterflyModuleBase {
-    constructor(moduleName, hostElement) {
+export class ButterflyModuleJS extends sync.ButterflyModuleBase {
+    constructor(moduleName, hostElementSelector, actionCallback) {
       super();
       this.moduleName = moduleName;
-      this.hostElement = hostElement;
-    }
-
-    run() {
-        let eventTypes = ["click", "keyup"];
-        eventTypes.forEach((type) => {
-            this.hostElement.addEventListener(type, (event) => {
-                this.handleEvent(type, event);
-            });
-        });
-        this.invokePlatformChannelMethod('initialize', '');
-        this.renderFrame();
+      this.hostElementSelector = hostElementSelector;
+      this.hostElement = document.querySelector(this.hostElementSelector);
+      this.actionCallback = actionCallback;
+      let eventTypes = ["click", "keyup"];
+      eventTypes.forEach((type) => {
+          this.hostElement.addEventListener(type, (event) => {
+              this.handleEvent(type, event);
+          });
+      });
+      this.invokePlatformChannelMethod('initialize', '');
+      this.renderFrame();
     }
 
     /// Synchronously (i.e. blocks the UI thread) invokes a platform channel [method] and returns the result.
     ///
     /// [args] are encoded as JSON. The result is decoded as JSON.
     invokePlatformChannelMethod(method, args) {
-      let xhr = new XMLHttpRequest();
-      xhr.open('POST', `/_butterfly/${this.moduleName}/${method}`, false /* synchronous */);
-      xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
-      xhr.send(JSON.stringify(args));
-      let result = JSON.parse(xhr.responseText);
+      let responseText = this.actionCallback(this.moduleName, method, JSON.stringify(args));
+      let result = JSON.parse(responseText);
       if (result != null && result.hasOwnProperty('error')) {
         throw result['error'];
       }
       return result;
     }
 }
+
+window.ButterflyModuleJS = ButterflyModuleJS;

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { ButterflyModule } from '/packages/butterfly/dev_server_client.js';
+
 let hostElement = document.querySelector('#app-host');
-let module = butterfly.createModule('hello', hostElement);
+let module = new ButterflyModule('todo', hostElement);
 module.run();

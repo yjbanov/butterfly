@@ -14,7 +14,7 @@
 
 import 'package:butterfly/butterfly.dart';
 
-Store _store;
+Store<Todo> _store;
 TodoFactory _todoFactory;
 
 class TodoApp extends StatefulWidget {

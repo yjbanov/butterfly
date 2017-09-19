@@ -29,8 +29,10 @@ import 'butterfly.dart';
 class ButterflyDevServer {
   static const String _devChannelNamespace = '_butterfly';
   static const String _devChannelPath = '/${_devChannelNamespace}';
-  static const String _devServerClientFile = 'dev_server_client.js';
+  static const String _packagesPath = '/packages/';
   static final Logger _devLogger = new Logger('ButterflyDevServer');
+  static final Converter<List<int>, String> _utfLineSplitter =
+      const Utf8Decoder().fuse(const LineSplitter());
 
   /// Starts a development server.
   ///
@@ -57,7 +59,8 @@ class ButterflyDevServer {
     _devLogger
         .info('Observatory server listening on ${vmServiceInfo.serverUri}');
     _devLogger.info(
-        'Automatic hot-reload command: butterfly watch ${vmServiceInfo.serverUri.port}');
+        'Automatic hot-reload command: butterfly watch ${vmServiceInfo.serverUri
+            .port}');
     return new ButterflyDevServer._(server);
   }
 
@@ -77,15 +80,17 @@ class ButterflyDevServer {
 
   Future<Null> _listen() async {
     await for (final request in _server) {
-      _devLogger.fine('[HTTP] ${request.method} ${request.uri}');
+      _devLogger.shout('[HTTP] ${request.method} ${request.uri}');
       try {
         if (request.uri.path.startsWith(_devChannelPath)) {
           await _serveDevRequest(request);
+        } else if (request.uri.path.startsWith(_packagesPath)) {
+          await _servePackageAsset(request);
         } else {
           await _serveStatic(request);
         }
       } catch (error, stackTrace) {
-        _devLogger.shout('Error', error, stackTrace);
+        _devLogger.shout('Error: $error\n$stackTrace');
         final errorResponse = <String, String>{
           'error': '${error}\n${stackTrace}',
         };
@@ -100,11 +105,6 @@ class ButterflyDevServer {
     // The URL format is /_butterfly/module, which first two being "/" and
     // "_butterfly", which we don't need.
     final fragments = pathlib.split(request.uri.path).skip(2).toList();
-
-    if (fragments.last == _devServerClientFile) {
-      await _serveDevServerClientFile(request);
-      return;
-    }
 
     assert(fragments.length == 2);
     final moduleName = fragments[0];
@@ -123,29 +123,45 @@ class ButterflyDevServer {
     request.response.write(JSON.encode(result));
   }
 
-  Future<Null> _serveDevServerClientFile(HttpRequest request) async {
+  /// Mimics pub serve's behavior of service package-relative static files.
+  Future<Null> _servePackageAsset(HttpRequest request) async {
     final packagesFile = new File('.packages');
 
     if (!await packagesFile.exists()) {
       throw new StateError('.packages file not found. Have you run pub get?');
     }
 
+    final pathFragments = pathlib.split(request.uri.path);
+    assert(() {
+      if (pathFragments.length < 4 ||
+          pathFragments[0] != '/' ||
+          pathFragments[1] != 'packages') {
+        throw new ButterflyError(
+            'Asset URL path must begin with /packages followed by package name '
+            'then path within the package. Instead it was:\n\n${request.uri
+                .path}');
+      }
+      return true;
+    });
+    final packageName = pathFragments[2];
+    final pathWithinPackage = pathFragments.skip(3).join(pathlib.separator);
+
     List<String> packageInfoParts = await packagesFile
         .openRead()
-        .transform(const Utf8Decoder())
-        .transform(const LineSplitter())
+        .transform(_utfLineSplitter)
         .map((line) => line.split(':'))
-        .firstWhere((parts) => parts[0] == 'butterfly',
+        .firstWhere((parts) => parts.first == packageName,
             defaultValue: () => null);
 
     if (packageInfoParts == null) {
       throw new StateError(
-          '"butterfly" package not found in .packages file. Please check your pubspec.yaml and run pub get again.');
+          '"$packageName" package not found in .packages file. Please check your pubspec.yaml and run pub get again.');
     }
 
-    final file = new File('${packageInfoParts.last}/${_devServerClientFile}');
+    final file = new File(
+        _uriPathToFilePath('${packageInfoParts.last}/${pathWithinPackage}'));
     request.response.headers.contentType =
-        ContentType.parse(mime.lookupMimeType('.js'));
+        ContentType.parse(mime.lookupMimeType(file.path));
     await file.openRead().pipe(request.response);
   }
 
@@ -156,7 +172,7 @@ class ButterflyDevServer {
     }
 
     final path = request.uri.path == '/'
-        ? '${pathlib.current}/'
+        ? '${pathlib.current}${pathlib.separator}'
         : pathlib.join(pathlib.current, '${request.uri.path.substring(1)}');
 
     if (!pathlib.equals(pathlib.current, path) &&
@@ -171,7 +187,7 @@ class ButterflyDevServer {
       request.response.statusCode = 404;
       request.response.writeln('File not found: ${path}');
     } else if (pathType == FileSystemEntityType.DIRECTORY) {
-      if (path.endsWith('/')) {
+      if (path.endsWith(pathlib.separator)) {
         final dir = new Directory(path);
         request.response.headers.contentType = ContentType.HTML;
         await for (final item in dir.list()) {
@@ -246,4 +262,10 @@ void _initLogger() {
         pen.write('${rec.loggerName} - ') +
         pen.write('${rec.message}'));
   });
+}
+
+/// Converts a URI path to a file path by replacing common slashes with
+/// OS-specific path separator.
+String _uriPathToFilePath(String uriPath) {
+  return uriPath.split('/').join(pathlib.separator);
 }

@@ -179,7 +179,7 @@ abstract class Decoration extends Node {
   RenderDecoration instantiate(Tree tree);
 }
 
-abstract class RenderDecoration<N extends Decoration> extends RenderParent {
+abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
   RenderDecoration(Tree tree) : super(tree);
 
   RenderNode _currentChild;
@@ -216,7 +216,7 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent {
 
   @override
   void dispatchEvent(Event event) {
-    _configuration.child.dispatchEvent(event);
+    _currentChild?.dispatchEvent(event);
   }
 }
 
@@ -236,7 +236,7 @@ abstract class SingleChildParent extends Node {
 }
 
 abstract class RenderSingleChildParent<N extends SingleChildParent>
-    extends RenderParent {
+    extends RenderParent<N> {
   RenderSingleChildParent(Tree tree) : super(tree);
 
   RenderNode _currentChild;
@@ -281,7 +281,7 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
 
   @override
   void dispatchEvent(Event event) {
-    _configuration.child.dispatchEvent(event);
+    _currentChild.dispatchEvent(event);
   }
 }
 

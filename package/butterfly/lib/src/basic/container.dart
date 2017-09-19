@@ -56,7 +56,7 @@ class Container extends SingleChildElementBase {
   final BoxDecoration decoration;
 
   @override
-  RenderNode instantiate(Tree tree) => new RenderContainer(tree);
+  RenderContainer instantiate(Tree tree) => new RenderContainer(tree);
 }
 
 class RenderContainer extends RenderSingleChildElementBase<Container> {

@@ -11,6 +11,7 @@ environment:
   sdk: '>=1.14.0 <2.0.0'
 dependencies:
   browser: ^0.10.0+2
+  js:
   path:
   meta:
   mime:
