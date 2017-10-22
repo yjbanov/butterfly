@@ -24,12 +24,12 @@ class BoxDecoration {
   final String padding;
   final String border;
 
-  void update(BoxDecoration other, ElementUpdate element) {
+  void update(BoxDecoration other, html.Element element) {
     if (other.padding != padding) {
-      element.setStyleAttribute('padding', other.padding);
+      element.style.setProperty('padding', other.padding);
     }
     if (other.border != border) {
-      element.setStyleAttribute('border', other.border);
+      element.style.setProperty('border', other.border);
     }
   }
 
@@ -56,24 +56,24 @@ class Container extends SingleChildElementBase {
   final BoxDecoration decoration;
 
   @override
-  RenderContainer instantiate(Tree tree) => new RenderContainer(tree);
+  RenderContainer instantiate(Tree tree) => new RenderContainer(tree, this);
 }
 
 class RenderContainer extends RenderSingleChildElementBase<Container> {
-  RenderContainer(Tree tree) : super(tree);
+  RenderContainer(Tree tree, Container container) : super(tree, container);
 
   @override
   bool canUpdateUsing(Node node) => node is Container;
 
   @override
-  void update(Container newConfiguration, ElementUpdate update) {
+  void update(Container newConfiguration) {
     if (_configuration != null) {
       final BoxDecoration oldDecoration = _configuration.decoration;
       final BoxDecoration newDecoration = newConfiguration.decoration;
       if (!identical(oldDecoration, newDecoration)) {
-        oldDecoration.update(newDecoration, update);
+        oldDecoration.update(newDecoration, nativeNode);
       }
     } else {}
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 }

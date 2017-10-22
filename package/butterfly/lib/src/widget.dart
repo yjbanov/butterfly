@@ -86,6 +86,14 @@ class RenderStatelessWidget extends RenderParent<StatelessWidget> {
   RenderNode _child;
 
   @override
+  html.Node get nativeNode => _child.nativeNode;
+
+  @override
+  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
+    parent.replaceChildNativeNode(oldNode, replacement);
+  }
+
+  @override
   void visitChildren(void visitor(RenderNode child)) {
     visitor(_child);
   }
@@ -101,27 +109,28 @@ class RenderStatelessWidget extends RenderParent<StatelessWidget> {
   }
 
   @override
-  void update(StatelessWidget newConfiguration, ElementUpdate update) {
+  void update(StatelessWidget newConfiguration) {
     assert(newConfiguration != null);
     if (!identical(configuration, newConfiguration)) {
       // Build the new configuration and decide whether to reuse the child node
       // or replace with a new one.
       Node newChildConfiguration = newConfiguration.build();
+      assert(newChildConfiguration != null);
       if (_child != null && _canUpdate(_child, newChildConfiguration)) {
-        _child.update(newChildConfiguration, update);
+        _child.update(newChildConfiguration);
       } else {
         // Replace child
         _child?.detach();
         _child = newChildConfiguration.instantiate(tree);
-        _child.update(newChildConfiguration, update);
+        _child.update(newChildConfiguration);
         _child.attach(this);
       }
     } else if (hasDescendantsNeedingUpdate) {
       // Own configuration is the same, but some children are scheduled to be
       // updated.
-      _child.update(_child.configuration, update);
+      _child.update(_child.configuration);
     }
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 }
 
@@ -132,6 +141,14 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
   State get state => _state;
   RenderNode _child;
   bool _isDirty = false;
+
+  @override
+  html.Node get nativeNode => _child.nativeNode;
+
+  @override
+  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
+    parent.replaceChildNativeNode(oldNode, replacement);
+  }
 
   @override
   void visitChildren(void visitor(RenderNode child)) {
@@ -153,7 +170,7 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
     return node.runtimeType == this._configuration.runtimeType;
   }
 
-  void update(StatefulWidget newConfiguration, ElementUpdate update) {
+  void update(StatefulWidget newConfiguration) {
     assert(newConfiguration != null);
     if (!identical(configuration, newConfiguration)) {
       // Build the new configuration and decide whether to reuse the child node
@@ -167,22 +184,22 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
       if (_child != null &&
           identical(newChildConfiguration.runtimeType,
               _child.configuration.runtimeType)) {
-        _child.update(newChildConfiguration, update);
+        _child.update(newChildConfiguration);
       } else {
         _child?.detach();
         _child = newChildConfiguration.instantiate(tree);
-        _child.update(newChildConfiguration, update);
+        _child.update(newChildConfiguration);
         _child.attach(this);
       }
     } else if (_isDirty) {
-      _child.update(_state.build(), update);
+      _child.update(_state.build());
     } else if (hasDescendantsNeedingUpdate) {
       // Own configuration is the same, but some children are scheduled to be
       // updated.
-      _child.update(_child.configuration, update);
+      _child.update(_child.configuration);
     }
 
     _isDirty = false;
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 }

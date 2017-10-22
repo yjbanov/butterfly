@@ -16,18 +16,15 @@ library butterfly;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:html' as html;
 
-import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'platform_channel.dart';
-export 'platform_channel.dart';
 
 part 'src/convenience.dart';
 part 'src/element.dart';
 part 'src/event_type.dart';
 part 'src/key.dart';
 part 'src/node.dart';
-part 'src/protocol.dart';
 part 'src/style.dart';
 part 'src/tree.dart';
 part 'src/util.dart';
@@ -36,52 +33,6 @@ part 'src/basic/container.dart';
 part 'src/basic/events.dart';
 part 'src/basic/layout.dart';
 
-class ButterflyModule {
-  final String _name;
-  final PlatformChannel platformChannel;
-  final Node _root;
-  final Logger _logger;
-
-  Tree _tree;
-  Tree get tree => _tree;
-
-  factory ButterflyModule(String name, Node root) {
-    final platformChannel = new PlatformChannel();
-    return new ButterflyModule._(name, root, platformChannel);
-  }
-
-  ButterflyModule._(String name, this._root, this.platformChannel)
-      : _logger = new Logger('module:$name'),
-        _name = name {
-    platformChannel
-      ..registerMethod('initialize', initialize)
-      ..registerMethod('render-frame', renderFrame)
-      ..registerMethod('dispatch-event', dispatchEvent);
-  }
-
-  Map<String, Object> initialize([_]) {
-    _logger.info('initializing');
-    _tree = new Tree(_root, platformChannel);
-    return null;
-  }
-
-  Map<String, Object> renderFrame([_]) {
-    return _tree.renderFrame();
-  }
-
-  Map<String, Object> dispatchEvent(Map<String, Object> serializedEvent) {
-    String type = serializedEvent['type'];
-    String butterflyId = serializedEvent['bid'];
-    dynamic data = serializedEvent['data'];
-    _tree.dispatchEvent(new Event(new EventType(type), butterflyId, data));
-    return null;
-  }
-
-  @override
-  String toString() => '$ButterflyModule($_name)';
-}
-
-/// Error used to report contract violations.
-class ButterflyError extends AssertionError {
-  ButterflyError(String message) : super(message);
+void runApp(Node widget, html.Element host, [html.Element styleHost]) {
+  new Tree(widget, host, styleHost).renderFrame();
 }
