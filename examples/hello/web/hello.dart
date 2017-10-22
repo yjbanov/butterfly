@@ -13,10 +13,11 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:html' as html;
 
-import 'package:butterfly/js.dart';
+import 'package:butterfly/butterfly.dart';
 import 'package:hello/hello.dart';
 
 Future<Null> main() async {
-  start('hello', '#app-host', new App());
+  runApp(new App(), html.querySelector('#app-host'));
 }

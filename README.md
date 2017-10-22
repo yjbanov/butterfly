@@ -27,8 +27,7 @@ and platform-independent code can be shared with Flutter apps.
   to build web apps. Butterfly gives you a single conceptual model for writing
   your apps for both web and mobile, and allows the reuse of big chunks of code.
 - For Flutter developers who need to run parts of their app within a WebView.
-- For Dart web developers who prefer a React/Inferno-like framework.
-- For developers who prefer functional-reactive programming style.
+- For Dart developers who prefer functional-reactive programming style.
 
 ## Plays nice with
 

@@ -25,38 +25,40 @@ class _FlexRenderNode extends RenderMultiChildParent<Flex> {
   _FlexRenderNode(Tree tree) : super(tree);
 
   @override
+  final html.DivElement nativeNode = new html.DivElement();
+
+  @override
   bool canUpdateUsing(Node node) => node is Flex;
 
   @override
-  void update(Flex newConfiguration, ElementUpdate update) {
+  void update(Flex newConfiguration) {
     /// On the initial build, insert all styles.
     if (configuration == null) {
-      update
-        ..tag = 'div'
-        ..setStyleAttribute('display', 'flex')
-        ..setStyleAttribute(
+      nativeNode
+        ..style.setProperty('display', 'flex')
+        ..style.setProperty(
             'justify-content', newConfiguration.justifyContent._value)
-        ..setStyleAttribute('flex-direction', newConfiguration.direction._value)
-        ..setStyleAttribute('flex-wrap', newConfiguration.wrap._value)
-        ..setStyleAttribute('align-items', newConfiguration.align._value);
+        ..style.setProperty('flex-direction', newConfiguration.direction._value)
+        ..style.setProperty('flex-wrap', newConfiguration.wrap._value)
+        ..style.setProperty('align-items', newConfiguration.align._value);
     } else if (!identical(newConfiguration, configuration)) {
       if (!identical(
           newConfiguration.justifyContent, configuration.justifyContent)) {
-        update.setStyleAttribute(
+        nativeNode.style.setProperty(
             'justify-content', newConfiguration.justifyContent._value);
       }
       if (!identical(newConfiguration.wrap, configuration.wrap)) {
-        update.setStyleAttribute('flex-wrap', newConfiguration.wrap._value);
+        nativeNode.style.setProperty('flex-wrap', newConfiguration.wrap._value);
       }
       if (!identical(newConfiguration.align, configuration.align)) {
-        update.setStyleAttribute('align-items', newConfiguration.align._value);
+        nativeNode.style.setProperty('align-items', newConfiguration.align._value);
       }
       if (!identical(newConfiguration.direction, configuration.direction)) {
-        update.setStyleAttribute(
+        nativeNode.style.setProperty(
             'flex-direction', newConfiguration.direction._value);
       }
     }
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 }
 
@@ -156,14 +158,14 @@ class _PositionedDecoration extends RenderDecoration<Positioned> {
   @override
   bool canUpdateUsing(Node node) => node is Positioned;
 
-  void update(Positioned newConfiguration, ElementUpdate update) {
+  void update(Positioned newConfiguration) {
     if (!identical(newConfiguration, configuration)) {
-      update
-        ..setStyleAttribute('left', newConfiguration.left)
-        ..setStyleAttribute('top', newConfiguration.left)
-        ..setStyleAttribute('position', 'absoute');
+      nativeNode
+        ..style.setProperty('left', newConfiguration.left)
+        ..style.setProperty('top', newConfiguration.left)
+        ..style.setProperty('position', 'absoute');
     }
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 }
 
@@ -197,36 +199,37 @@ class _FlexChildDecoration extends RenderDecoration<FlexChild> {
   @override
   bool canUpdateUsing(Node node) => node is Positioned;
 
-  void update(FlexChild newConfiguration, ElementUpdate update) {
+  void update(FlexChild newConfiguration) {
     if (!identical(newConfiguration, configuration)) {
+      final html.Element element = nativeNode;
       if (newConfiguration.order == null) {
-        update.removeStyleAttribute('order');
+        element.style.removeProperty('order');
       } else {
-        update.setStyleAttribute('order', '${newConfiguration.order}');
+        element.style.setProperty('order', '${newConfiguration.order}');
       }
       if (newConfiguration.grow == null) {
-        update.removeStyleAttribute('grow');
+        element.style.removeProperty('grow');
       } else {
-        update.setStyleAttribute('grow', '${newConfiguration.grow}');
+        element.style.setProperty('grow', '${newConfiguration.grow}');
       }
       if (newConfiguration.shrink == null) {
-        update.removeStyleAttribute('shrink');
+        element.style.removeProperty('shrink');
       } else {
-        update.setStyleAttribute('shrink', '${newConfiguration.shrink}');
+        element.style.setProperty('shrink', '${newConfiguration.shrink}');
       }
       if (newConfiguration.basis == null) {
-        update.removeStyleAttribute('basis');
+        element.style.removeProperty('basis');
       } else {
-        update.setStyleAttribute('basis', '${newConfiguration.basis}');
+        element.style.setProperty('basis', '${newConfiguration.basis}');
       }
       if (newConfiguration.alignSelf == null) {
-        update.removeStyleAttribute('align-self');
+        element.style.removeProperty('align-self');
       } else {
-        update.setStyleAttribute(
+        element.style.setProperty(
             'align-self', newConfiguration.alignSelf._value);
       }
     }
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 }
 

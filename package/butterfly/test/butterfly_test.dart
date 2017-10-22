@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+@TestOn('browser')
 import 'package:test/test.dart';
 
 import 'package:butterfly/butterfly.dart';
@@ -21,13 +22,13 @@ main() {
   group('text', () {
     test('renders simple text', () {
       WidgetTester tester = testWidget(new SimpleTextWidget());
-      tester.expectRenderCreate('<span>hello world!</span>');
+      tester.expectRenders('<span>hello world!</span>');
     });
 
     test('renders changing text', () {
       var widget = new ChangingTextWidget();
       WidgetTester tester = testWidget(widget);
-      tester.expectRenderCreate('<span>initial</span>');
+      tester.expectRenders('<span>initial</span>');
 
       // Repeated re-renders without actual change should be a noop
       tester.renderFrame();
@@ -35,19 +36,19 @@ main() {
 
       // Now with the actual change
       widget.state.value = 'updated';
-      tester.expectRenderUpdate(new ElementUpdate(0)..updateText('updated'));
+      tester.expectRenders('<span>updated</span>');
     });
   });
 
   group('element', () {
     test('renders simple element', () {
       final tester = testWidget(new SimpleElementWidget());
-      tester.expectRenderCreate('<div></div>');
+      tester.expectRenders('<div></div>');
     });
 
     test('renders nested elements', () {
       final tester = testWidget(new NestedElementWidget());
-      tester.expectRenderCreate('<div><span></span><button></button></div>');
+      tester.expectRenders('<div><span></span><button></button></div>');
     });
   });
 
@@ -55,7 +56,7 @@ main() {
     test('does not update if config is identical', () {
       var tester = testWidget(new IdenticalConfigElement());
 
-      tester.expectRenderCreate('<div><span>never updated</span></div>');
+      tester.expectRenders('<div><span>never updated</span></div>');
 
       UpdateTrackingRenderText trackingNode =
           tester.findNodeOfType(UpdateTrackingRenderText);
@@ -105,136 +106,93 @@ main() {
       testCreate(List<int> keys) {
         listState.childKeys = keys;
         var innerHtml =
-            keys.map((key) => '<span _bkey="${key}">${key}</span>').join();
-        tester.expectRenderCreate('<div>${innerHtml}</div>');
+            keys.map((key) => '<span>${key}</span>').join();
+        tester.expectRenders('<div>${innerHtml}</div>');
       }
 
-      testUpdate({
-        List<int> keys = const [],
-        Map<int, int> inserts = const {},
-        Map<int, int> moves = const {},
-        List<int> removes = const [],
-      }) {
+      testUpdate(List<int> keys) {
         listState.setState(() {
           listState.childKeys = keys;
         });
-        final update = new ElementUpdate(0);
-        inserts.forEach((int key, int position) {
-          update.insertChildElement(position)
-            ..tag = 'span'
-            ..key = new ValueKey('$key')
-            ..updateText('$key');
-        });
-        moves.forEach((int from, int to) {
-          update.moveChild(to, from);
-        });
-        removes.forEach(update.removeChild);
-        tester.expectRenderUpdate(update);
+        var innerHtml = keys.map((key) => '<span>${key}</span>').join();
+        tester.expectRenders('<div>${innerHtml}</div>');
       }
 
       test('appends new children added to previously empty child list', () {
         testCreate([]);
-        testUpdate(keys: [
+        testUpdate([
           1,
           2,
           3
-        ], inserts: {
-          1: 0,
-          2: 0,
-          3: 0,
-        });
+        ]);
       });
 
       test('appends new children added to previously non-empty child list', () {
         testCreate([1, 2]);
-        testUpdate(keys: [
+        testUpdate([
           1,
           2,
           3,
           4,
           5
-        ], inserts: {
-          3: 2,
-          4: 2,
-          5: 2,
-        });
+        ]);
       });
 
       test('deletes all children', () {
         testCreate([1, 2]);
-        testUpdate(keys: [], removes: [0, 1]);
+        testUpdate([]);
       });
 
       test('truncates child list', () {
         testCreate([0, 1, 2, 3, 4]);
-        testUpdate(keys: [0, 1, 2], removes: [3, 4]);
+        testUpdate([0, 1, 2]);
       });
 
       test('removes children in the middle', () {
         testCreate([0, 1, 2, 3]);
-        testUpdate(keys: [0, 3], removes: [1, 2]);
+        testUpdate([0, 3]);
       });
 
       test('inserts children in the middle', () {
         testCreate([1, 4]);
-        testUpdate(keys: [
+        testUpdate([
           1,
           2,
           3,
           4
-        ], inserts: {
-          2: 1,
-          3: 1,
-        });
+        ]);
       });
 
       test('replaces range with a longer range', () {
         testCreate([1, 2, 3, 4, 9]);
-        testUpdate(keys: [
+        testUpdate([
           1,
           5,
           6,
           7,
           8,
           9
-        ], removes: [
-          1,
-          2,
-          3
-        ], inserts: {
-          5: 4,
-          6: 4,
-          7: 4,
-          8: 4,
-        });
+        ]);
       });
 
       test('replaces range with a shorter range', () {
         testCreate([1, 2, 3, 4]);
-        testUpdate(keys: [
+        testUpdate([
           1,
           10,
           4
-        ], removes: [
-          1,
-          2
-        ], inserts: {
-          10: 3,
-        });
+        ]);
       });
 
       test('moves children', () {
         testCreate([1, 2, 3, 4, 5]);
-        testUpdate(keys: [
+        testUpdate([
           1,
           4,
           3,
           2,
           5
-        ], moves: {
-          3: 1,
-          2: 1,
-        });
+        ]);
       });
     });
   });
@@ -242,7 +200,7 @@ main() {
   group('attributes', () {
     test('are set', () {
       testWidget(new SimpleAttributesWidget())
-          .expectRenderCreate('<div id="this_is_id" width="300"></div>');
+          .expectRenders('<div id="this_is_id" width="300"></div>');
     });
   });
 
@@ -258,10 +216,11 @@ main() {
       expect(state.counter, 0);
 
       RenderElement buttonElement = tester.findElementNode(byTag: 'button');
-      tester.module.dispatchEvent({
-        'type': 'click',
-        'bid': buttonElement.butterflyId,
-      });
+      tester.tree.dispatchEvent(new Event(
+        EventType.click,
+        buttonElement.butterflyId,
+        {},
+      ));
 
       tester.renderFrame();
       expect(state.counter, 1);
@@ -273,7 +232,7 @@ main() {
       var s = new Style('width: 10px;');
       var widget = new WidgetWithStyle(s);
       var tester = testWidget(widget);
-      tester.expectRenderCreate('<div class="${s.identifierClass}"></div>');
+      tester.expectRenders('<div class="${s.identifierClass}"></div>');
     });
   });
 
@@ -301,7 +260,7 @@ main() {
         buf.write('"');
       }
       buf.write('></div>');
-      tester.expectRenderCreate(buf.toString());
+      tester.expectRenders(buf.toString());
     }
 
     test('applies multiple styles', () {
@@ -365,21 +324,21 @@ class WidgetWithMultipleStylesState extends State {
 }
 
 class UpdateTrackingRenderText extends RenderElement {
-  UpdateTrackingRenderText(Tree tree) : super(tree);
+  UpdateTrackingRenderText(Tree tree, UpdateTrackingText element) : super(tree, element);
 
   int updateCount = 0;
 
   @override
-  void update(Element newConfig, ElementUpdate update) {
+  void update(Element newConfig) {
     updateCount++;
-    super.update(newConfig, update);
+    super.update(newConfig);
   }
 }
 
 class UpdateTrackingText extends Element {
   UpdateTrackingText(String text) : super('span', text: text);
 
-  RenderNode instantiate(Tree tree) => new UpdateTrackingRenderText(tree);
+  RenderNode instantiate(Tree tree) => new UpdateTrackingRenderText(tree, this);
 }
 
 class IdenticalConfigElement extends StatelessWidget {

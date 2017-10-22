@@ -14,6 +14,8 @@
 
 library butterfly.testing;
 
+import 'dart:html' as html;
+
 import 'package:test/test.dart';
 
 import 'butterfly.dart';
@@ -23,16 +25,16 @@ WidgetTester testWidget(Node root) {
 }
 
 class WidgetTester {
-  factory WidgetTester(Node root) {
-    final module = new ButterflyModule('test-module', root);
-    final tester = new WidgetTester._(module);
-    tester.module.initialize();
+  factory WidgetTester(Node widget) {
+    final host = new html.DivElement();
+    final styleHost = new html.DivElement();
+    final tester = new WidgetTester._(new Tree(widget, host, styleHost));
     return tester;
   }
 
-  WidgetTester._(this.module);
+  WidgetTester._(this.tree);
 
-  final ButterflyModule module;
+  final Tree tree;
 
   RenderNode findNode(bool predicate(RenderNode node)) {
     RenderNode foundNode;
@@ -44,7 +46,7 @@ class WidgetTester {
       }
     }
 
-    module.tree.visitChildren(findTrackingNode);
+    tree.visitChildren(findTrackingNode);
     return foundNode;
   }
 
@@ -75,30 +77,20 @@ class WidgetTester {
     return renderWidget.state;
   }
 
-  Map<String, Object> renderFrame() {
-    return module.renderFrame();
+  void renderFrame() {
+    return tree.renderFrame();
   }
 
   // TODO(yjbanov): turn expect* methods into matchers.
-  void expectRenderCreate(String expectedHtml) {
-    final diff = renderFrame();
-    expect(diff, isNotNull);
-    expect(diff, contains('create'));
-    expect(diff['create'], expectedHtml);
+  void expectRenders(String expectedHtml) {
+    renderFrame();
+    expect(tree.host.innerHtml, expectedHtml);
   }
 
   void expectRenderNoop() {
-    final diff = renderFrame();
-    expect(diff, isNotNull);
-    expect(diff.keys, isEmpty);
-  }
-
-  void expectRenderUpdate(ElementUpdate update) {
-    final diff = renderFrame();
-    expect(diff, isNotNull);
-    expect(diff, contains('update'));
-    Map<String, Object> js = <String, Object>{};
-    update.render(js);
-    expect(diff['update'], js);
+    final htmlBefore = tree.host.innerHtml;
+    renderFrame();
+    final htmlAfter = tree.host.innerHtml;
+    expect(htmlAfter, htmlBefore);
   }
 }

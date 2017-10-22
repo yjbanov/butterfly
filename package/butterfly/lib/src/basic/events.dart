@@ -42,8 +42,8 @@ class RenderEventRecognizer extends RenderDecoration<EventRecognizer> {
   bool canUpdateUsing(Node node) => node is EventRecognizer;
 
   @override
-  void update(EventRecognizer newConfiguration, ElementUpdate update) {
-    super.update(newConfiguration, update);
+  void update(EventRecognizer newConfiguration) {
+    super.update(newConfiguration);
   }
 
   @override

@@ -33,6 +33,10 @@ String _nextButterflyId() => '${_butterflyIdCounter++}';
 String attributePresentIf(bool condition) =>
     condition ? attributePresent : attributeAbsent;
 
+void _setButterflyIdAttribute(html.Element element, String butterflyId) {
+  element.setAttribute('_bid', butterflyId);
+}
+
 /// A node that maps to an HTML element and can have multiple children.
 ///
 /// Most of the time you will pick a widget from a library that's implemented
@@ -67,7 +71,12 @@ abstract class ElementBase extends MultiChildNode {
 /// same (element tags are immutable).
 abstract class RenderElementBase<N extends ElementBase>
     extends RenderMultiChildParent<N> {
-  RenderElementBase(Tree tree) : super(tree);
+  RenderElementBase(Tree tree, N widget)
+      : nativeNode = new html.Element.tag(widget.tag),
+        super(tree);
+
+  @override
+  final html.Element nativeNode;
 
   /// An automatically generated global identifier, created to refer to this
   /// element later, e.g. when we need to dispatch an event to it.
@@ -75,27 +84,20 @@ abstract class RenderElementBase<N extends ElementBase>
   String get butterflyId => _butterflyId;
 
   @protected
-  void ensureButterflyId(ElementUpdate update) {
+  void ensureButterflyId() {
     if (_butterflyId == null) {
       _butterflyId = _nextButterflyId();
-      update.updateBaristaId(_butterflyId);
+      _setButterflyIdAttribute(nativeNode, _butterflyId);
     }
   }
 
   @mustCallSuper
   @override
-  void update(N newConfiguration, ElementUpdate update) {
+  void update(N newConfiguration) {
     if (_configuration != null) {
       assert(_configuration.tag == newConfiguration.tag);
-    } else {
-      update.tag = newConfiguration.tag;
-      final key = newConfiguration.key;
-
-      if (key != null) {
-        update.key = key;
-      }
     }
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 }
 
@@ -116,7 +118,12 @@ abstract class SingleChildElementBase extends SingleChildParent {
 /// [RenderElementBase] but has exactly one child.
 abstract class RenderSingleChildElementBase<N extends SingleChildElementBase>
     extends RenderSingleChildParent<N> {
-  RenderSingleChildElementBase(Tree tree) : super(tree);
+  RenderSingleChildElementBase(Tree tree, N widget)
+      : nativeNode = new html.Element.tag(widget.tag),
+        super(tree);
+
+  @override
+  final html.Element nativeNode;
 
   /// An automatically generated global identifier, created to refer to this
   /// element later, e.g. when we need to dispatch an event to it.
@@ -124,27 +131,20 @@ abstract class RenderSingleChildElementBase<N extends SingleChildElementBase>
   String get butterflyId => _butterflyId;
 
   @protected
-  void ensureButterflyId(ElementUpdate update) {
+  void ensureButterflyId() {
     if (_butterflyId == null) {
       _butterflyId = _nextButterflyId();
-      update.updateBaristaId(_butterflyId);
+      _setButterflyIdAttribute(nativeNode, _butterflyId);
     }
   }
 
   @mustCallSuper
   @override
-  void update(N newConfiguration, ElementUpdate update) {
+  void update(N newConfiguration) {
     if (_configuration != null) {
       assert(_configuration.tag == newConfiguration.tag);
-    } else {
-      update.tag = newConfiguration.tag;
-      final key = newConfiguration.key;
-
-      if (key != null) {
-        update.key = key;
-      }
     }
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 }
 
@@ -160,7 +160,12 @@ abstract class LeafElementBase extends Node {
 /// [RenderElementBase] but no children.
 abstract class RenderLeafElementBase<N extends LeafElementBase>
     extends RenderNode<N> {
-  RenderLeafElementBase(Tree tree) : super(tree);
+  RenderLeafElementBase(Tree tree, N widget)
+      : nativeNode = new html.Element.tag(widget.tag),
+        super(tree);
+
+  @override
+  final html.Element nativeNode;
 
   /// An automatically generated global identifier, created to refer to this
   /// element later, e.g. when we need to dispatch an event to it.
@@ -168,27 +173,20 @@ abstract class RenderLeafElementBase<N extends LeafElementBase>
   String get butterflyId => _butterflyId;
 
   @protected
-  void ensureButterflyId(ElementUpdate update) {
+  void ensureButterflyId() {
     if (_butterflyId == null) {
       _butterflyId = _nextButterflyId();
-      update.updateBaristaId(_butterflyId);
+      _setButterflyIdAttribute(nativeNode, _butterflyId);
     }
   }
 
   @mustCallSuper
   @override
-  void update(N newConfiguration, ElementUpdate update) {
+  void update(N newConfiguration) {
     if (_configuration != null) {
       assert(_configuration.tag == newConfiguration.tag);
-    } else {
-      update.tag = newConfiguration.tag;
-      final key = newConfiguration.key;
-
-      if (key != null) {
-        update.key = key;
-      }
     }
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 }
 
@@ -216,11 +214,11 @@ class Element extends ElementBase {
   final String text;
 
   @override
-  RenderNode instantiate(Tree t) => new RenderElement(t);
+  RenderNode instantiate(Tree t) => new RenderElement(t, this);
 }
 
 class RenderElement extends RenderElementBase<Element> {
-  RenderElement(Tree tree) : super(tree);
+  RenderElement(Tree tree, Element element) : super(tree, element);
 
   @override
   bool canUpdateUsing(Node node) {
@@ -228,125 +226,133 @@ class RenderElement extends RenderElementBase<Element> {
   }
 
   @override
-  void update(Element newConfiguration, ElementUpdate update) {
-    if (_configuration != null) {
-      if (_configuration.text != newConfiguration.text) {
-        update.updateText(newConfiguration.text);
+  void update(Element element) {
+    if (!identical(element, configuration)) {
+      _updateAttributes(element);
+      _updateEventListeners(element.eventListeners);
+      _updateStyles(element);
+    }
+    if (configuration == null || configuration.text != element.text) {
+      if (element.text != null) {
+        nativeNode.text = element.text;
+      } else {
+        nativeNode.text = '';
       }
-      _updateEventListeners(newConfiguration.eventListeners, update);
-      _updateAttributes(newConfiguration.attributes, update);
-      _updateStyles(newConfiguration, update);
+    }
+    super.update(element);
+  }
+
+  Style _appliedStyle;
+  List<Style> _appliedStyles;
+
+  void _addStyle(Style style) {
+    if (!style._isRegistered) {
+      tree.registerStyle(style);
+    }
+    nativeNode.classes.add(style.identifierClass);
+  }
+
+  void _updateStyles(Element newConfiguration) {
+    var style = newConfiguration.style;
+    if (!identical(_appliedStyle, style)) {
+      bool hasStyle = _appliedStyle != null;
+      bool willHaveStyle = style != null;
+
+      if (hasStyle && !willHaveStyle) {
+        nativeNode.classes.remove(_appliedStyle.identifierClass);
+      } else if (!hasStyle && willHaveStyle) {
+        _addStyle(style);
+      } else {
+        nativeNode.classes.remove(_appliedStyle.identifierClass);
+        _addStyle(style);
+      }
+    }
+    _appliedStyle = style;
+
+    var styles = newConfiguration.styles;
+    if (!identical(_appliedStyles, styles)) {
+      bool hasStyles = _appliedStyles != null && _appliedStyles.isNotEmpty;
+      bool willHaveStyles = styles != null && styles.isNotEmpty;
+
+      if (!hasStyles && !willHaveStyles) {
+        return;
+      }
+
+      if (hasStyles && !willHaveStyles) {
+        // Simply remove all
+        for (Style style in _appliedStyles) {
+          nativeNode.classes.remove(style.identifierClass);
+        }
+      } else if (!hasStyles && willHaveStyles) {
+        // Simply add all
+        for (Style style in styles) {
+          _addStyle(style);
+        }
+      } else {
+        // Do the diffing
+        int i = 0;
+        while (i < _appliedStyles.length && i < styles.length &&
+            identical(_appliedStyles[i], styles[i])) {
+          i++;
+        }
+        for (int j = i; j < _appliedStyles.length; j++) {
+          nativeNode.classes.remove(_appliedStyles[j].identifierClass);
+        }
+        while (i < styles.length) {
+          _addStyle(styles[i]);
+          i++;
+        }
+      }
+      _appliedStyles = styles;
+    }
+  }
+
+  void _updateAttributes(Element newConfiguration) {
+    if (configuration == null || configuration.attributes == null) {
+      if (newConfiguration.attributes != null) {
+        _setAttributes(newConfiguration);
+      }
     } else {
-      if (newConfiguration.eventListeners != null &&
-          newConfiguration.eventListeners.isNotEmpty) {
-        ensureButterflyId(update);
-      }
-
-      update.updateText(newConfiguration.text);
-
-      if (newConfiguration.attributes != null &&
-          newConfiguration.attributes.isNotEmpty) {
-        newConfiguration.attributes.forEach((String name, String value) {
-          update.updateAttribute(name, value);
-        });
-      }
-
-      _setStyles(newConfiguration, update);
+      _diffAttributes(newConfiguration);
     }
-    super.update(newConfiguration, update);
   }
 
-  void _updateEventListeners(
-      Map<EventType, EventListener> eventListeners, ElementUpdate update) {
+  void _setAttributes(Element newConfiguration) {
+    Map<String, String> attributes = newConfiguration.attributes;
+    for (String attributeName in attributes.keys) {
+      String value = attributes[attributeName];
+      nativeNode.setAttribute(attributeName, value);
+    }
+  }
+
+  void _diffAttributes(Element newConfiguration) {
+    Map<String, String> oldAttrs = configuration.attributes;
+    Map<String, String> newAttrs = newConfiguration.attributes;
+
+    if (identical(oldAttrs, newAttrs) || oldAttrs == newAttrs) {
+      return;
+    }
+
+    for (String attributeName in newAttrs.keys) {
+      String oldValue = oldAttrs[attributeName];
+      String newValue = newAttrs[attributeName];
+      assert(!(oldValue == null && newValue == null));
+      if (oldValue == null && newValue != null) {
+        nativeNode.setAttribute(attributeName, newValue);
+      } else if (oldValue != null && newValue == null) {
+        // TODO(yjbanov): is there a more efficient way to do this?
+        nativeNode.attributes.remove(attributeName);
+      } else if (!looseIdentical(oldValue, newValue)) {
+        nativeNode.setAttribute(attributeName, newValue);
+      }
+    }
+  }
+
+  void _updateEventListeners(Map<EventType, EventListener> eventListeners) {
     if (eventListeners != null && eventListeners.isNotEmpty) {
-      ensureButterflyId(update);
-    }
-  }
-
-  void _updateAttributes(Map<String, String> newAttrs, ElementUpdate update) {
-    final oldAttrs = _configuration.attributes;
-    if (newAttrs != oldAttrs) {
-      // TODO(yjbanov): attribute updates are probaby sub-optimal.
-
-      // Find updates
-      for (final newName in newAttrs.keys) {
-        final newValue = newAttrs[newName];
-        if (oldAttrs[newName] != newValue) {
-          update.updateAttribute(newName, newValue);
-        }
-      }
-
-      // Find removes
-      for (final oldName in oldAttrs.keys) {
-        if (!newAttrs.containsKey(oldName)) {
-          // TODO(yjbanov): this won't go far. Need explicit "remove attribute" op.
-          update.updateAttribute(oldName, '');
-        }
-      }
-    }
-  }
-
-  void _updateStyles(Element newConfig, ElementUpdate update) {
-    Style oldStyle = _configuration.style;
-    Style newStyle = newConfig.style;
-    List<Style> oldStyles = _configuration.styles;
-    List<Style> newStyles = newConfig.styles;
-    List<String> oldClassNames = _configuration.classNames;
-    List<String> newClassNames = newConfig.classNames;
-
-    if (newStyle != oldStyle ||
-        newStyles == null && oldStyles != null ||
-        newStyles != null && oldStyles == null ||
-        newClassNames == null && oldClassNames != null ||
-        newClassNames != null && oldClassNames == null ||
-        newStyles != null && newStyles.length != oldStyles.length ||
-        newClassNames != null && newClassNames.length != oldClassNames.length) {
-      if (newStyle != null) {
-        if (!newStyle._isRegistered) {
-          _tree.registerStyle(newStyle);
-        }
-        update.addClassName(newStyle.identifierClass);
-      }
-      if (newStyles != null) {
-        for (int i = 0; i < newStyles.length; i++) {
-          final Style style = newStyles[i];
-          if (!style._isRegistered) {
-            _tree.registerStyle(style);
-          }
-          update.addClassName(style.identifierClass);
-        }
-      }
-      if (newClassNames != null) {
-        for (int i = 0; i < newClassNames.length; i++) {
-          update.addClassName(newClassNames[i]);
-        }
-      }
-    }
-  }
-
-  void _setStyles(Element newConfig, ElementUpdate update) {
-    Style newStyle = newConfig.style;
-    List<Style> newStyles = newConfig.styles;
-    List<String> newClassNames = newConfig.classNames;
-
-    if (newStyle != null) {
-      if (!newStyle._isRegistered) {
-        _tree.registerStyle(newStyle);
-      }
-      update.addClassName(newStyle.identifierClass);
-    }
-    if (newStyles != null) {
-      for (int i = 0; i < newStyles.length; i++) {
-        final Style style = newStyles[i];
-        if (!style._isRegistered) {
-          _tree.registerStyle(style);
-        }
-        update.addClassName(style.identifierClass);
-      }
-    }
-    if (newClassNames != null) {
-      for (int i = 0; i < newClassNames.length; i++) {
-        update.addClassName(newClassNames[i]);
+      ensureButterflyId();
+      for (EventType type in eventListeners.keys) {
+        tree.registerEventType(type);
       }
     }
   }
