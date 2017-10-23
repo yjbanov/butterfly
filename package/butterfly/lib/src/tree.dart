@@ -19,7 +19,7 @@ class Tree {
   // TODO(yjbanov): top-level node and host element shouldn't be final. They
   // should be replaceable.
   Tree(this.widget, this.host, [html.Element styleHost])
-    : _styleHost = styleHost ?? html.document.head {
+      : _styleHost = styleHost ?? html.document.head {
     assert(widget != null);
     assert(host != null);
   }
@@ -42,12 +42,14 @@ class Tree {
     host.addEventListener(type.name, (html.Event nativeEvent) {
       // Find the closest parent that has _bid.
       html.Node nativeTarget = nativeEvent.target;
-      while(nativeTarget != null && !(nativeTarget as html.Element).attributes.containsKey('_bid')) {
+      while (nativeTarget != null &&
+          !(nativeTarget as html.Element).attributes.containsKey('_bid')) {
         nativeTarget = nativeTarget.parent;
       }
       if (nativeTarget != null) {
         html.Element nativeElement = nativeTarget;
-        Event event = new Event(type, nativeElement.getAttribute('_bid'), nativeEvent);
+        Event event =
+            new Event(type, nativeElement.getAttribute('_bid'), nativeEvent);
         dispatchEvent(event);
         renderFrame();
       }
@@ -77,7 +79,8 @@ class Tree {
     }
 
     if (_styleBuffer.isNotEmpty) {
-      _styleHost.children.add(new html.StyleElement()..text = _styleBuffer.toString());
+      _styleHost.children
+          .add(new html.StyleElement()..text = _styleBuffer.toString());
       _styleBuffer = new StringBuffer();
     }
 

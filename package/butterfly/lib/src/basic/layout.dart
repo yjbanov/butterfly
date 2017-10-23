@@ -51,11 +51,12 @@ class _FlexRenderNode extends RenderMultiChildParent<Flex> {
         nativeNode.style.setProperty('flex-wrap', newConfiguration.wrap._value);
       }
       if (!identical(newConfiguration.align, configuration.align)) {
-        nativeNode.style.setProperty('align-items', newConfiguration.align._value);
+        nativeNode.style
+            .setProperty('align-items', newConfiguration.align._value);
       }
       if (!identical(newConfiguration.direction, configuration.direction)) {
-        nativeNode.style.setProperty(
-            'flex-direction', newConfiguration.direction._value);
+        nativeNode.style
+            .setProperty('flex-direction', newConfiguration.direction._value);
       }
     }
     super.update(newConfiguration);
@@ -225,8 +226,8 @@ class _FlexChildDecoration extends RenderDecoration<FlexChild> {
       if (newConfiguration.alignSelf == null) {
         element.style.removeProperty('align-self');
       } else {
-        element.style.setProperty(
-            'align-self', newConfiguration.alignSelf._value);
+        element.style
+            .setProperty('align-self', newConfiguration.alignSelf._value);
       }
     }
     super.update(newConfiguration);

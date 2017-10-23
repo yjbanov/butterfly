@@ -77,7 +77,7 @@ List fixedList(List list) {
 debugPrintStackTrace() {
   try {
     throw null;
-  } catch(_, stack) {
+  } catch (_, stack) {
     print('------------------------------------------------------------------');
     print(stack);
     print('------------------------------------------------------------------');
