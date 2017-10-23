@@ -331,7 +331,9 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
     if (!identical(configuration, newConfiguration)) {
       List<Node> newChildList = newConfiguration.children;
 
-      if (newChildList != null && newChildList.isNotEmpty && _currentChildren == null) {
+      if (newChildList != null &&
+          newChildList.isNotEmpty &&
+          _currentChildren == null) {
         _currentChildren = <RenderNode>[];
       }
 
@@ -346,7 +348,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
       } else {
         // Both are not empty
         int from = 0;
-        while(from < _currentChildren.length &&
+        while (from < _currentChildren.length &&
             from < newChildList.length &&
             _canUpdate(_currentChildren[from], newChildList[from])) {
           _currentChildren[from].update(newChildList[from]);
@@ -368,9 +370,10 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
           // Walk lists from the end and try to update as much as possible
           int currTo = _currentChildren.length;
           int newTo = newChildList.length;
-          while(currTo > from &&
+          while (currTo > from &&
               newTo > from &&
-              _canUpdate(_currentChildren[currTo - 1], newChildList[newTo - 1])) {
+              _canUpdate(
+                  _currentChildren[currTo - 1], newChildList[newTo - 1])) {
             _currentChildren[currTo - 1].update(newChildList[newTo - 1]);
             currTo--;
             newTo--;
