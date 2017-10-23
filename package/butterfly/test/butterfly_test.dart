@@ -105,8 +105,7 @@ main() {
 
       testCreate(List<int> keys) {
         listState.childKeys = keys;
-        var innerHtml =
-            keys.map((key) => '<span>${key}</span>').join();
+        var innerHtml = keys.map((key) => '<span>${key}</span>').join();
         tester.expectRenders('<div>${innerHtml}</div>');
       }
 
@@ -120,22 +119,12 @@ main() {
 
       test('appends new children added to previously empty child list', () {
         testCreate([]);
-        testUpdate([
-          1,
-          2,
-          3
-        ]);
+        testUpdate([1, 2, 3]);
       });
 
       test('appends new children added to previously non-empty child list', () {
         testCreate([1, 2]);
-        testUpdate([
-          1,
-          2,
-          3,
-          4,
-          5
-        ]);
+        testUpdate([1, 2, 3, 4, 5]);
       });
 
       test('deletes all children', () {
@@ -155,44 +144,22 @@ main() {
 
       test('inserts children in the middle', () {
         testCreate([1, 4]);
-        testUpdate([
-          1,
-          2,
-          3,
-          4
-        ]);
+        testUpdate([1, 2, 3, 4]);
       });
 
       test('replaces range with a longer range', () {
         testCreate([1, 2, 3, 4, 9]);
-        testUpdate([
-          1,
-          5,
-          6,
-          7,
-          8,
-          9
-        ]);
+        testUpdate([1, 5, 6, 7, 8, 9]);
       });
 
       test('replaces range with a shorter range', () {
         testCreate([1, 2, 3, 4]);
-        testUpdate([
-          1,
-          10,
-          4
-        ]);
+        testUpdate([1, 10, 4]);
       });
 
       test('moves children', () {
         testCreate([1, 2, 3, 4, 5]);
-        testUpdate([
-          1,
-          4,
-          3,
-          2,
-          5
-        ]);
+        testUpdate([1, 4, 3, 2, 5]);
       });
     });
   });
@@ -324,7 +291,8 @@ class WidgetWithMultipleStylesState extends State {
 }
 
 class UpdateTrackingRenderText extends RenderElement {
-  UpdateTrackingRenderText(Tree tree, UpdateTrackingText element) : super(tree, element);
+  UpdateTrackingRenderText(Tree tree, UpdateTrackingText element)
+      : super(tree, element);
 
   int updateCount = 0;
 
