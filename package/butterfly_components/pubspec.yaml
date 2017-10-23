@@ -1,0 +1,25 @@
+name: butterfly_components
+version: 0.0.1
+authors:
+- Jonah Williams <jonahwilliams@google.com>
+description: >
+  A library for interop with angular_components.
+homepage: https://github.com/yjbanov/butterfly
+environment:
+  sdk: '>=1.14.0 <2.0.0'
+dependencies:
+  browser: ^0.10.0+2
+  js:
+  path:
+  meta:
+  mime:
+  angular: '^4.0.0'
+  angular_components:
+  butterfly:
+    path: '../butterfly'
+
+dev_dependencies:
+  test: '>=0.12.0 <1.0.0'
+  charcode:
+  quiver:
+
