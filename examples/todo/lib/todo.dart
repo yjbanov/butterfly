@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:html' as html;
 import 'package:butterfly/butterfly.dart';
 
 Store<Todo> _store;
@@ -83,7 +84,8 @@ class TodoAppState extends State<TodoApp> {
             'autofocus': '',
           }, eventListeners: {
             EventType.keyup: onKeyEnter((Event event) {
-              enterTodo(event['value']);
+              final value = (event.nativeEvent.target as html.InputElement).value;
+              enterTodo(value);
             })
           })(),
         ]),
@@ -144,10 +146,11 @@ class TodoAppState extends State<TodoApp> {
   }
 
   void doneEditing(Event event, Todo todo) {
+    final html.KeyEvent keyEvent = event.nativeEvent;
     setState(() {
-      int keyCode = event['keyCode'];
+      int keyCode = keyEvent.keyCode;
       if (keyCode == 13) {
-        todo.title = event['value'];
+        todo.title = (event.nativeEvent as html.InputElement).value;
         this.todoEdit = null;
       } else if (keyCode == 27) {
         this.todoEdit = null;
@@ -175,7 +178,7 @@ class TodoAppState extends State<TodoApp> {
 
   void toggleAll(Event event) {
     setState(() {
-      var isComplete = event['checked'];
+      var isComplete = (event.nativeEvent as html.CheckboxInputElement).checked;
       _store.list.forEach((Todo todo) {
         todo.completed = isComplete;
       });
