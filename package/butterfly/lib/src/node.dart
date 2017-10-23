@@ -94,7 +94,7 @@ typedef void EventListener(Event event);
 /// An event emitted by an element.
 @immutable
 class Event {
-  Event(this.type, this.targetBaristaId, this.data);
+  Event(this.type, this.targetBaristaId, this.nativeEvent);
 
   /// Event type, e.g. [EventType.click].
   final EventType type;
@@ -103,10 +103,7 @@ class Event {
   final String targetBaristaId;
 
   /// Event data.
-  final dynamic data;
-
-  /// Returns a value from [data].
-  dynamic operator [](String key) => data[key];
+  final html.Event nativeEvent;
 }
 
 /// A type of node that has a flat list of children.

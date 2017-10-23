@@ -356,7 +356,11 @@ class VirtualElementBuilder {
 }
 
 EventListener onKeyEnter(EventListener originalListener) => (Event event) {
-      if (event['keyCode'] == 13) {
-        originalListener(event);
-      }
-    };
+  if (event.nativeEvent is! html.KeyboardEvent) {
+    return;
+  }
+  final html.KeyboardEvent keyEvent = event.nativeEvent;
+  if (keyEvent.keyCode == 13) {
+    originalListener(event);
+  }
+};

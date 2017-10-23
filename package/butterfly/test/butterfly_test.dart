@@ -219,7 +219,7 @@ main() {
       tester.tree.dispatchEvent(new Event(
         EventType.click,
         buttonElement.butterflyId,
-        {},
+        null,
       ));
 
       tester.renderFrame();
