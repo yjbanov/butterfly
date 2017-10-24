@@ -84,7 +84,8 @@ class TodoAppState extends State<TodoApp> {
             'autofocus': '',
           }, eventListeners: {
             EventType.keyup: onKeyEnter((Event event) {
-              final value = (event.nativeEvent.target as html.InputElement).value;
+              final value =
+                  (event.nativeEvent.target as html.InputElement).value;
               enterTodo(value);
             })
           })(),
