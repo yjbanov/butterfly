@@ -3,7 +3,6 @@ import 'package:butterfly_components/butterfly_components.dart';
 import 'dart:html' as html;
 
 class App extends StatefulWidget {
-
   @override
   State createState() => new AppState();
 }
@@ -11,7 +10,6 @@ class App extends StatefulWidget {
 class AppState extends State<App> {
   bool toggled = false;
   void Function(html.UIEvent) onTrigger;
-  MaterialButtonWidget _button;
 
   AppState() {
     onTrigger = (_) {
@@ -19,7 +17,6 @@ class AppState extends State<App> {
         toggled = !toggled;
       });
     };
-    _button = new MaterialButtonWidget(onTrigger: onTrigger);
   }
   
   @override
@@ -28,7 +25,7 @@ class AppState extends State<App> {
       span()([
         text(toggled ? 'Toggled' : 'Not Toggled')
       ]),
-      _button,
+      new MaterialButtonWidget(onTrigger: onTrigger)
     ]);
   }
 }
