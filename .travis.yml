@@ -3,7 +3,7 @@ dist: trusty
 sudo: false
 dart: stable
 script:
-  - google-chrome --headless
+  - google-chrome --headless --disable-gpu
   - cd package/butterfly
   - pub get
   - pub run test -p chrome
