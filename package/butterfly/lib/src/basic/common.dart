@@ -23,12 +23,17 @@ class Text extends Node {
   const Text(this.value);
 
   @override
-  RenderNode instantiate(Tree tree) => new _TextRenderNode(tree);
+  RenderNode instantiate(Tree tree) => new _TextRenderNode(tree, this);
 }
 
 /// A [RenderNode] for the [Text] node.
 class _TextRenderNode extends RenderNode<Text> {
-  _TextRenderNode(Tree tree) : super(tree);
+  _TextRenderNode(Tree tree, Text text)
+      : nativeNode = new html.Text(text.value),
+        super(tree);
+
+  @override
+  final html.Text nativeNode;
 
   @override
   bool canUpdateUsing(Node node) => node is Text;
@@ -39,11 +44,10 @@ class _TextRenderNode extends RenderNode<Text> {
   @override
   void visitChildren(void visitor(RenderNode child)) {}
 
-  void update(Text newConfiguration, ElementUpdate update) {
-    if (!identical(newConfiguration, configuration)) {
-      update.tag = 'span';
-      update.updateText(newConfiguration.value);
+  void update(Text newConfiguration) {
+    if (newConfiguration.value != configuration.value) {
+      nativeNode.text = newConfiguration.value;
     }
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 }
