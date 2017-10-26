@@ -104,10 +104,6 @@ class Event {
 
   /// Event data.
   final html.Event nativeEvent;
-  final dynamic data;
-
-  /// Returns a value from [data].
-  dynamic operator [](String key) => data[key];
 }
 
 /// A type of node that has a flat list of children.
