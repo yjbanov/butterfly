@@ -1,8 +1,7 @@
-os: osx
 language: dart
+dist: trusty
+sudo: false
 dart: stable
-addons:
-  chrome: stable
 script:
   - cd package/butterfly
   - pub get
