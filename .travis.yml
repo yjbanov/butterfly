@@ -3,6 +3,7 @@ dist: trusty
 sudo: false
 dart: stable
 script:
+  # Run Chrome once to see what errors might come up. `pub run test` swallows them.
   - google-chrome --headless --disable-gpu
   - cd package/butterfly
   - pub get
