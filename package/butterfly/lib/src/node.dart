@@ -103,14 +103,11 @@ class Event {
   final String targetBaristaId;
 
   /// Event data.
-<<<<<<< HEAD
   final html.Event nativeEvent;
-=======
   final dynamic data;
 
   /// Returns a value from [data].
   dynamic operator [](String key) => data[key];
->>>>>>> back to dart:html; tests and hello work
 }
 
 /// A type of node that has a flat list of children.
@@ -327,18 +324,6 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
     oldNode.parent.insertBefore(replacement, oldNode);
     oldNode.remove();
   }
-<<<<<<< HEAD
-
-  @override
-  @mustCallSuper
-  void update(N newConfiguration) {
-    if (!identical(configuration, newConfiguration)) {
-      List<Node> newChildList = newConfiguration.children;
-
-      if (newChildList != null &&
-          newChildList.isNotEmpty &&
-          _currentChildren == null) {
-=======
 
   @override
   @mustCallSuper
@@ -347,7 +332,6 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
       List<Node> newChildList = newConfiguration.children;
 
       if (newChildList != null && newChildList.isNotEmpty && _currentChildren == null) {
->>>>>>> back to dart:html; tests and hello work
         _currentChildren = <RenderNode>[];
       }
 
@@ -362,11 +346,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
       } else {
         // Both are not empty
         int from = 0;
-<<<<<<< HEAD
-        while (from < _currentChildren.length &&
-=======
         while(from < _currentChildren.length &&
->>>>>>> back to dart:html; tests and hello work
             from < newChildList.length &&
             _canUpdate(_currentChildren[from], newChildList[from])) {
           _currentChildren[from].update(newChildList[from]);
@@ -388,16 +368,9 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
           // Walk lists from the end and try to update as much as possible
           int currTo = _currentChildren.length;
           int newTo = newChildList.length;
-<<<<<<< HEAD
-          while (currTo > from &&
-              newTo > from &&
-              _canUpdate(
-                  _currentChildren[currTo - 1], newChildList[newTo - 1])) {
-=======
           while(currTo > from &&
               newTo > from &&
               _canUpdate(_currentChildren[currTo - 1], newChildList[newTo - 1])) {
->>>>>>> back to dart:html; tests and hello work
             _currentChildren[currTo - 1].update(newChildList[newTo - 1]);
             currTo--;
             newTo--;

@@ -49,6 +49,7 @@ class Tree {
         html.Element nativeElement = nativeTarget;
         Event event = new Event(type, nativeElement.getAttribute('_bid'), nativeEvent);
         dispatchEvent(event);
+        renderFrame();
       }
     });
   }
