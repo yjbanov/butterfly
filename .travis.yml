@@ -1,13 +1,15 @@
-language: dart
+dist: trusty
 sudo: false
+language: dart
 dart: stable
+addons:
+  chrome: stable
 script:
   - cd package/butterfly
   - pub get
-  - pub run test -p vm
+  - pub run test -p chrome
   - dartfmt -n --set-exit-if-changed lib/ test/ bin/
   - dartanalyzer --fatal-warnings bin/ lib/ test/
 cache:
   directories:
     - $HOME/.pub-cache
-
