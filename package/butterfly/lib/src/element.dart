@@ -291,8 +291,7 @@ class RenderElement extends RenderElementBase<Element> {
       } else {
         // Do the diffing
         int i = 0;
-        while (i < _appliedStyles.length &&
-            i < styles.length &&
+        while (i < _appliedStyles.length && i < styles.length &&
             identical(_appliedStyles[i], styles[i])) {
           i++;
         }
