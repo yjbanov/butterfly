@@ -1,0 +1,16 @@
+name: butterfly_angular
+description: A library for integrating Angular components into butterfly applications.
+version: 0.0.1
+author: Jonah Williams <jonahwilliams@google.com>
+homepage: https://github.com/yjbanov/butterfly
+
+environment:
+  sdk: '>=1.14.0 <2.0.0'
+
+dependencies:
+ angular: '5.0.0-alpha'
+ butterfly:
+  path: '../butterfly'
+
+dev_dependencies:
+  test: ^0.12.0
