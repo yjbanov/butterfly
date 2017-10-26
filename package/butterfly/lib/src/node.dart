@@ -147,11 +147,14 @@ abstract class RenderParent<N extends Node> extends RenderNode<N> {
   // TODO(yjbanov): rename to setState
   void scheduleUpdate() {
     _hasDescendantsNeedingUpdate = true;
+    RenderNode lastNode = this;
     RenderParent parent = _parent;
     while (parent != null) {
+      lastNode = parent;
       parent._hasDescendantsNeedingUpdate = true;
       parent = parent.parent;
     }
+    lastNode.tree.renderFrame();
   }
 
   /// Updates this node and its children.
@@ -208,7 +211,7 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
   @override
   @mustCallSuper
   void update(N newConfiguration) {
-    if (newConfiguration == _currentChild._configuration) {
+    if (newConfiguration == _currentChild?._configuration) {
       if (hasDescendantsNeedingUpdate) {
         _currentChild.update(newConfiguration.child);
       }
@@ -221,6 +224,7 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
       child.update(childConfig);
       child.attach(this);
       _currentChild = child;
+      _parent.nativeNode.append(nativeNode);
     } else {
       _currentChild.update(childConfig);
     }
@@ -253,7 +257,7 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
     extends RenderParent<N> {
   RenderSingleChildParent(Tree tree) : super(tree);
 
-  RenderNode _currentChild;
+  RenderNode currentChild;
 
   @override
   void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
@@ -263,33 +267,33 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
 
   @override
   void visitChildren(void visitor(RenderNode child)) {
-    if (_currentChild != null) {
-      visitor(_currentChild);
+    if (currentChild != null) {
+      visitor(currentChild);
     }
   }
 
   @override
   @mustCallSuper
   void update(N newConfiguration) {
-    if (newConfiguration == _currentChild._configuration) {
+    if (newConfiguration == currentChild._configuration) {
       if (hasDescendantsNeedingUpdate) {
-        _currentChild.update(newConfiguration.child);
+        currentChild.update(newConfiguration.child);
       }
       return;
     }
 
     final childConfig = newConfiguration.child;
-    if (_currentChild == null || !_currentChild.canUpdateUsing(childConfig)) {
-      if (_currentChild != null) {
-        _currentChild.detach();
+    if (currentChild == null || !currentChild.canUpdateUsing(childConfig)) {
+      if (currentChild != null) {
+        currentChild.detach();
       }
 
       RenderNode child = childConfig.instantiate(tree);
       child.update(childConfig);
       child.attach(this);
-      _currentChild = child;
+      currentChild = child;
     } else {
-      _currentChild.update(childConfig);
+      currentChild.update(childConfig);
     }
 
     super.update(newConfiguration);
@@ -297,7 +301,7 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
 
   @override
   void dispatchEvent(Event event) {
-    _currentChild.dispatchEvent(event);
+    currentChild.dispatchEvent(event);
   }
 }
 

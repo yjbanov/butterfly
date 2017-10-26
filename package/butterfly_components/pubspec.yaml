@@ -13,8 +13,8 @@ dependencies:
   path:
   meta:
   mime:
-  angular: '^4.0.0'
   angular_components:
+  angular: '5.0.0-alpha'
   butterfly:
     path: '../butterfly'
 
@@ -23,3 +23,5 @@ dev_dependencies:
   charcode:
   quiver:
 
+transformers:
+- angular

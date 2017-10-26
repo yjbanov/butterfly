@@ -1,2 +1,3 @@
-export 'src/material_button.dart';
-export 'src/material_icon.dart';
+export 'src/material_button_widget.dart';
+export 'src/angular_widget.dart';
+//export 'src/material_input_widget.dart';

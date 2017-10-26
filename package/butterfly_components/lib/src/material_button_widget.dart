@@ -1,20 +1,22 @@
 import 'dart:async';
 
+import 'package:angular/angular.dart';
+import 'package:angular_components/material_button/material_button.dart';
+import 'package:angular_components/material_button/material_button.template.dart';
+import 'package:angular_components/theme/dark_theme.dart';
 import 'package:butterfly/butterfly.dart';
 import 'dart:html' as html;
 import 'angular_widget.dart';
 import 'package:meta/meta.dart';
-import 'package:angular/angular.dart';
-import 'package:angular_components/material_button/material_button.dart';
-import 'package:angular_components/material_button/material_button.template.dart';
 
 class MaterialButtonWidget extends AngularWidget {
+  @override
+  ComponentFactory get componentFactory => MaterialButtonComponentNgFactory;
+
   final bool raised;
   final bool disabled;
   final bool tabbable;
   final String tabIndex;
-
-  // !!!!!DO NOT USE TEAR-OFF!!!!!s
   final void Function(html.UIEvent) onTrigger;
 
   const MaterialButtonWidget({
@@ -25,18 +27,25 @@ class MaterialButtonWidget extends AngularWidget {
     this.tabIndex,
     @required this.onTrigger,
   })
-      : super(key: key, name: 'material-button');
+      : super(key: key);
 
   @override
   MaterialButtonRenderNode instantiate(Tree tree) =>
-      new MaterialButtonRenderNode(tree);
+      new MaterialButtonRenderNode(tree, this);
 }
 
-class MaterialButtonRenderNode
-    extends AngularRenderNode<MaterialButtonWidget, MaterialButtonComponent> {
+class MaterialButtonRenderNode extends AngularRenderNode<MaterialButtonWidget> {
   StreamSubscription _onTrigger;
+  
 
-  MaterialButtonRenderNode(Tree tree) : super(tree, MaterialButtonComponentNgFactory);
+  MaterialButtonRenderNode(Tree tree, AngularWidget widget)
+      : super(
+          tree,
+          widget,
+          new Injector.map({
+            AcxDarkTheme: new AcxDarkTheme(false),
+          }, rootInjector),
+        );
 
   @override
   void update(MaterialButtonWidget newConfiguration) {
@@ -50,7 +59,6 @@ class MaterialButtonRenderNode
         instance.tabindex = newConfiguration.tabIndex;
       }
       _onTrigger = instance.trigger.listen(newConfiguration.onTrigger);
-      componentRef.changeDetectorRef.markForCheck();
     } else if (!identical(newConfiguration, configuration)) {
       MaterialButtonComponent instance = componentRef.instance;
       if (configuration.raised != newConfiguration.raised) {
@@ -78,4 +86,7 @@ class MaterialButtonRenderNode
     _onTrigger?.cancel();
     super.detach();
   }
+
+  @override
+  bool canUpdateUsing(Node node) => node is MaterialButtonWidget;
 }
