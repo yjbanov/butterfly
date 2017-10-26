@@ -2,9 +2,11 @@ language: dart
 dist: trusty
 sudo: false
 dart: stable
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
 script:
-  # Run Chrome once to see what errors might come up. `pub run test` swallows them.
-  - google-chrome --headless --disable-gpu
   - cd package/butterfly
   - pub get
   - pub run test -p chrome

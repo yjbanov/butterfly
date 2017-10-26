@@ -1,6 +1,6 @@
 platforms: [chrome]
 
-override_platforms:
-  chrome:
-    settings:
-      arguments: --headless --disable-gpu
+#override_platforms:
+#  chrome:
+#    settings:
+#      arguments: --headless --disable-gpu
