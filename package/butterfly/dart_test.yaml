@@ -1,6 +1,2 @@
+# Yes, such thing exists! Check out: https://github.com/dart-lang/test/blob/master/doc/configuration.md
 platforms: [chrome]
-
-#override_platforms:
-#  chrome:
-#    settings:
-#      arguments: --headless --disable-gpu

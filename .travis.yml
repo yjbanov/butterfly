@@ -11,7 +11,7 @@ script:
   - pub get
   - pub run test -p chrome
   - dartfmt -n --set-exit-if-changed lib/ test/ bin/
-  - dartanalyzer --fatal-warnings bin/ lib/ test/
+  - dartanalyzer --fatal-warnings lib/ test/
 cache:
   directories:
     - $HOME/.pub-cache
