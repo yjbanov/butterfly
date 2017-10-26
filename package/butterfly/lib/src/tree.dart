@@ -14,19 +14,47 @@
 
 part of butterfly;
 
-/// Retained virtual mirror of the DOM Tree.
+/// Renders a [widget] into HTML DOM hosted by [host].
 class Tree {
-  // TODO(yjbanov): top-level node doesn't have to be final. We can replace it.
-  Tree(this._topLevelWidget, this.platformChannel) {
-    assert(_topLevelWidget != null);
+  // TODO(yjbanov): top-level node and host element shouldn't be final. They
+  // should be replaceable.
+  Tree(this.widget, this.host, [html.Element styleHost])
+      : _styleHost = styleHost ?? html.document.head {
+    assert(widget != null);
+    assert(host != null);
   }
 
-  final Node _topLevelWidget;
-  final PlatformChannel platformChannel;
+  /// The widget rendered by this tree.
+  final Node widget;
+  final html.Element host;
+  final html.Element _styleHost;
+  final Set<EventType> _globalEventTypes = new Set<EventType>();
 
   RenderNode _topLevelNode;
 
   StringBuffer _styleBuffer = new StringBuffer();
+
+  void registerEventType(EventType type) {
+    if (_globalEventTypes.contains(type)) {
+      return;
+    }
+    _globalEventTypes.add(type);
+    host.addEventListener(type.name, (html.Event nativeEvent) {
+      // Find the closest parent that has _bid.
+      html.Node nativeTarget = nativeEvent.target;
+      while (nativeTarget != null &&
+          !(nativeTarget as html.Element).attributes.containsKey('_bid')) {
+        nativeTarget = nativeTarget.parent;
+      }
+      if (nativeTarget != null) {
+        html.Element nativeElement = nativeTarget;
+        Event event =
+            new Event(type, nativeElement.getAttribute('_bid'), nativeEvent);
+        dispatchEvent(event);
+        renderFrame();
+      }
+    });
+  }
 
   void registerStyle(Style style) {
     assert(!style._isRegistered);
@@ -41,20 +69,18 @@ class Tree {
     visitor(_topLevelNode);
   }
 
-  Map<String, Object> renderFrame() {
-    final treeUpdate = new TreeUpdate();
-
+  void renderFrame() {
     if (_topLevelNode == null) {
-      _topLevelNode = _topLevelWidget.instantiate(this);
-      final rootInsertion = treeUpdate.createRootElement();
-      _topLevelNode.update(_topLevelWidget, rootInsertion);
+      _topLevelNode = widget.instantiate(this);
+      _topLevelNode.update(widget);
+      host.append(_topLevelNode.nativeNode);
     } else {
-      final rootUpdate = treeUpdate.updateRootElement();
-      _topLevelNode.update(_topLevelNode.configuration, rootUpdate);
+      _topLevelNode.update(_topLevelNode.configuration);
     }
 
     if (_styleBuffer.isNotEmpty) {
-      treeUpdate.installStyles(_styleBuffer.toString());
+      _styleHost.children
+          .add(new html.StyleElement()..text = _styleBuffer.toString());
       _styleBuffer = new StringBuffer();
     }
 
@@ -64,8 +90,6 @@ class Tree {
       return true;
     });
     scheduleMicrotask(GlobalKey.notifyListeners);
-
-    return treeUpdate.render();
   }
 
   bool _debugCheckParentChildRelationships() {

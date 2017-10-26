@@ -13,10 +13,11 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:html' as html;
 
-import 'package:butterfly/js.dart';
+import 'package:butterfly/butterfly.dart';
 import 'package:todo/todo.dart';
 
 Future<Null> main() async {
-  start('todo', '#app-host', new TodoApp());
+  runApp(new TodoApp(), html.querySelector('#app-host'));
 }

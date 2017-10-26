@@ -73,3 +73,13 @@ List fixedList(List list) {
   assert(list != null);
   return assertionsEnabled ? new UnmodifiableListView(list) : list;
 }
+
+debugPrintStackTrace() {
+  try {
+    throw null;
+  } catch (_, stack) {
+    print('------------------------------------------------------------------');
+    print(stack);
+    print('------------------------------------------------------------------');
+  }
+}

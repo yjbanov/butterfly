@@ -30,6 +30,9 @@ abstract class Node {
 abstract class RenderNode<N extends Node> {
   RenderNode(this._tree);
 
+  /// The underlying HTML node that this tree node corresponds to.
+  html.Node get nativeNode;
+
   /// The parent node of this node.
   RenderParent get parent => _parent;
   RenderParent _parent;
@@ -50,6 +53,7 @@ abstract class RenderNode<N extends Node> {
   /// This operation can be used to temporarily remove nodes in order to move
   /// them around.
   void detach() {
+    nativeNode.remove();
     _parent == null;
     if (_configuration.key is GlobalKey) {
       final GlobalKey key = _configuration.key;
@@ -61,10 +65,6 @@ abstract class RenderNode<N extends Node> {
   void attach(RenderParent newParent) {
     assert(newParent != null);
     _parent = newParent;
-    if (_configuration.key is GlobalKey) {
-      final GlobalKey key = _configuration.key;
-      key.register(this);
-    }
   }
 
   /// The [Node] that instantiated this retained node.
@@ -78,7 +78,7 @@ abstract class RenderNode<N extends Node> {
   /// correctly. The overridden method must call `super.update` to finalize the
   /// update.
   @mustCallSuper
-  void update(N newConfiguration, ElementUpdate update) {
+  void update(N newConfiguration) {
     assert(newConfiguration != null);
     _configuration = newConfiguration;
     if (_configuration.key is GlobalKey) {
@@ -94,7 +94,7 @@ typedef void EventListener(Event event);
 /// An event emitted by an element.
 @immutable
 class Event {
-  Event(this.type, this.targetBaristaId, this.data);
+  Event(this.type, this.targetBaristaId, this.nativeEvent);
 
   /// Event type, e.g. [EventType.click].
   final EventType type;
@@ -103,10 +103,7 @@ class Event {
   final String targetBaristaId;
 
   /// Event data.
-  final Map<String, Object> data;
-
-  /// Returns a value from [data].
-  dynamic operator [](String key) => data[key];
+  final html.Event nativeEvent;
 }
 
 /// A type of node that has a flat list of children.
@@ -138,6 +135,11 @@ abstract class RenderParent<N extends Node> extends RenderNode<N> {
   bool _hasDescendantsNeedingUpdate = true;
   bool get hasDescendantsNeedingUpdate => _hasDescendantsNeedingUpdate;
 
+  /// As a result of an update a [child] may decide to replace its [nativeNode]
+  /// with a [replacement]. It will then call this method on its [parent] to
+  /// demand that the parent updates its native children.
+  void replaceChildNativeNode(html.Node oldNode, html.Node replacement);
+
   // TODO(yjbanov): rename to setState
   void scheduleUpdate() {
     _hasDescendantsNeedingUpdate = true;
@@ -156,9 +158,9 @@ abstract class RenderParent<N extends Node> extends RenderNode<N> {
   /// update.
   @override
   @mustCallSuper
-  void update(N newConfiguration, ElementUpdate update) {
+  void update(N newConfiguration) {
     _hasDescendantsNeedingUpdate = false;
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 }
 
@@ -185,6 +187,14 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
   RenderNode _currentChild;
 
   @override
+  html.Element get nativeNode => _currentChild.nativeNode;
+
+  @override
+  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
+    parent.replaceChildNativeNode(oldNode, replacement);
+  }
+
+  @override
   void visitChildren(void visitor(RenderNode child)) {
     if (_currentChild != null) {
       visitor(_currentChild);
@@ -193,10 +203,10 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
 
   @override
   @mustCallSuper
-  void update(N newConfiguration, ElementUpdate update) {
+  void update(N newConfiguration) {
     if (newConfiguration == _currentChild._configuration) {
       if (hasDescendantsNeedingUpdate) {
-        _currentChild.update(newConfiguration.child, update);
+        _currentChild.update(newConfiguration.child);
       }
       return;
     }
@@ -204,14 +214,14 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
     final childConfig = newConfiguration.child;
     if (_currentChild == null || !_currentChild.canUpdateUsing(childConfig)) {
       RenderNode child = childConfig.instantiate(tree);
-      child.update(childConfig, update);
+      child.update(childConfig);
       child.attach(this);
       _currentChild = child;
     } else {
-      _currentChild.update(childConfig, update);
+      _currentChild.update(childConfig);
     }
 
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 
   @override
@@ -242,6 +252,12 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
   RenderNode _currentChild;
 
   @override
+  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
+    oldNode.parent.insertBefore(replacement, oldNode);
+    oldNode.remove();
+  }
+
+  @override
   void visitChildren(void visitor(RenderNode child)) {
     if (_currentChild != null) {
       visitor(_currentChild);
@@ -250,11 +266,10 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
 
   @override
   @mustCallSuper
-  void update(N newConfiguration, ElementUpdate update) {
+  void update(N newConfiguration) {
     if (newConfiguration == _currentChild._configuration) {
       if (hasDescendantsNeedingUpdate) {
-        final childUpdate = update.updateChildElement(0);
-        _currentChild.update(newConfiguration.child, childUpdate);
+        _currentChild.update(newConfiguration.child);
       }
       return;
     }
@@ -263,20 +278,17 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
     if (_currentChild == null || !_currentChild.canUpdateUsing(childConfig)) {
       if (_currentChild != null) {
         _currentChild.detach();
-        update.removeChild(0);
       }
 
       RenderNode child = childConfig.instantiate(tree);
-      final childUpdate = update.insertChildElement(0);
-      child.update(childConfig, childUpdate);
+      child.update(childConfig);
       child.attach(this);
       _currentChild = child;
     } else {
-      final childUpdate = update.updateChildElement(0);
-      _currentChild.update(childConfig, childUpdate);
+      _currentChild.update(childConfig);
     }
 
-    super.update(newConfiguration, update);
+    super.update(newConfiguration);
   }
 
   @override
@@ -304,177 +316,178 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
   }
 
   @override
+  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
+    oldNode.parent.insertBefore(replacement, oldNode);
+    oldNode.remove();
+  }
+
+  @override
   @mustCallSuper
-  void update(N newConfiguration, ElementUpdate update) {
-    // TODO(yjbanov): implement for realz
-    if (_currentChildren == null) {
-      _currentChildren = <RenderNode>[];
-    }
+  void update(N newConfiguration) {
+    if (!identical(configuration, newConfiguration)) {
+      List<Node> newChildList = newConfiguration.children;
 
-    if (_configuration == newConfiguration) {
-      // No need to diff child lists.
-      if (hasDescendantsNeedingUpdate) {
-        for (int i = 0; i < _currentChildren.length; i++) {
-          _currentChildren[i].update(
-            newConfiguration.children[i],
-            update.updateChildElement(i),
-          );
+      if (newChildList != null &&
+          newChildList.isNotEmpty &&
+          _currentChildren == null) {
+        _currentChildren = <RenderNode>[];
+      }
+
+      if (_currentChildren == null || _currentChildren.isEmpty) {
+        if (newChildList != null && newChildList.isNotEmpty) {
+          _appendChildren(newChildList);
         }
-      }
-
-      super.update(newConfiguration, update);
-      return;
-    }
-
-    final List<Node> newChildren = newConfiguration.children;
-
-    // Simple case: used to have no children; children added
-    if (_currentChildren.isEmpty && newChildren != null) {
-      for (final newChild in newChildren) {
-        RenderNode child = newChild.instantiate(tree);
-        final childUpdate = update.insertChildElement(0);
-        child.update(newChild, childUpdate);
-        child.attach(this);
-        _currentChildren.add(child);
-      }
-
-      super.update(newConfiguration, update);
-      return;
-    }
-
-    // Simple case: remove all children if any
-    if (newChildren == null || newChildren.isEmpty) {
-      if (_currentChildren != null || _currentChildren.isNotEmpty) {
-        for (int i = 0; i < _currentChildren.length; i++) {
-          _currentChildren[i].detach();
-          update.removeChild(i);
+      } else if (newChildList == null && newChildList.isEmpty) {
+        if (_currentChildren != null && _currentChildren.isNotEmpty) {
+          _removeAllCurrentChildren();
         }
-        _currentChildren = null;
-      }
+      } else {
+        // Both are not empty
+        int from = 0;
+        while (from < _currentChildren.length &&
+            from < newChildList.length &&
+            _canUpdate(_currentChildren[from], newChildList[from])) {
+          _currentChildren[from].update(newChildList[from]);
+          from++;
+        }
 
-      super.update(newConfiguration, update);
-      return;
-    }
-
-    final List<_TrackedChild> currentChildren = <_TrackedChild>[];
-    final Map<Key, int> keyMap = <Key, int>{};
-
-    for (int baseIndex = 0; baseIndex < _currentChildren.length; baseIndex++) {
-      final RenderNode node = _currentChildren[baseIndex];
-      currentChildren.add(new _TrackedChild(baseIndex));
-      final Node config = node._configuration;
-      final Key key = config.key;
-      if (key != null) {
-        keyMap[key] = baseIndex;
-      }
-    }
-
-    List<int> sequence = <int>[];
-    List<_Target> targetList = <_Target>[];
-    int afterLastUsedUnkeyedChild = 0;
-    for (int i = 0; i < newChildren.length; i++) {
-      final Node node = newChildren[i];
-      final Key key = node.key;
-      int baseChild = currentChildren.length;
-      if (key != null) {
-        int previousIndex = keyMap[key];
-        if (previousIndex != null) {
-          baseChild = previousIndex;
-          _TrackedChild trackedChild = currentChildren[previousIndex];
-          RenderNode currentChild =
-              _currentChildren[trackedChild.positionInCurrentChildren];
-          if (currentChild.canUpdateUsing(node)) {
-            final childUpdate = update
-                .updateChildElement(trackedChild.positionInCurrentChildren);
-            currentChild.update(node, childUpdate);
+        if (from == _currentChildren.length) {
+          if (from < newChildList.length) {
+            // More children were added at the end, append them
+            _appendChildren(newChildList.sublist(from));
           }
-        }
-      } else {
-        // Start with afterLastUsedUnkeyedChild and scan until the first child
-        // we can update. Use it. This approach is naive. It does not support
-        // swaps, for example. It does support removes though. For swaps, the
-        // developer is expected to use keys anyway.
-        int scanner = afterLastUsedUnkeyedChild;
-        while (scanner < currentChildren.length) {
-          RenderNode currentChild = _currentChildren[scanner];
-          if (currentChild.canUpdateUsing(node)) {
-            final childUpdate = update.updateChildElement(scanner);
-            currentChild.update(node, childUpdate);
-            baseChild = scanner;
-            afterLastUsedUnkeyedChild = scanner + 1;
-            break;
+        } else if (from == newChildList.length) {
+          // Some children at the end were removed, remove them
+          for (int i = _currentChildren.length - 1; i >= from; i--) {
+            _currentChildren[i].detach();
           }
-          scanner++;
-        }
-      }
-
-      if (baseChild != currentChildren.length) {
-        currentChildren[baseChild].shouldRetain = true;
-        sequence.add(baseChild);
-        targetList.add(new _Target(node, baseChild));
-      } else {
-        targetList.add(new _Target(node, -1));
-      }
-    }
-
-    // Compute removes
-    for (int i = 0; i < currentChildren.length; i++) {
-      final currentChild = currentChildren[i];
-      if (!currentChild.shouldRetain) {
-        _currentChildren[currentChild.positionInCurrentChildren].detach();
-        update.removeChild(i);
-      }
-    }
-
-    // Compute inserts and updates
-    List<int> lis = computeLongestIncreasingSubsequence(sequence);
-    int insertionPoint = 0;
-    List<RenderNode> newChildVector = <RenderNode>[];
-    int baseCount = _currentChildren.length;
-    for (int i = 0; i < targetList.length; i++) {
-      _Target targetEntry = targetList[i];
-
-      // Three possibilities:
-      //   - it's a new child => its base index == -1
-      //   - it's a moved child => its base index != -1 && base index != insertion index
-      //   - it's a stationary child => its base index != -1 && base index == insertion index
-
-      // Index in the base list of the moved child, or -1
-      int baseIndex = targetEntry.baseIndex;
-      // Index in the base list before which target child must be inserted.
-      int insertionIndex = baseCount;
-      if (insertionPoint != lis.length) {
-        insertionIndex = lis[insertionPoint];
-        if (baseIndex == insertionIndex) {
-          // We've moved past the element in the target list that
-          // corresponds to the insertion point. Advance to the next one.
-          insertionPoint++;
-        }
-      }
-
-      if (baseIndex == -1) {
-        // New child
-        Node childNode = targetEntry.node;
-
-        // Lock the diff object so child nodes do not push diffs.
-        final childInsertion = update.insertChildElement(insertionIndex);
-        final childRenderNode = childNode.instantiate(_tree);
-        newChildVector.add(childRenderNode);
-        childRenderNode.update(childNode, childInsertion);
-        childRenderNode.attach(this);
-      } else {
-        if (baseIndex != insertionIndex) {
-          // Moved child
-          update.moveChild(insertionIndex, baseIndex);
-          newChildVector.add(_currentChildren[baseIndex]);
+          _currentChildren = _currentChildren.sublist(0, from);
         } else {
-          newChildVector.add(_currentChildren[baseIndex]);
+          // Walk lists from the end and try to update as much as possible
+          int currTo = _currentChildren.length;
+          int newTo = newChildList.length;
+          while (currTo > from &&
+              newTo > from &&
+              _canUpdate(
+                  _currentChildren[currTo - 1], newChildList[newTo - 1])) {
+            _currentChildren[currTo - 1].update(newChildList[newTo - 1]);
+            currTo--;
+            newTo--;
+          }
+
+          if (newTo == from && currTo > from) {
+            // Some children in the middle were removed, remove them
+            for (int i = currTo - 1; i >= from; i--) {
+              _currentChildren[i].detach();
+            }
+            _currentChildren.removeRange(from, currTo);
+          } else if (currTo == from && newTo > from) {
+            // New children were inserted in the middle, insert them
+            List<Node> newChildren = newChildList.sublist(from, newTo);
+
+            List<RenderNode> insertedChildren = <RenderNode>[];
+            for (Node vn in newChildren) {
+              RenderNode child = vn.instantiate(tree);
+              child.update(vn);
+              child.attach(this);
+              insertedChildren.add(child);
+            }
+
+            _currentChildren.insertAll(from, insertedChildren);
+
+            html.Element nativeElement = nativeNode as html.Element;
+            html.Node refNode = _currentChildren[newTo].nativeNode;
+            for (RenderNode node in insertedChildren) {
+              nativeElement.insertBefore(node.nativeNode, refNode);
+            }
+          } else {
+            // We're strictly in the middle of both lists, at which point nodes
+            // moved around, were added, or removed. If the nodes are keyed, map
+            // them by key and figure out all the moves.
+
+            // TODO: this implementation is very naive; it plucks _all_ children
+            // and rearranges them according to new configuration. A smarter
+            // implementation would compute the minimum sufficient number of
+            // moves to transform the tree into the desired configuration.
+
+            List<RenderNode> disputedRange = <RenderNode>[];
+            for (int i = from; i < currTo; i++) {
+              RenderNode child = _currentChildren[i];
+              child.detach();
+              disputedRange.add(child);
+            }
+
+            List<RenderNode> newRange = <RenderNode>[];
+            html.Element nativeElement = nativeNode;
+            html.Node refNode = currTo < _currentChildren.length
+                ? _currentChildren[currTo].nativeNode
+                : null;
+            for (int i = from; i < newTo; i++) {
+              Node newChild = newChildList[i];
+              // First try to fing an existing node that could be updated
+              bool updated = false;
+              for (RenderNode child in disputedRange) {
+                if (_canUpdate(child, newChild)) {
+                  child.update(newChild);
+                  child.attach(this);
+                  if (refNode == null) {
+                    nativeElement.append(child.nativeNode);
+                  } else {
+                    nativeElement.insertBefore(child.nativeNode, refNode);
+                  }
+                  updated = true;
+                  newRange.add(child);
+                  break;
+                }
+              }
+
+              if (!updated) {
+                RenderNode child = newChild.instantiate(tree);
+                child.update(newChild);
+                child.attach(this);
+                if (refNode == null) {
+                  nativeElement.append(child.nativeNode);
+                } else {
+                  nativeElement.insertBefore(child.nativeNode, refNode);
+                }
+                newRange.add(child);
+              }
+            }
+
+            _currentChildren = <RenderNode>[]
+              ..addAll(_currentChildren.sublist(0, from))
+              ..addAll(newRange)
+              ..addAll(_currentChildren.sublist(currTo));
+            assert(_currentChildren.length == nativeElement.childNodes.length);
+            assert(_currentChildren.length == newChildList.length);
+          }
         }
       }
+    } else if (hasDescendantsNeedingUpdate) {
+      for (RenderNode child in _currentChildren) {
+        child.update(child.configuration);
+      }
     }
-    _currentChildren = newChildVector;
+    super.update(newConfiguration);
+  }
 
-    super.update(newConfiguration, update);
+  void _appendChildren(List<Node> newChildList) {
+    assert(newChildList != null && newChildList.isNotEmpty);
+    html.Element nativeElement = nativeNode as html.Element;
+    for (Node vn in newChildList) {
+      RenderNode node = vn.instantiate(tree);
+      node.update(vn);
+      node.attach(this);
+      _currentChildren.add(node);
+      nativeElement.append(node.nativeNode);
+    }
+  }
+
+  void _removeAllCurrentChildren() {
+    for (RenderNode child in _currentChildren) {
+      child.detach();
+    }
+    _currentChildren = <RenderNode>[];
   }
 
   @override
@@ -485,75 +498,4 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
       child.dispatchEvent(event);
     }
   }
-}
-
-class _TrackedChild {
-  _TrackedChild(this.positionInCurrentChildren);
-
-  final int positionInCurrentChildren;
-  bool shouldRetain = false;
-}
-
-class _Target {
-  _Target(this.node, this.baseIndex);
-
-  final Node node;
-  final int baseIndex; // or -1
-}
-
-/// Computes the [longest increasing subsequence](http://en.wikipedia.org/wiki/Longest_increasing_subsequence).
-///
-/// Returns list of indices (rather than values) into [list].
-///
-/// Complexity: n*log(n)
-// TODO: heuristic idea, len(LIS) == 1 iff list is reversed, which in the
-// diff could be expressed extremely compactly
-List<int> computeLongestIncreasingSubsequence(List<int> list) {
-  final len = list.length;
-  final predecessors = <int>[];
-  final mins = <int>[0];
-  int longest = 0;
-  for (int i = 0; i < len; i++) {
-    // Binary search for the largest positive `j ≤ longest`
-    // such that `list[mins[j]] < list[i]`
-    int elem = list[i];
-    int lo = 1;
-    int hi = longest;
-    while (lo <= hi) {
-      int mid = (lo + hi) ~/ 2;
-      if (list[mins[mid]] < elem) {
-        lo = mid + 1;
-      } else {
-        hi = mid - 1;
-      }
-    }
-
-    // After searching, `lo` is 1 greater than the
-    // length of the longest prefix of `list[i]`
-    int expansionIndex = lo;
-
-    // The predecessor of `list[i]` is the last index of
-    // the subsequence of length `newLongest - 1`
-    predecessors.add(mins[expansionIndex - 1]);
-    if (expansionIndex >= mins.length) {
-      mins.add(i);
-    } else {
-      mins[expansionIndex] = i;
-    }
-
-    if (expansionIndex > longest) {
-      // If we found a subsequence longer than any we've
-      // found yet, update `longest`
-      longest = expansionIndex;
-    }
-  }
-
-  // Reconstruct the longest subsequence
-  final seq = new List<int>(longest);
-  int k = mins[longest];
-  for (int i = longest - 1; i >= 0; i--) {
-    seq[i] = list[k];
-    k = predecessors[k];
-  }
-  return seq;
 }
