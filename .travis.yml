@@ -3,7 +3,7 @@ dist: trusty
 sudo: false
 dart: stable
 script:
-  - chrome
+  - google-chrome --headless
   - cd package/butterfly
   - pub get
   - pub run test -p chrome
