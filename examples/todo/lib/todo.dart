@@ -36,7 +36,7 @@ class TodoAppState extends State<TodoApp> {
 
   TodoAppState();
 
-  Node build() {
+  Node build(BuildContext context) {
     var listItems = _store.list.map((Todo todo) {
       return li()([
         div(attrs: {'class': 'view ${todoEdit == todo ? 'hidden' : ''}'})([

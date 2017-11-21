@@ -15,7 +15,7 @@
 import 'package:butterfly/butterfly.dart';
 
 class App extends StatelessWidget {
-  Node build() {
+  Node build(BuildContext context) {
     return div(attrs: {'id': 'greeting'})([
       text('Hello, World!'),
       button(eventListeners: {

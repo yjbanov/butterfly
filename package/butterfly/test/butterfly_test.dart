@@ -269,6 +269,41 @@ main() {
       testStyles([s4, s3, s1, s2]);
     });
   });
+
+  group(InheritedWidget, () {
+    test('publishes itself to its children', () {
+      final widget = new InheritedFoo(
+        'Hi!',
+        child: new InheritedWidgetTest(),
+      );
+      final tester = testWidget(widget);
+      tester.renderFrame();
+      tester.expectRenders('');
+    });
+  });
+}
+
+class InheritedWidgetTest extends StatelessWidget {
+  @override
+  Node build(BuildContext context) {
+    return new Text(InheritedFoo.of(context));
+  }
+}
+
+class InheritedFoo extends InheritedWidget {
+  InheritedFoo(this.foo, {Node child}) : super(child: child);
+
+  final String foo;
+
+  static String of(BuildContext context) {
+    final InheritedFoo inheritedFoo = context.inheritFromWidgetOfExactType(InheritedFoo);
+    return inheritedFoo.foo;
+  }
+
+  @override
+  bool updateShouldNotify(InheritedFoo oldWidget) {
+    return oldWidget == null || this.foo != oldWidget.foo;
+  }
 }
 
 class WidgetWithStyle extends StatelessWidget {
@@ -276,7 +311,7 @@ class WidgetWithStyle extends StatelessWidget {
 
   final Style style;
 
-  build() => div(style: style)();
+  build(BuildContext context) => div(style: style)();
 }
 
 class WidgetWithMultipleStyles extends StatefulWidget {
@@ -287,7 +322,7 @@ class WidgetWithMultipleStyles extends StatefulWidget {
 class WidgetWithMultipleStylesState extends State {
   List<Style> styles;
 
-  build() => div(styles: styles)();
+  build(BuildContext context) => div(styles: styles)();
 }
 
 class UpdateTrackingRenderText extends RenderElement {
@@ -312,11 +347,11 @@ class UpdateTrackingText extends Element {
 class IdenticalConfigElement extends StatelessWidget {
   static final updateTracker = new UpdateTrackingText('never updated');
   static final config = new Element('div', children: [updateTracker]);
-  build() => config;
+  build(BuildContext context) => config;
 }
 
 class SimpleTextWidget extends StatelessWidget {
-  Node build() => text('hello world!');
+  Node build(BuildContext context) => text('hello world!');
 }
 
 class ChangingTextWidget extends StatefulWidget {
@@ -333,22 +368,22 @@ class ChangingTextWidgetState extends State<ChangingTextWidget> {
     });
   }
 
-  Node build() => text(_value);
+  Node build(BuildContext context) => text(_value);
 }
 
 class SimpleElementWidget extends StatelessWidget {
-  Node build() => div()();
+  Node build(BuildContext context) => div()();
 }
 
 class NestedElementWidget extends StatelessWidget {
-  Node build() => div()([
+  Node build(BuildContext context) => div()([
         span()(),
         button()(),
       ]);
 }
 
 class SimpleAttributesWidget extends StatelessWidget {
-  Node build() => div(attrs: {
+  Node build(BuildContext context) => div(attrs: {
         'id': 'this_is_id',
         'width': '300',
       })();
@@ -367,7 +402,7 @@ class NodeUpdatingWidgetState extends State<NodeUpdatingWidget> {
     });
   }
 
-  Node build() => div()([text(_value)]);
+  Node build(BuildContext context) => div()([text(_value)]);
 }
 
 class ChildListWidget extends StatefulWidget {
@@ -387,7 +422,7 @@ class ChildListWidgetState extends State<ChildListWidget> {
     super.setState(fn);
   }
 
-  Node build() {
+  Node build(BuildContext context) {
     if (_childKeys == null) {
       return new Element('div');
     }
@@ -400,7 +435,7 @@ class ChildListWidgetState extends State<ChildListWidget> {
 }
 
 class ElementWithTrackingChild extends StatelessWidget {
-  Node build() => new UpdateTrackingText('foo');
+  Node build(BuildContext context) => new UpdateTrackingText('foo');
 }
 
 class EventListeningWidget extends StatefulWidget {
@@ -416,7 +451,7 @@ class EventListeningWidgetState extends State<EventListeningWidget> {
     });
   }
 
-  Node build() {
+  Node build(BuildContext context) {
     return button(eventListeners: {EventType.click: _buttonClicked})(
         [text('$counter')]);
   }

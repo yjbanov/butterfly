@@ -19,6 +19,89 @@ abstract class Widget extends Node {
   const Widget({Key key}) : super(key: key);
 }
 
+abstract class InheritedWidget extends SingleChildParent {
+  const InheritedWidget({ Key key, Widget child })
+      : super(key: key, child: child);
+
+  @override
+  RenderInheritedWidget instantiate(Tree tree) => new RenderInheritedWidget(tree);
+
+  /// Whether the framework should notify widgets that inherit from this widget.
+  ///
+  /// When this widget is rebuilt, sometimes we need to rebuild the widgets that
+  /// inherit from this widget but sometimes we do not. For example, if the data
+  /// held by this widget is the same as the data held by `oldWidget`, then then
+  /// we do not need to rebuild the widgets that inherited the data held by
+  /// `oldWidget`.
+  ///
+  /// The framework distinguishes these cases by calling this function with the
+  /// widget that previously occupied this location in the tree as an argument.
+  /// The given widget is guaranteed to have the same [runtimeType] as this
+  /// object.
+  @protected
+  bool updateShouldNotify(covariant InheritedWidget oldWidget);
+}
+
+/// A [RenderNode] that uses an [InheritedWidget] as its configuration.
+class RenderInheritedWidget extends RenderSingleChildParent<InheritedWidget> {
+  RenderInheritedWidget(Tree tree) : super(tree);
+
+  final Set<RenderNode> _dependents = new HashSet<RenderNode>();
+
+  @override
+  bool canUpdateUsing(Node node) {
+    return node.runtimeType == this._configuration.runtimeType;
+  }
+
+  @override
+  void _updateInheritance() {
+    final Map<Type, RenderInheritedWidget> incomingWidgets = _parent?._inheritedWidgets;
+    if (incomingWidgets != null)
+      _inheritedWidgets = new HashMap<Type, RenderInheritedWidget>.from(incomingWidgets);
+    else
+      _inheritedWidgets = new HashMap<Type, RenderInheritedWidget>();
+    assert(_configuration != null);
+    _inheritedWidgets[_configuration.runtimeType] = this;
+  }
+
+  void notifyClients(InheritedWidget oldWidget) {
+    if (!_configuration.updateShouldNotify(oldWidget))
+      return;
+    dispatchDidChangeDependencies();
+  }
+
+  @override
+  void update(InheritedWidget newConfiguration) {
+    final oldWidget = _configuration;
+    super.update(newConfiguration);
+    notifyClients(oldWidget);
+  }
+
+  /// Notifies all dependent elements that this inherited widget has changed.
+  ///
+  /// [RenderInheritedWidget] calls this function if [InheritedWidget.updateShouldNotify]
+  /// returns true. This method may only be called during the build phase.
+  void dispatchDidChangeDependencies() {
+    for (RenderNode dependent in _dependents) {
+      assert(() {
+        // check that it really is our descendant
+        RenderNode ancestor = dependent._parent;
+        while (ancestor != this && ancestor != null)
+          ancestor = ancestor._parent;
+        return ancestor == this;
+      }());
+      // check that it really depends on us
+      assert(dependent._dependencies.contains(this));
+      dependent.didChangeDependencies();
+    }
+  }
+}
+
+/// A handle to the location of a widget in the widget tree.
+abstract class BuildContext {
+  InheritedWidget inheritFromWidgetOfExactType(Type targetType);
+}
+
 /// A widget built out of other [Node]s and has no mutable state.
 ///
 /// As a matter of good practice prefer making stateless widgets immutable, or
@@ -30,7 +113,7 @@ abstract class StatelessWidget extends Widget {
 
   RenderNode instantiate(Tree tree) => new RenderStatelessWidget(tree);
 
-  Node build();
+  Node build(BuildContext context);
 }
 
 /// A widget that's built from a mutable [State] object.
@@ -55,7 +138,7 @@ abstract class State<T extends StatefulWidget> {
   T _config;
   T get config => _config;
 
-  Node build();
+  Node build(BuildContext context);
 
   @protected
   void setState(StateSettingFunction fn) {
@@ -114,7 +197,7 @@ class RenderStatelessWidget extends RenderParent<StatelessWidget> {
     if (!identical(configuration, newConfiguration)) {
       // Build the new configuration and decide whether to reuse the child node
       // or replace with a new one.
-      Node newChildConfiguration = newConfiguration.build();
+      Node newChildConfiguration = newConfiguration.build(this);
       assert(newChildConfiguration != null);
       if (_child != null && _canUpdate(_child, newChildConfiguration)) {
         _child.update(newChildConfiguration);
@@ -122,8 +205,8 @@ class RenderStatelessWidget extends RenderParent<StatelessWidget> {
         // Replace child
         _child?.detach();
         _child = newChildConfiguration.instantiate(tree);
-        _child.update(newChildConfiguration);
         _child.attach(this);
+        _child.update(newChildConfiguration);
       }
     } else if (hasDescendantsNeedingUpdate) {
       // Own configuration is the same, but some children are scheduled to be
@@ -180,7 +263,7 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
       _state = newConfiguration.createState();
       _state._config = newConfiguration;
       internalSetStateNode(_state, this);
-      Node newChildConfiguration = _state.build();
+      Node newChildConfiguration = _state.build(this);
       if (_child != null &&
           identical(newChildConfiguration.runtimeType,
               _child.configuration.runtimeType)) {
@@ -188,11 +271,11 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
       } else {
         _child?.detach();
         _child = newChildConfiguration.instantiate(tree);
-        _child.update(newChildConfiguration);
         _child.attach(this);
+        _child.update(newChildConfiguration);
       }
     } else if (_isDirty) {
-      _child.update(_state.build());
+      _child.update(_state.build(this));
     } else if (hasDescendantsNeedingUpdate) {
       // Own configuration is the same, but some children are scheduled to be
       // updated.

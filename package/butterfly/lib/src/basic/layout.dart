@@ -113,7 +113,7 @@ class Stack extends StatelessWidget {
   Stack({this.children = const []});
 
   @override
-  Node build() {
+  Node build(BuildContext context) {
     return new Element('div', style: _style, children: children);
   }
 }
@@ -126,7 +126,7 @@ class Block extends StatelessWidget {
   const Block({this.children = const []});
 
   @override
-  Node build() {
+  Node build(BuildContext context) {
     return new Element('div', children: children);
   }
 }

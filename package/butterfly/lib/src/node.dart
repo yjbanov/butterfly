@@ -27,7 +27,7 @@ abstract class Node {
 }
 
 /// A node in the retained tree instantiated from [Node]s.
-abstract class RenderNode<N extends Node> {
+abstract class RenderNode<N extends Node> implements BuildContext {
   RenderNode(this._tree);
 
   /// The underlying HTML node that this tree node corresponds to.
@@ -36,6 +36,10 @@ abstract class RenderNode<N extends Node> {
   /// The parent node of this node.
   RenderParent get parent => _parent;
   RenderParent _parent;
+
+  Map<Type, RenderInheritedWidget> _inheritedWidgets;
+  Set<RenderInheritedWidget> _dependencies;
+  bool _hadUnsatisfiedDependencies = false;
 
   /// Looks for the event target within the sub-tree rooted at this render node
   /// and dispatches the [event] to it.
@@ -55,6 +59,11 @@ abstract class RenderNode<N extends Node> {
   void detach() {
     nativeNode.remove();
     _parent == null;
+    if (_dependencies != null && _dependencies.isNotEmpty) {
+      for (RenderInheritedWidget dependency in _dependencies) {
+        dependency._dependents.remove(this);
+      }
+    }
     if (_configuration.key is GlobalKey) {
       final GlobalKey key = _configuration.key;
       key.unregister(this);
@@ -65,6 +74,38 @@ abstract class RenderNode<N extends Node> {
   void attach(RenderParent newParent) {
     assert(newParent != null);
     _parent = newParent;
+    _updateDependencies();
+  }
+
+  void _updateDependencies() {
+    final bool hadDependencies = ((_dependencies != null && _dependencies.isNotEmpty) || _hadUnsatisfiedDependencies);
+    // We unregistered our dependencies in deactivate, but never cleared the list.
+    // Since we're going to be reused, let's clear our list now.
+    _dependencies?.clear();
+    _hadUnsatisfiedDependencies = false;
+    _updateInheritance();
+    if (hadDependencies)
+      didChangeDependencies();
+  }
+
+  /// Called when a dependency of this element changes.
+  ///
+  /// The [inheritFromWidgetOfExactType] registers this element as depending on
+  /// inherited information of the given type. When the information of that type
+  /// changes at this location in the tree (e.g., because the [InheritedElement]
+  /// updated to a new [InheritedWidget] and
+  /// [InheritedWidget.updateShouldNotify] returned true), the framework calls
+  /// this function to notify this element of the change.
+  @mustCallSuper
+  void didChangeDependencies() {
+    scheduleUpdate();
+  }
+
+  @mustCallSuper
+  void scheduleUpdate() {}
+
+  void _updateInheritance() {
+    _inheritedWidgets = _parent?._inheritedWidgets;
   }
 
   /// The [Node] that instantiated this retained node.
@@ -85,6 +126,20 @@ abstract class RenderNode<N extends Node> {
       final GlobalKey key = _configuration.key;
       key.register(this);
     }
+  }
+
+  @override
+  InheritedWidget inheritFromWidgetOfExactType(Type targetType) {
+    final RenderInheritedWidget ancestor = _inheritedWidgets == null ? null : _inheritedWidgets[targetType];
+    if (ancestor != null) {
+      assert(ancestor is RenderInheritedWidget);
+      _dependencies ??= new HashSet<RenderInheritedWidget>();
+      _dependencies.add(ancestor);
+      ancestor._dependents.add(this);
+      return ancestor._configuration;
+    }
+    _hadUnsatisfiedDependencies = true;
+    return null;
   }
 }
 
@@ -135,12 +190,14 @@ abstract class RenderParent<N extends Node> extends RenderNode<N> {
   bool _hasDescendantsNeedingUpdate = true;
   bool get hasDescendantsNeedingUpdate => _hasDescendantsNeedingUpdate;
 
+  Map<Type, RenderInheritedWidget> _inheritedWidgets;
+
   /// As a result of an update a [child] may decide to replace its [nativeNode]
   /// with a [replacement]. It will then call this method on its [parent] to
   /// demand that the parent updates its native children.
   void replaceChildNativeNode(html.Node oldNode, html.Node replacement);
 
-  // TODO(yjbanov): rename to setState
+  @override
   void scheduleUpdate() {
     _hasDescendantsNeedingUpdate = true;
     RenderParent parent = _parent;
@@ -148,6 +205,7 @@ abstract class RenderParent<N extends Node> extends RenderNode<N> {
       parent._hasDescendantsNeedingUpdate = true;
       parent = parent.parent;
     }
+    super.scheduleUpdate();
   }
 
   /// Updates this node and its children.
@@ -214,8 +272,8 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
     final childConfig = newConfiguration.child;
     if (_currentChild == null || !_currentChild.canUpdateUsing(childConfig)) {
       RenderNode child = childConfig.instantiate(tree);
-      child.update(childConfig);
       child.attach(this);
+      child.update(childConfig);
       _currentChild = child;
     } else {
       _currentChild.update(childConfig);
@@ -249,7 +307,10 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
     extends RenderParent<N> {
   RenderSingleChildParent(Tree tree) : super(tree);
 
-  RenderNode _currentChild;
+  RenderNode<N> _currentChild;
+
+  @override
+  html.Node get nativeNode => _currentChild.nativeNode;
 
   @override
   void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
@@ -267,7 +328,7 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
   @override
   @mustCallSuper
   void update(N newConfiguration) {
-    if (newConfiguration == _currentChild._configuration) {
+    if (identical(newConfiguration, _currentChild?._configuration)) {
       if (hasDescendantsNeedingUpdate) {
         _currentChild.update(newConfiguration.child);
       }
@@ -276,13 +337,10 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
 
     final childConfig = newConfiguration.child;
     if (_currentChild == null || !_currentChild.canUpdateUsing(childConfig)) {
-      if (_currentChild != null) {
-        _currentChild.detach();
-      }
-
+      _currentChild?.detach();
       RenderNode child = childConfig.instantiate(tree);
-      child.update(childConfig);
       child.attach(this);
+      child.update(childConfig);
       _currentChild = child;
     } else {
       _currentChild.update(childConfig);
@@ -388,8 +446,8 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
             List<RenderNode> insertedChildren = <RenderNode>[];
             for (Node vn in newChildren) {
               RenderNode child = vn.instantiate(tree);
-              child.update(vn);
               child.attach(this);
+              child.update(vn);
               insertedChildren.add(child);
             }
 
@@ -428,8 +486,8 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
               bool updated = false;
               for (RenderNode child in disputedRange) {
                 if (_canUpdate(child, newChild)) {
-                  child.update(newChild);
                   child.attach(this);
+                  child.update(newChild);
                   if (refNode == null) {
                     nativeElement.append(child.nativeNode);
                   } else {
@@ -443,8 +501,8 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
 
               if (!updated) {
                 RenderNode child = newChild.instantiate(tree);
-                child.update(newChild);
                 child.attach(this);
+                child.update(newChild);
                 if (refNode == null) {
                   nativeElement.append(child.nativeNode);
                 } else {
@@ -476,8 +534,8 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
     html.Element nativeElement = nativeNode as html.Element;
     for (Node vn in newChildList) {
       RenderNode node = vn.instantiate(tree);
-      node.update(vn);
       node.attach(this);
+      node.update(vn);
       _currentChildren.add(node);
       nativeElement.append(node.nativeNode);
     }

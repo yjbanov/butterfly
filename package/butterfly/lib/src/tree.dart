@@ -72,6 +72,7 @@ class Tree {
   void renderFrame() {
     if (_topLevelNode == null) {
       _topLevelNode = widget.instantiate(this);
+      _topLevelNode._updateDependencies();
       _topLevelNode.update(widget);
       host.append(_topLevelNode.nativeNode);
     } else {
