@@ -40,6 +40,7 @@ export class ButterflyModule extends sync.ButterflyModuleBase {
       xhr.open('POST', `/_butterfly/${this.moduleName}/${method}`, false /* synchronous */);
       xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
       xhr.send(JSON.stringify(args));
+      console.log(xhr.responseText);
       let result = JSON.parse(xhr.responseText);
       if (result != null && result.hasOwnProperty('error')) {
         throw result['error'];

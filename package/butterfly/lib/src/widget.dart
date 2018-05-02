@@ -30,6 +30,9 @@ abstract class StatelessWidget extends Widget {
 
   RenderNode instantiate(Tree tree) => new RenderStatelessWidget(tree);
 
+  @override
+  String get tag => '';
+
   Node build();
 }
 
@@ -64,7 +67,7 @@ abstract class State<T extends StatefulWidget> {
         throw new ArgumentError.notNull('fn');
       }
       return true;
-    });
+    }());
     fn();
     _node.scheduleUpdate();
   }

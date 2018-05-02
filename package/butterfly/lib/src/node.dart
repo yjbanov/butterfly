@@ -23,6 +23,8 @@ abstract class Node {
 
   final Key key;
 
+  String get tag => null;
+
   RenderNode instantiate(Tree tree);
 }
 

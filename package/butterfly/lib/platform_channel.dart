@@ -47,7 +47,7 @@ class PlatformChannel {
             '"PlatformChannel.registerMethod"';
       }
       return true;
-    });
+    }());
 
     return method(arguments);
   }
@@ -65,7 +65,7 @@ class PlatformChannel {
 ///
 /// [arguments] is the deserialized (as of now JSON) value. The returned value is
 /// expected to be serializable (as of now to JSON).
-typedef dynamic MethodInvocationHandler(dynamic arguments);
+typedef Map<String, Object> MethodInvocationHandler(Map<String, Object> arguments);
 
 /// Callback called with the [result] of a JavaScript method call.
 ///

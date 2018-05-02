@@ -71,7 +71,7 @@ final String mixin = r'$mixin$';
 ///
 ///     build() => div(style: box);
 ///
-Style style(Map<String, Style> styleExpression) {
+Style style(Map<String, Object> styleExpression) {
   var buf = new StringBuffer();
   _flatten(styleExpression).forEach((String property, dynamic value) {
     if (value is String) {
@@ -84,7 +84,7 @@ Style style(Map<String, Style> styleExpression) {
       assert(() {
         throw new ArgumentError.value(
             value.runtimeType, 'value type', 'Not supported');
-      });
+      }());
     }
   });
   return new Style(buf.toString());
@@ -125,7 +125,7 @@ Map<String, dynamic> _flatten(Map<String, dynamic> styleExpression) {
               '${styleExpression}';
         }
         return true;
-      });
+      }());
       flat.addAll(_flatten(value));
     } else {
       flat[property] = value;

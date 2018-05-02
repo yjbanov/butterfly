@@ -62,7 +62,7 @@ class Tree {
       _debugCheckParentChildRelationships();
       GlobalKey.debugCheckForDuplicates();
       return true;
-    });
+    }());
     scheduleMicrotask(GlobalKey.notifyListeners);
 
     return treeUpdate.render();

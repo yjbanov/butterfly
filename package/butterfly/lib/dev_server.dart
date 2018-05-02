@@ -31,8 +31,6 @@ class ButterflyDevServer {
   static const String _devChannelPath = '/${_devChannelNamespace}';
   static const String _packagesPath = '/packages/';
   static final Logger _devLogger = new Logger('ButterflyDevServer');
-  static final Converter<List<int>, String> _utfLineSplitter =
-      const Utf8Decoder().fuse(const LineSplitter());
 
   /// Starts a development server.
   ///
@@ -142,16 +140,17 @@ class ButterflyDevServer {
                 .path}');
       }
       return true;
-    });
+    }());
     final packageName = pathFragments[2];
     final pathWithinPackage = pathFragments.skip(3).join(pathlib.separator);
 
     List<String> packageInfoParts = await packagesFile
         .openRead()
-        .transform(_utfLineSplitter)
+        .transform(const Utf8Decoder())
+        .transform(const LineSplitter())
         .map((line) => line.split(':'))
         .firstWhere((parts) => parts.first == packageName,
-            defaultValue: () => null);
+            orElse: () => null);
 
     if (packageInfoParts == null) {
       throw new StateError(

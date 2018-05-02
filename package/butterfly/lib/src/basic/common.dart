@@ -23,6 +23,9 @@ class Text extends Node {
   const Text(this.value);
 
   @override
+  String get tag => null;
+
+  @override
   RenderNode instantiate(Tree tree) => new _TextRenderNode(tree);
 }
 

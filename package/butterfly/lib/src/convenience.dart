@@ -343,7 +343,7 @@ class VirtualElementBuilder {
       }
 
       return true;
-    });
+    }());
 
     return new Element(_tag,
         key: _key,
