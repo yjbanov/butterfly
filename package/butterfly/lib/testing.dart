@@ -62,7 +62,7 @@ class WidgetTester {
         return false;
       }
 
-      if (byTag != null && n.configuration.tag == byTag) {
+      if (byTag != null && (n.configuration as ElementBase).tag == byTag) {
         return true;
       }
 

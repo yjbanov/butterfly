@@ -4,6 +4,7 @@ packages
 pubspec.lock
 build/
 .pub
+.dart_tool
 
 # IDE-specific
 .idea/libraries/

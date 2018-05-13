@@ -64,7 +64,7 @@ abstract class State<T extends StatefulWidget> {
         throw new ArgumentError.notNull('fn');
       }
       return true;
-    });
+    }());
     fn();
     _node.scheduleUpdate();
   }

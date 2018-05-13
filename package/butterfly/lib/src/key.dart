@@ -97,7 +97,7 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
         _debugDuplicates[this] = oldCount + 1;
       }
       return true;
-    });
+    }());
     _registry[this] = element;
   }
 
@@ -113,7 +113,7 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
         }
       }
       return true;
-    });
+    }());
     if (_registry[this] == element) {
       _registry.remove(this);
       _removedKeys.add(this);
