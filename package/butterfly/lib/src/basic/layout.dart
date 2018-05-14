@@ -28,31 +28,31 @@ class _FlexRenderNode extends RenderMultiChildParent<Flex> {
   final Surface surface = new Surface();
 
   @override
-  void update(Flex newConfiguration) {
+  void update(Flex newWidget) {
     /// On the initial build, insert all styles.
-    if (configuration == null) {
+    if (widget == null) {
       surface
         ..display = 'flex'
-        ..justifyContent = newConfiguration.justifyContent._value
-        ..flexDirection = newConfiguration.direction._value
-        ..flexWrap = newConfiguration.wrap._value
-        ..alignItems = newConfiguration.align._value;
-    } else if (!identical(newConfiguration, configuration)) {
+        ..justifyContent = newWidget.justifyContent._value
+        ..flexDirection = newWidget.direction._value
+        ..flexWrap = newWidget.wrap._value
+        ..alignItems = newWidget.align._value;
+    } else if (!identical(newWidget, widget)) {
       if (!identical(
-          newConfiguration.justifyContent, configuration.justifyContent)) {
-        surface.justifyContent = newConfiguration.justifyContent._value;
+          newWidget.justifyContent, widget.justifyContent)) {
+        surface.justifyContent = newWidget.justifyContent._value;
       }
-      if (!identical(newConfiguration.wrap, configuration.wrap)) {
-        surface.flexWrap = newConfiguration.wrap._value;
+      if (!identical(newWidget.wrap, widget.wrap)) {
+        surface.flexWrap = newWidget.wrap._value;
       }
-      if (!identical(newConfiguration.align, configuration.align)) {
-        surface.alignItems = newConfiguration.align._value;
+      if (!identical(newWidget.align, widget.align)) {
+        surface.alignItems = newWidget.align._value;
       }
-      if (!identical(newConfiguration.direction, configuration.direction)) {
-        surface.flexDirection = newConfiguration.direction._value;
+      if (!identical(newWidget.direction, widget.direction)) {
+        surface.flexDirection = newWidget.direction._value;
       }
     }
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 }
 
@@ -121,14 +121,14 @@ class Positioned extends Decoration {
 class _PositionedDecoration extends RenderDecoration<Positioned> {
   _PositionedDecoration(Tree tree) : super(tree);
 
-  void update(Positioned newConfiguration) {
-    if (!identical(newConfiguration, configuration)) {
+  void update(Positioned newWidget) {
+    if (!identical(newWidget, widget)) {
       surface
-        ..left = newConfiguration.left
-        ..top = newConfiguration.left
+        ..left = newWidget.left
+        ..top = newWidget.left
         ..position = 'absoute';
     }
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 }
 
@@ -159,35 +159,35 @@ class FlexChild extends Decoration {
 class _FlexChildDecoration extends RenderDecoration<FlexChild> {
   _FlexChildDecoration(Tree tree) : super(tree);
 
-  void update(FlexChild newConfiguration) {
-    if (!identical(newConfiguration, configuration)) {
-      if (newConfiguration.order == null) {
+  void update(FlexChild newWidget) {
+    if (!identical(newWidget, widget)) {
+      if (newWidget.order == null) {
         surface.order = null;
       } else {
-        surface.order = '${newConfiguration.order}';
+        surface.order = '${newWidget.order}';
       }
-      if (newConfiguration.grow == null) {
+      if (newWidget.grow == null) {
         surface.grow = null;
       } else {
-        surface.grow = '${newConfiguration.grow}';
+        surface.grow = '${newWidget.grow}';
       }
-      if (newConfiguration.shrink == null) {
+      if (newWidget.shrink == null) {
         surface.shrink = null;
       } else {
-        surface.shrink = '${newConfiguration.shrink}';
+        surface.shrink = '${newWidget.shrink}';
       }
-      if (newConfiguration.basis == null) {
+      if (newWidget.basis == null) {
         surface.basis = null;
       } else {
-        surface.basis = '${newConfiguration.basis}';
+        surface.basis = '${newWidget.basis}';
       }
-      if (newConfiguration.alignSelf == null) {
+      if (newWidget.alignSelf == null) {
         surface.alignSelf = null;
       } else {
-        surface.alignSelf = newConfiguration.alignSelf._value;
+        surface.alignSelf = newWidget.alignSelf._value;
       }
     }
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 }
 

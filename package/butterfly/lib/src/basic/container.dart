@@ -70,14 +70,14 @@ class RenderContainer extends RenderSingleChildParent<Container> {
   final Surface surface = new Surface();
 
   @override
-  void update(Container newConfiguration) {
-    if (configuration != null) {
-      final BoxDecoration oldDecoration = configuration.decoration;
-      final BoxDecoration newDecoration = newConfiguration.decoration;
+  void update(Container newWidget) {
+    if (widget != null) {
+      final BoxDecoration oldDecoration = widget.decoration;
+      final BoxDecoration newDecoration = newWidget.decoration;
       if (!identical(oldDecoration, newDecoration)) {
         oldDecoration.update(newDecoration, surface);
       }
     } else {}
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 }

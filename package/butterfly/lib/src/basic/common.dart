@@ -36,10 +36,10 @@ class TextRenderNode extends RenderNode<Text> {
   @override
   void visitChildren(void visitor(RenderNode child)) {}
 
-  void update(Text newConfiguration) {
-    if (newConfiguration.value != configuration.value) {
-      surface.text = newConfiguration.value;
+  void update(Text newWidget) {
+    if (newWidget.value != widget.value) {
+      surface.text = newWidget.value;
     }
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 }

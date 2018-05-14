@@ -58,7 +58,7 @@ main() {
       tester.expectRenders('<div><span>never updated</span></div>');
 
       UpdateTrackingRenderText trackingNode =
-          tester.findNodeOfType(UpdateTrackingRenderText);
+          tester.findRenderWidgetOfType(UpdateTrackingRenderText);
       expect(trackingNode.updateCount, 1);
       tester.renderFrame();
       expect(trackingNode.updateCount, 1);
@@ -73,16 +73,16 @@ main() {
       tester.renderFrame();
 
       RenderParent statefulNode =
-          tester.findNodeOfConfigurationType(ElementWithTrackingChild);
+          tester.findWidgetOfType(ElementWithTrackingChild);
       UpdateTrackingRenderText trackingNode1 =
-          tester.findNodeOfType(UpdateTrackingRenderText);
+          tester.findRenderWidgetOfType(UpdateTrackingRenderText);
       expect(trackingNode1.updateCount, 1);
 
       statefulNode.scheduleUpdate();
       tester.renderFrame();
 
       UpdateTrackingRenderText trackingNode2 =
-          tester.findNodeOfType(UpdateTrackingRenderText);
+          tester.findRenderWidgetOfType(UpdateTrackingRenderText);
       expect(trackingNode2, same(trackingNode1));
       expect(trackingNode2.updateCount, 2);
     });
@@ -299,14 +299,14 @@ class RenderTestListLike extends RenderMultiChildParent<TestListLike> {
   final Surface surface = new Surface();
 
   @override
-  void update(TestListLike newConfiguration) {
-    if (configuration != null) {
-      final BoxDecoration oldDecoration = configuration.decoration;
-      final BoxDecoration newDecoration = newConfiguration.decoration;
+  void update(TestListLike newWidget) {
+    if (widget != null) {
+      final BoxDecoration oldDecoration = widget.decoration;
+      final BoxDecoration newDecoration = newWidget.decoration;
       if (!identical(oldDecoration, newDecoration)) {
         oldDecoration.update(newDecoration, surface);
       }
     } else {}
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 }

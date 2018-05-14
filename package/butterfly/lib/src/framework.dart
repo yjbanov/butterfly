@@ -50,8 +50,8 @@ abstract class RenderNode<N extends Node> {
   void detach() {
     parent.surface.removeChild(surface);
     _parent == null;
-    if (_configuration.key is GlobalKey) {
-      final GlobalKey key = _configuration.key;
+    if (_widget.key is GlobalKey) {
+      final GlobalKey key = _widget.key;
       key.unregister(this);
     }
   }
@@ -63,8 +63,8 @@ abstract class RenderNode<N extends Node> {
   }
 
   /// The [Node] that instantiated this retained node.
-  N get configuration => _configuration;
-  N _configuration;
+  N get widget => _widget;
+  N _widget;
 
   /// Updates this node and its children.
   ///
@@ -73,11 +73,11 @@ abstract class RenderNode<N extends Node> {
   /// correctly. The overridden method must call `super.update` to finalize the
   /// update.
   @mustCallSuper
-  void update(N newConfiguration) {
-    assert(newConfiguration != null);
-    _configuration = newConfiguration;
-    if (_configuration.key is GlobalKey) {
-      final GlobalKey key = _configuration.key;
+  void update(N newWidget) {
+    assert(newWidget != null);
+    _widget = newWidget;
+    if (_widget.key is GlobalKey) {
+      final GlobalKey key = _widget.key;
       key.register(this);
     }
   }
@@ -94,13 +94,13 @@ abstract class MultiChildNode extends Node {
 /// Whether [node] can be updated from [widget].
 ///
 /// This is used to decide whether a node should be moved, replaced, removed or
-/// updated using the new data (configuration).
+/// updated using the new widget.
 bool canUpdateRenderNode(RenderNode node, Node widget) {
-  if (!identical(node.configuration.runtimeType, widget.runtimeType)) {
+  if (!identical(node.widget.runtimeType, widget.runtimeType)) {
     return false;
   }
 
-  return node.configuration.key == widget.key;
+  return node.widget.key == widget.key;
 }
 
 /// A node that has children.
@@ -129,9 +129,9 @@ abstract class RenderParent<N extends Node> extends RenderNode<N> {
   /// update.
   @override
   @mustCallSuper
-  void update(N newConfiguration) {
+  void update(N newWidget) {
     _hasDescendantsNeedingUpdate = false;
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 }
 
@@ -169,15 +169,15 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
 
   @override
   @mustCallSuper
-  void update(N newConfiguration) {
-    if (newConfiguration == _currentChild._configuration) {
+  void update(N newWidget) {
+    if (newWidget == _currentChild._widget) {
       if (hasDescendantsNeedingUpdate) {
-        _currentChild.update(newConfiguration.child);
+        _currentChild.update(newWidget.child);
       }
       return;
     }
 
-    final childConfig = newConfiguration.child;
+    final childConfig = newWidget.child;
     if (_currentChild == null || !canUpdateRenderNode(_currentChild, childConfig)) {
       RenderNode child = childConfig.instantiate(this);
       child.update(childConfig);
@@ -187,7 +187,7 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
       _currentChild.update(childConfig);
     }
 
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 }
 
@@ -221,15 +221,15 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
 
   @override
   @mustCallSuper
-  void update(N newConfiguration) {
-    if (newConfiguration == _currentChild._configuration) {
+  void update(N newWidget) {
+    if (newWidget == _currentChild._widget) {
       if (hasDescendantsNeedingUpdate) {
-        _currentChild.update(newConfiguration.child);
+        _currentChild.update(newWidget.child);
       }
       return;
     }
 
-    final childConfig = newConfiguration.child;
+    final childConfig = newWidget.child;
     if (_currentChild == null || !canUpdateRenderNode(_currentChild, childConfig)) {
       if (_currentChild != null) {
         _currentChild.detach();
@@ -243,7 +243,7 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
       _currentChild.update(childConfig);
     }
 
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 }
 
@@ -267,9 +267,9 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
 
   @override
   @mustCallSuper
-  void update(N newConfiguration) {
-    if (!identical(configuration, newConfiguration)) {
-      List<Node> newChildList = newConfiguration.children;
+  void update(N newWidget) {
+    if (!identical(widget, newWidget)) {
+      List<Node> newChildList = newWidget.children;
 
       if (newChildList != null &&
           newChildList.isNotEmpty &&
@@ -349,9 +349,9 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
             // them by key and figure out all the moves.
 
             // TODO: this implementation is very naive; it plucks _all_ children
-            // and rearranges them according to new configuration. A smarter
+            // and rearranges them according to new widget. A smarter
             // implementation would compute the minimum sufficient number of
-            // moves to transform the tree into the desired configuration.
+            // moves to transform the tree into the desired widget configuration.
 
             List<RenderNode> disputedRange = <RenderNode>[];
             for (int i = from; i < currTo; i++) {
@@ -407,10 +407,10 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
       }
     } else if (hasDescendantsNeedingUpdate) {
       for (RenderNode child in _currentChildren) {
-        child.update(child.configuration);
+        child.update(child.widget);
       }
     }
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 
   void _appendChildren(List<Node> newChildList) {

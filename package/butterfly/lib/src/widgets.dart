@@ -98,28 +98,28 @@ class RenderStatelessWidget extends RenderParent<StatelessWidget> {
   }
 
   @override
-  void update(StatelessWidget newConfiguration) {
-    assert(newConfiguration != null);
-    if (!identical(configuration, newConfiguration)) {
-      // Build the new configuration and decide whether to reuse the child node
+  void update(StatelessWidget newWidget) {
+    assert(newWidget != null);
+    if (!identical(widget, newWidget)) {
+      // Build the new widget and decide whether to reuse the child node
       // or replace with a new one.
-      Node newChildConfiguration = newConfiguration.build();
-      assert(newChildConfiguration != null);
-      if (_child != null && canUpdateRenderNode(_child, newChildConfiguration)) {
-        _child.update(newChildConfiguration);
+      Node newChildWidget = newWidget.build();
+      assert(newChildWidget != null);
+      if (_child != null && canUpdateRenderNode(_child, newChildWidget)) {
+        _child.update(newChildWidget);
       } else {
         // Replace child
         _child?.detach();
-        _child = newChildConfiguration.instantiate(this);
-        _child.update(newChildConfiguration);
+        _child = newChildWidget.instantiate(this);
+        _child.update(newChildWidget);
         _child.attach(this);
       }
     } else if (hasDescendantsNeedingUpdate) {
-      // Own configuration is the same, but some children are scheduled to be
+      // Own widget is the same, but some children are scheduled to be
       // updated.
-      _child.update(_child.configuration);
+      _child.update(_child.widget);
     }
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 }
 
@@ -144,37 +144,37 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
     super.scheduleUpdate();
   }
 
-  void update(StatefulWidget newConfiguration) {
-    assert(newConfiguration != null);
-    if (!identical(configuration, newConfiguration)) {
-      // Build the new configuration and decide whether to reuse the child node
+  void update(StatefulWidget newWidget) {
+    assert(newWidget != null);
+    if (!identical(widget, newWidget)) {
+      // Build the new widget and decide whether to reuse the child node
       // or replace with a new one.
-      // If there is an existing configuration, call it's #willUnmount lifecycle.
+      // If there is an existing widget, call it's #willUnmount lifecycle.
       _state?.willUnmount();
-      _state = newConfiguration.createState();
-      _state._config = newConfiguration;
+      _state = newWidget.createState();
+      _state._config = newWidget;
       internalSetStateNode(_state, this);
-      Node newChildConfiguration = _state.build();
+      Node newChildWidget = _state.build();
       if (_child != null &&
-          identical(newChildConfiguration.runtimeType,
-              _child.configuration.runtimeType)) {
-        _child.update(newChildConfiguration);
+          identical(newChildWidget.runtimeType,
+              _child.widget.runtimeType)) {
+        _child.update(newChildWidget);
       } else {
         _child?.detach();
-        _child = newChildConfiguration.instantiate(this);
-        _child.update(newChildConfiguration);
+        _child = newChildWidget.instantiate(this);
+        _child.update(newChildWidget);
         _child.attach(this);
       }
     } else if (_isDirty) {
       _child.update(_state.build());
     } else if (hasDescendantsNeedingUpdate) {
-      // Own configuration is the same, but some children are scheduled to be
+      // Own widget is the same, but some children are scheduled to be
       // updated.
-      _child.update(_child.configuration);
+      _child.update(_child.widget);
     }
 
     _isDirty = false;
-    super.update(newConfiguration);
+    super.update(newWidget);
   }
 }
 
@@ -231,7 +231,7 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
   }
 
   RenderNode get _currentTreeNode => _registry[this];
-  Node get currentVirtualNode => _currentTreeNode?.configuration;
+  Node get currentVirtualNode => _currentTreeNode?.widget;
   T get currentState {
     RenderNode element = _currentTreeNode;
     if (element is RenderStatefulWidget) {

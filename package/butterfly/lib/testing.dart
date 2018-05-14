@@ -47,11 +47,11 @@ class WidgetTester {
     return foundNode;
   }
 
-  RenderNode findNodeOfType(Type type) =>
+  RenderNode findRenderWidgetOfType(Type type) =>
       findNode((node) => node.runtimeType == type);
 
-  RenderNode findNodeOfConfigurationType(Type type) =>
-      findNode((node) => node.configuration.runtimeType == type);
+  RenderNode findWidgetOfType(Type type) =>
+      findNode((node) => node.widget.runtimeType == type);
 
   State findStateOfType(Type type) {
     RenderStatefulWidget renderWidget = findNode((node) {

@@ -40,7 +40,7 @@ class Tree extends RenderParent {
       _topLevelNode.update(widget);
       host.append(_topLevelNode.surface);
     } else {
-      _topLevelNode.update(_topLevelNode.configuration);
+      _topLevelNode.update(_topLevelNode.widget);
     }
 
     assert(() {
