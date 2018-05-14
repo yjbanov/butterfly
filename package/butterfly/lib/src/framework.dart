@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of butterfly;
+import 'package:meta/meta.dart';
+
+import 'key.dart';
+import 'surface.dart';
+import 'widgets.dart';
 
 /// Configures the state of the UI.
 ///
@@ -23,37 +27,28 @@ abstract class Node {
 
   final Key key;
 
-  RenderNode instantiate(Tree tree);
+  RenderNode instantiate(RenderParent parent);
 }
 
 /// A node in the retained tree instantiated from [Node]s.
 abstract class RenderNode<N extends Node> {
-  RenderNode(this._tree);
+  RenderNode(this._parent);
 
   /// The underlying HTML node that this tree node corresponds to.
-  Surface get nativeNode;
+  Surface get surface;
 
   /// The parent node of this node.
   RenderParent get parent => _parent;
   RenderParent _parent;
 
-  /// Looks for the event target within the sub-tree rooted at this render node
-  /// and dispatches the [event] to it.
-  void dispatchEvent(Event event);
-
-  /// The node tree that this node participates in.
-  Tree get tree => _tree;
-  final Tree _tree;
-
   void visitChildren(void visitor(RenderNode child));
-  bool canUpdateUsing(Node node);
 
   /// Remove this node from the tree.
   ///
   /// This operation can be used to temporarily remove nodes in order to move
   /// them around.
   void detach() {
-    nativeNode.remove();
+    parent.surface.removeChild(surface);
     _parent == null;
     if (_configuration.key is GlobalKey) {
       final GlobalKey key = _configuration.key;
@@ -88,24 +83,6 @@ abstract class RenderNode<N extends Node> {
   }
 }
 
-/// Function that receives an [event].
-typedef void EventListener(Event event);
-
-/// An event emitted by an element.
-@immutable
-class Event {
-  Event(this.type, this.targetBaristaId, this.nativeEvent);
-
-  /// Event type, e.g. [EventType.click].
-  final EventType type;
-
-  /// ID of the target.
-  final String targetBaristaId;
-
-  /// Event data.
-  final html.Event nativeEvent;
-}
-
 /// A type of node that has a flat list of children.
 @immutable
 abstract class MultiChildNode extends Node {
@@ -114,31 +91,25 @@ abstract class MultiChildNode extends Node {
   final List<Node> children;
 }
 
-/// Whether [node] can be updated from [configuration].
+/// Whether [node] can be updated from [widget].
 ///
 /// This is used to decide whether a node should be moved, replaced, removed or
 /// updated using the new data (configuration).
-// TODO: can this be made inlineable?
-bool _canUpdate(RenderNode node, Node configuration) {
-  if (!identical(node.configuration.runtimeType, configuration.runtimeType)) {
+bool canUpdateRenderNode(RenderNode node, Node widget) {
+  if (!identical(node.configuration.runtimeType, widget.runtimeType)) {
     return false;
   }
 
-  return node.configuration.key == configuration.key;
+  return node.configuration.key == widget.key;
 }
 
 /// A node that has children.
 abstract class RenderParent<N extends Node> extends RenderNode<N> {
-  RenderParent(Tree tree) : super(tree);
+  RenderParent(RenderParent parent) : super(parent);
 
   /// Whether any of this node's descentant nodes need to be updated.
   bool _hasDescendantsNeedingUpdate = true;
   bool get hasDescendantsNeedingUpdate => _hasDescendantsNeedingUpdate;
-
-  /// As a result of an update a [child] may decide to replace its [nativeNode]
-  /// with a [replacement]. It will then call this method on its [parent] to
-  /// demand that the parent updates its native children.
-  void replaceChildNativeNode(html.Node oldNode, html.Node replacement);
 
   // TODO(yjbanov): rename to setState
   void scheduleUpdate() {
@@ -178,21 +149,16 @@ abstract class Decoration extends Node {
   /// Cannot be `null`.
   final Node child;
 
-  RenderDecoration instantiate(Tree tree);
+  RenderDecoration instantiate(RenderParent parent);
 }
 
 abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
-  RenderDecoration(Tree tree) : super(tree);
+  RenderDecoration(RenderParent parent) : super(parent);
 
   RenderNode _currentChild;
 
   @override
-  html.Element get nativeNode => _currentChild.nativeNode;
-
-  @override
-  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
-    parent.replaceChildNativeNode(oldNode, replacement);
-  }
+  Surface get surface => _currentChild.surface;
 
   @override
   void visitChildren(void visitor(RenderNode child)) {
@@ -212,8 +178,8 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
     }
 
     final childConfig = newConfiguration.child;
-    if (_currentChild == null || !_currentChild.canUpdateUsing(childConfig)) {
-      RenderNode child = childConfig.instantiate(tree);
+    if (_currentChild == null || !canUpdateRenderNode(_currentChild, childConfig)) {
+      RenderNode child = childConfig.instantiate(this);
       child.update(childConfig);
       child.attach(this);
       _currentChild = child;
@@ -222,11 +188,6 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
     }
 
     super.update(newConfiguration);
-  }
-
-  @override
-  void dispatchEvent(Event event) {
-    _currentChild?.dispatchEvent(event);
   }
 }
 
@@ -242,20 +203,14 @@ abstract class SingleChildParent extends Node {
   /// Cannot be `null`.
   final Node child;
 
-  RenderSingleChildParent instantiate(Tree tree);
+  RenderSingleChildParent instantiate(RenderParent parent);
 }
 
 abstract class RenderSingleChildParent<N extends SingleChildParent>
     extends RenderParent<N> {
-  RenderSingleChildParent(Tree tree) : super(tree);
+  RenderSingleChildParent(RenderParent parent) : super(parent);
 
   RenderNode _currentChild;
-
-  @override
-  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
-    oldNode.parent.insertBefore(replacement, oldNode);
-    oldNode.remove();
-  }
 
   @override
   void visitChildren(void visitor(RenderNode child)) {
@@ -275,12 +230,12 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
     }
 
     final childConfig = newConfiguration.child;
-    if (_currentChild == null || !_currentChild.canUpdateUsing(childConfig)) {
+    if (_currentChild == null || !canUpdateRenderNode(_currentChild, childConfig)) {
       if (_currentChild != null) {
         _currentChild.detach();
       }
 
-      RenderNode child = childConfig.instantiate(tree);
+      RenderNode child = childConfig.instantiate(this);
       child.update(childConfig);
       child.attach(this);
       _currentChild = child;
@@ -290,17 +245,12 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
 
     super.update(newConfiguration);
   }
-
-  @override
-  void dispatchEvent(Event event) {
-    _currentChild.dispatchEvent(event);
-  }
 }
 
 /// A node that has multiple children.
 abstract class RenderMultiChildParent<N extends MultiChildNode>
     extends RenderParent<N> {
-  RenderMultiChildParent(Tree tree) : super(tree);
+  RenderMultiChildParent(RenderParent parent) : super(parent);
 
   List<RenderNode> _currentChildren;
 
@@ -313,12 +263,6 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
     for (RenderNode child in _currentChildren) {
       visitor(child);
     }
-  }
-
-  @override
-  void replaceChildNativeNode(html.Node oldNode, html.Node replacement) {
-    oldNode.parent.insertBefore(replacement, oldNode);
-    oldNode.remove();
   }
 
   @override
@@ -346,7 +290,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
         int from = 0;
         while (from < _currentChildren.length &&
             from < newChildList.length &&
-            _canUpdate(_currentChildren[from], newChildList[from])) {
+            canUpdateRenderNode(_currentChildren[from], newChildList[from])) {
           _currentChildren[from].update(newChildList[from]);
           from++;
         }
@@ -368,7 +312,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
           int newTo = newChildList.length;
           while (currTo > from &&
               newTo > from &&
-              _canUpdate(
+              canUpdateRenderNode(
                   _currentChildren[currTo - 1], newChildList[newTo - 1])) {
             _currentChildren[currTo - 1].update(newChildList[newTo - 1]);
             currTo--;
@@ -387,7 +331,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
 
             List<RenderNode> insertedChildren = <RenderNode>[];
             for (Node vn in newChildren) {
-              RenderNode child = vn.instantiate(tree);
+              RenderNode child = vn.instantiate(this);
               child.update(vn);
               child.attach(this);
               insertedChildren.add(child);
@@ -395,10 +339,9 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
 
             _currentChildren.insertAll(from, insertedChildren);
 
-            html.Element nativeElement = nativeNode as html.Element;
-            html.Node refNode = _currentChildren[newTo].nativeNode;
+            Surface refNode = _currentChildren[newTo].surface;
             for (RenderNode node in insertedChildren) {
-              nativeElement.insertBefore(node.nativeNode, refNode);
+              surface.insertBefore(node.surface, refNode);
             }
           } else {
             // We're strictly in the middle of both lists, at which point nodes
@@ -418,22 +361,21 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
             }
 
             List<RenderNode> newRange = <RenderNode>[];
-            html.Element nativeElement = nativeNode;
-            html.Node refNode = currTo < _currentChildren.length
-                ? _currentChildren[currTo].nativeNode
+            Surface refNode = currTo < _currentChildren.length
+                ? _currentChildren[currTo].surface
                 : null;
             for (int i = from; i < newTo; i++) {
               Node newChild = newChildList[i];
               // First try to fing an existing node that could be updated
               bool updated = false;
               for (RenderNode child in disputedRange) {
-                if (_canUpdate(child, newChild)) {
+                if (canUpdateRenderNode(child, newChild)) {
                   child.update(newChild);
                   child.attach(this);
                   if (refNode == null) {
-                    nativeElement.append(child.nativeNode);
+                    surface.append(child.surface);
                   } else {
-                    nativeElement.insertBefore(child.nativeNode, refNode);
+                    surface.insertBefore(child.surface, refNode);
                   }
                   updated = true;
                   newRange.add(child);
@@ -442,13 +384,13 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
               }
 
               if (!updated) {
-                RenderNode child = newChild.instantiate(tree);
+                RenderNode child = newChild.instantiate(this);
                 child.update(newChild);
                 child.attach(this);
                 if (refNode == null) {
-                  nativeElement.append(child.nativeNode);
+                  surface.append(child.surface);
                 } else {
-                  nativeElement.insertBefore(child.nativeNode, refNode);
+                  surface.insertBefore(child.surface, refNode);
                 }
                 newRange.add(child);
               }
@@ -458,7 +400,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
               ..addAll(_currentChildren.sublist(0, from))
               ..addAll(newRange)
               ..addAll(_currentChildren.sublist(currTo));
-            assert(_currentChildren.length == nativeElement.childNodes.length);
+            assert(_currentChildren.length == surface.childCount);
             assert(_currentChildren.length == newChildList.length);
           }
         }
@@ -473,13 +415,12 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
 
   void _appendChildren(List<Node> newChildList) {
     assert(newChildList != null && newChildList.isNotEmpty);
-    html.Element nativeElement = nativeNode as html.Element;
     for (Node vn in newChildList) {
-      RenderNode node = vn.instantiate(tree);
+      RenderNode node = vn.instantiate(this);
       node.update(vn);
       node.attach(this);
       _currentChildren.add(node);
-      nativeElement.append(node.nativeNode);
+      surface.append(node.surface);
     }
   }
 
@@ -488,14 +429,5 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
       child.detach();
     }
     _currentChildren = <RenderNode>[];
-  }
-
-  @override
-  void dispatchEvent(Event event) {
-    if (_currentChildren == null) return;
-
-    for (final child in _currentChildren) {
-      child.dispatchEvent(event);
-    }
   }
 }

@@ -24,12 +24,12 @@ class BoxDecoration {
   final String padding;
   final String border;
 
-  void update(BoxDecoration other, ContainerSurface surface) {
+  void update(BoxDecoration other, Surface surface) {
     if (other.padding != padding) {
-      surface.style['padding'] = other.padding;
+      surface.padding = other.padding;
     }
     if (other.border != border) {
-      surface.style['border'] = other.border;
+      surface.border = other.border;
     }
   }
 
@@ -47,31 +47,35 @@ class BoxDecoration {
 
 /// A decorated box that contains a single child.
 @immutable
-class Container extends SingleChildSurfaceContainerBase {
+class Container extends SingleChildParent {
   Container({
+    Key key,
+    Node child,
     this.decoration,
-  })
-      : super('div');
+  }) : super(
+    key: key,
+    child: child,
+  );
 
   final BoxDecoration decoration;
 
   @override
-  RenderContainer instantiate(Tree tree) => new RenderContainer(tree, this);
+  RenderContainer instantiate(RenderParent parent) => new RenderContainer(parent);
 }
 
-class RenderContainer extends RenderSingleChildSurfaceContainerBase<Container> {
-  RenderContainer(Tree tree, Container container) : super(tree, container);
+class RenderContainer extends RenderSingleChildParent<Container> {
+  RenderContainer(RenderParent parent) : super(parent);
 
   @override
-  bool canUpdateUsing(Node node) => node is Container;
+  final Surface surface = new Surface();
 
   @override
   void update(Container newConfiguration) {
-    if (_configuration != null) {
-      final BoxDecoration oldDecoration = _configuration.decoration;
+    if (configuration != null) {
+      final BoxDecoration oldDecoration = configuration.decoration;
       final BoxDecoration newDecoration = newConfiguration.decoration;
       if (!identical(oldDecoration, newDecoration)) {
-        oldDecoration.update(newDecoration, nativeNode);
+        oldDecoration.update(newDecoration, surface);
       }
     } else {}
     super.update(newConfiguration);

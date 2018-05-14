@@ -18,33 +18,27 @@ part of butterfly;
 class Text extends Node {
   final String value;
 
-  const Text(this.value);
+  const Text(this.value, {Key key}) : super(key: key);
 
   @override
-  RenderNode instantiate(Tree tree) => new _TextRenderNode(tree, this);
+  RenderNode instantiate(RenderParent parent) => new TextRenderNode(parent, this);
 }
 
 /// A [RenderNode] for the [Text] node.
-class _TextRenderNode extends RenderNode<Text> {
-  _TextRenderNode(Tree tree, Text text)
-      : nativeNode = new TextSurface(text.value),
-        super(tree);
+class TextRenderNode extends RenderNode<Text> {
+  TextRenderNode(RenderParent parent, Text text)
+      : surface = new Surface()..text = text.value,
+        super(parent);
 
   @override
-  final TextSurface nativeNode;
-
-  @override
-  bool canUpdateUsing(Node node) => node is Text;
-
-  @override
-  void dispatchEvent(Event event) {}
+  final Surface surface;
 
   @override
   void visitChildren(void visitor(RenderNode child)) {}
 
   void update(Text newConfiguration) {
     if (newConfiguration.value != configuration.value) {
-      nativeNode.text = newConfiguration.value;
+      surface.text = newConfiguration.value;
     }
     super.update(newConfiguration);
   }

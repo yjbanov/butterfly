@@ -18,45 +18,38 @@ class Flex extends MultiChildNode {
       : super(key: key, children: children);
 
   @override
-  RenderNode instantiate(Tree tree) => new _FlexRenderNode(tree);
+  RenderNode instantiate(RenderParent parent) => new _FlexRenderNode(parent);
 }
 
 class _FlexRenderNode extends RenderMultiChildParent<Flex> {
   _FlexRenderNode(Tree tree) : super(tree);
 
   @override
-  final html.DivElement nativeNode = new html.DivElement();
-
-  @override
-  bool canUpdateUsing(Node node) => node is Flex;
+  final Surface surface = new Surface();
 
   @override
   void update(Flex newConfiguration) {
     /// On the initial build, insert all styles.
     if (configuration == null) {
-      nativeNode
-        ..style.setProperty('display', 'flex')
-        ..style.setProperty(
-            'justify-content', newConfiguration.justifyContent._value)
-        ..style.setProperty('flex-direction', newConfiguration.direction._value)
-        ..style.setProperty('flex-wrap', newConfiguration.wrap._value)
-        ..style.setProperty('align-items', newConfiguration.align._value);
+      surface
+        ..display = 'flex'
+        ..justifyContent = newConfiguration.justifyContent._value
+        ..flexDirection = newConfiguration.direction._value
+        ..flexWrap = newConfiguration.wrap._value
+        ..alignItems = newConfiguration.align._value;
     } else if (!identical(newConfiguration, configuration)) {
       if (!identical(
           newConfiguration.justifyContent, configuration.justifyContent)) {
-        nativeNode.style.setProperty(
-            'justify-content', newConfiguration.justifyContent._value);
+        surface.justifyContent = newConfiguration.justifyContent._value;
       }
       if (!identical(newConfiguration.wrap, configuration.wrap)) {
-        nativeNode.style.setProperty('flex-wrap', newConfiguration.wrap._value);
+        surface.flexWrap = newConfiguration.wrap._value;
       }
       if (!identical(newConfiguration.align, configuration.align)) {
-        nativeNode.style
-            .setProperty('align-items', newConfiguration.align._value);
+        surface.alignItems = newConfiguration.align._value;
       }
       if (!identical(newConfiguration.direction, configuration.direction)) {
-        nativeNode.style
-            .setProperty('flex-direction', newConfiguration.direction._value);
+        surface.flexDirection = newConfiguration.direction._value;
       }
     }
     super.update(newConfiguration);
@@ -103,34 +96,6 @@ class Row extends Flex {
         );
 }
 
-/// An element with stacked children.
-class Stack extends StatelessWidget {
-  static final _style = new Style('position: relative;');
-
-  final List<Widget> children;
-
-  /// Create a new Stack node.
-  Stack({this.children = const []});
-
-  @override
-  Node build() {
-    return new Element('div', style: _style, children: children);
-  }
-}
-
-/// A block display element.
-class Block extends StatelessWidget {
-  final List<Widget> children;
-
-  /// Create a new Block node.
-  const Block({this.children = const []});
-
-  @override
-  Node build() {
-    return new Element('div', children: children);
-  }
-}
-
 /// A decoration which allows absolutely positioning a child.
 ///
 /// The offset from either the window or a previous `relative` element in px.
@@ -149,22 +114,19 @@ class Positioned extends Decoration {
         super(child: child, key: key);
 
   @override
-  RenderDecoration instantiate(Tree tree) => new _PositionedDecoration(tree);
+  RenderDecoration instantiate(RenderParent parent) => new _PositionedDecoration(parent);
 }
 
 /// A [RenderNode] that applies absolute positioning to a child.
 class _PositionedDecoration extends RenderDecoration<Positioned> {
   _PositionedDecoration(Tree tree) : super(tree);
 
-  @override
-  bool canUpdateUsing(Node node) => node is Positioned;
-
   void update(Positioned newConfiguration) {
     if (!identical(newConfiguration, configuration)) {
-      nativeNode
-        ..style.setProperty('left', newConfiguration.left)
-        ..style.setProperty('top', newConfiguration.left)
-        ..style.setProperty('position', 'absoute');
+      surface
+        ..left = newConfiguration.left
+        ..top = newConfiguration.left
+        ..position = 'absoute';
     }
     super.update(newConfiguration);
   }
@@ -190,44 +152,39 @@ class FlexChild extends Decoration {
       : super(key: key, child: child);
 
   @override
-  RenderDecoration instantiate(Tree tree) => new _FlexChildDecoration(tree);
+  RenderDecoration instantiate(RenderParent parent) => new _FlexChildDecoration(parent);
 }
 
 /// A [RenderNode] that applies flex properties to a child element.
 class _FlexChildDecoration extends RenderDecoration<FlexChild> {
   _FlexChildDecoration(Tree tree) : super(tree);
 
-  @override
-  bool canUpdateUsing(Node node) => node is Positioned;
-
   void update(FlexChild newConfiguration) {
     if (!identical(newConfiguration, configuration)) {
-      final html.Element element = nativeNode;
       if (newConfiguration.order == null) {
-        element.style.removeProperty('order');
+        surface.order = null;
       } else {
-        element.style.setProperty('order', '${newConfiguration.order}');
+        surface.order = '${newConfiguration.order}';
       }
       if (newConfiguration.grow == null) {
-        element.style.removeProperty('grow');
+        surface.grow = null;
       } else {
-        element.style.setProperty('grow', '${newConfiguration.grow}');
+        surface.grow = '${newConfiguration.grow}';
       }
       if (newConfiguration.shrink == null) {
-        element.style.removeProperty('shrink');
+        surface.shrink = null;
       } else {
-        element.style.setProperty('shrink', '${newConfiguration.shrink}');
+        surface.shrink = '${newConfiguration.shrink}';
       }
       if (newConfiguration.basis == null) {
-        element.style.removeProperty('basis');
+        surface.basis = null;
       } else {
-        element.style.setProperty('basis', '${newConfiguration.basis}');
+        surface.basis = '${newConfiguration.basis}';
       }
       if (newConfiguration.alignSelf == null) {
-        element.style.removeProperty('align-self');
+        surface.alignSelf = null;
       } else {
-        element.style
-            .setProperty('align-self', newConfiguration.alignSelf._value);
+        surface.alignSelf = newConfiguration.alignSelf._value;
       }
     }
     super.update(newConfiguration);

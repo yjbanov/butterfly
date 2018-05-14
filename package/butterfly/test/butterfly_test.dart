@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@TestOn('browser')
 import 'package:test/test.dart';
 
 import 'package:butterfly/butterfly.dart';
@@ -40,13 +39,13 @@ main() {
     });
   });
 
-  group('element', () {
-    test('renders simple element', () {
-      final tester = testWidget(new SimpleElementWidget());
+  group('surface', () {
+    test('renders simple surface', () {
+      final tester = testWidget(new SimpleSurfaceWidget());
       tester.expectRenders('<div></div>');
     });
 
-    test('renders nested elements', () {
+    test('renders nested surface', () {
       final tester = testWidget(new NestedElementWidget());
       tester.expectRenders('<div><span></span><button></button></div>');
     });
@@ -163,160 +162,35 @@ main() {
       });
     });
   });
-
-  group('attributes', () {
-    test('are set', () {
-      testWidget(new SimpleAttributesWidget())
-          .expectRenders('<div id="this_is_id" width="300"></div>');
-    });
-  });
-
-  group('events', () {
-    test('are captured by listeners', () {
-      final widget = new EventListeningWidget();
-      final tester = testWidget(widget);
-
-      tester.renderFrame();
-
-      final EventListeningWidgetState state =
-          tester.findStateOfType(EventListeningWidgetState);
-      expect(state.counter, 0);
-
-      RenderElement buttonElement = tester.findElementNode(byTag: 'button');
-      tester.tree.dispatchEvent(new Event(
-        EventType.click,
-        buttonElement.butterflyId,
-        null,
-      ));
-
-      tester.renderFrame();
-      expect(state.counter, 1);
-    });
-  });
-
-  group('style', () {
-    test('applies single style', () {
-      var s = new Style('width: 10px;');
-      var widget = new WidgetWithStyle(s);
-      var tester = testWidget(widget);
-      tester.expectRenders('<div class="${s.identifierClass}"></div>');
-    });
-  });
-
-  group('styles', () {
-    Style s1, s2, s3, s4, s5;
-    WidgetWithMultipleStyles widget;
-
-    setUp(() {
-      widget = new WidgetWithMultipleStyles();
-      s1 = new Style('width: 10px;');
-      s2 = new Style('height: 50px;');
-      s3 = new Style('color: green;');
-      s4 = new Style('max-height: 500px;');
-      s5 = new Style('min-height: 10px;');
-    });
-
-    void testStyles(List<Style> styles) {
-      widget.state.styles = styles;
-      var tester = testWidget(widget);
-      var buf = new StringBuffer();
-      buf.write('<div');
-      if (styles != null && styles.isNotEmpty) {
-        buf.write(' class="');
-        buf.write(styles.map((s) => s.identifierClass).join(' '));
-        buf.write('"');
-      }
-      buf.write('></div>');
-      tester.expectRenders(buf.toString());
-    }
-
-    test('applies multiple styles', () {
-      testStyles([s1, s2]);
-    });
-
-    test('appends styles from null', () {
-      testStyles(null);
-      testStyles([s1, s2]);
-    });
-
-    test('appends styles from empty', () {
-      testStyles([]);
-      testStyles([s1, s2]);
-    });
-
-    test('removes styles to null', () {
-      testStyles([s1, s2]);
-      testStyles(null);
-    });
-
-    test('removes styles to empty', () {
-      testStyles([s1, s2]);
-      testStyles([]);
-    });
-
-    test('inserts styles', () {
-      testStyles([s1, s5]);
-      testStyles([s1, s2, s3, s4, s5]);
-    });
-
-    test('removes styles in the middle', () {
-      testStyles([s1, s2, s3, s4, s5]);
-      testStyles([s1, s5]);
-    });
-
-    test('shuffles styles', () {
-      testStyles([s1, s2, s3, s4]);
-      testStyles([s4, s3, s1, s2]);
-    });
-  });
 }
 
-class WidgetWithStyle extends StatelessWidget {
-  WidgetWithStyle(this.style);
+class UpdateTrackingText extends Text {
+  UpdateTrackingText(String text) : super(text);
 
-  final Style style;
-
-  build() => div(style: style)();
+  RenderNode instantiate(RenderParent parent) => new UpdateTrackingRenderText(parent, this);
 }
 
-class WidgetWithMultipleStyles extends StatefulWidget {
-  final state = new WidgetWithMultipleStylesState();
-  createState() => state;
-}
-
-class WidgetWithMultipleStylesState extends State {
-  List<Style> styles;
-
-  build() => div(styles: styles)();
-}
-
-class UpdateTrackingRenderText extends RenderElement {
-  UpdateTrackingRenderText(Tree tree, UpdateTrackingText element)
-      : super(tree, element);
+class UpdateTrackingRenderText extends TextRenderNode {
+  UpdateTrackingRenderText(RenderParent parent, UpdateTrackingText element)
+      : super(parent, element);
 
   int updateCount = 0;
 
   @override
-  void update(Element newConfig) {
+  void update(Text newConfig) {
     updateCount++;
     super.update(newConfig);
   }
 }
 
-class UpdateTrackingText extends Element {
-  UpdateTrackingText(String text) : super('span', text: text);
-
-  RenderNode instantiate(Tree tree) => new UpdateTrackingRenderText(tree, this);
-}
-
 class IdenticalConfigElement extends StatelessWidget {
   static final updateTracker = new UpdateTrackingText('never updated');
-  static final config = new Element('div', children: [updateTracker]);
+  static final config = new Row(children: [updateTracker]);
   build() => config;
 }
 
 class SimpleTextWidget extends StatelessWidget {
-  Node build() => text('hello world!');
+  Node build() => new Text('hello world!');
 }
 
 class ChangingTextWidget extends StatefulWidget {
@@ -333,25 +207,20 @@ class ChangingTextWidgetState extends State<ChangingTextWidget> {
     });
   }
 
-  Node build() => text(_value);
+  Node build() => new Text(_value);
 }
 
-class SimpleElementWidget extends StatelessWidget {
-  Node build() => div()();
+class SimpleSurfaceWidget extends StatelessWidget {
+  Node build() => new Container();
 }
 
 class NestedElementWidget extends StatelessWidget {
-  Node build() => div()([
-        span()(),
-        button()(),
-      ]);
-}
-
-class SimpleAttributesWidget extends StatelessWidget {
-  Node build() => div(attrs: {
-        'id': 'this_is_id',
-        'width': '300',
-      })();
+  Node build() => new TestListLike(
+    children: <Node>[
+      new Container(key: new ValueKey('a')),
+      new Container(key: new ValueKey('b')),
+    ],
+  );
 }
 
 class NodeUpdatingWidget extends StatefulWidget {
@@ -367,7 +236,9 @@ class NodeUpdatingWidgetState extends State<NodeUpdatingWidget> {
     });
   }
 
-  Node build() => div()([text(_value)]);
+  Node build() => new Container(
+    child: new Text(_value),
+  );
 }
 
 class ChildListWidget extends StatefulWidget {
@@ -389,13 +260,14 @@ class ChildListWidgetState extends State<ChildListWidget> {
 
   Node build() {
     if (_childKeys == null) {
-      return new Element('div');
+      return TestListLike();
     }
 
-    return div()(_childKeys
-        .map((key) =>
-            new Element('span', key: new ValueKey(key), text: key.toString()))
-        .toList());
+    return new TestListLike(
+      children: _childKeys
+        .map<Node>((key) => new Text(key.toString(), key: new ValueKey(key)))
+        .toList(),
+    );
   }
 }
 
@@ -403,21 +275,38 @@ class ElementWithTrackingChild extends StatelessWidget {
   Node build() => new UpdateTrackingText('foo');
 }
 
-class EventListeningWidget extends StatefulWidget {
-  EventListeningWidgetState createState() => new EventListeningWidgetState();
+/// A dummy container of a flat list of children.
+class TestListLike extends MultiChildNode {
+  TestListLike({
+    Key key,
+    List<Node> children,
+    this.decoration,
+  }) : super(
+    key: key,
+    children: children,
+  );
+
+  final BoxDecoration decoration;
+
+  @override
+  RenderTestListLike instantiate(RenderParent parent) => new RenderTestListLike(parent);
 }
 
-class EventListeningWidgetState extends State<EventListeningWidget> {
-  int counter = 0;
+class RenderTestListLike extends RenderMultiChildParent<TestListLike> {
+  RenderTestListLike(RenderParent parent) : super(parent);
 
-  _buttonClicked(Event event) {
-    setState(() {
-      counter++;
-    });
-  }
+  @override
+  final Surface surface = new Surface();
 
-  Node build() {
-    return button(eventListeners: {EventType.click: _buttonClicked})(
-        [text('$counter')]);
+  @override
+  void update(TestListLike newConfiguration) {
+    if (configuration != null) {
+      final BoxDecoration oldDecoration = configuration.decoration;
+      final BoxDecoration newDecoration = newConfiguration.decoration;
+      if (!identical(oldDecoration, newDecoration)) {
+        oldDecoration.update(newDecoration, surface);
+      }
+    } else {}
+    super.update(newConfiguration);
   }
 }

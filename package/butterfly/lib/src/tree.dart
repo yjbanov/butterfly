@@ -14,9 +14,12 @@
 
 part of butterfly;
 
+/// The render node at the top of the render node hierarchy of a particular
+/// app.
+/// 
 /// Renders a [widget] into HTML DOM hosted by [host].
-class Tree {
-  Tree(this.widget, this.host) {
+class Tree extends RenderParent {
+  Tree(this.widget, this.host) : super(null) {
     assert(widget != null);
     assert(host != null);
   }
@@ -27,10 +30,6 @@ class Tree {
 
   RenderNode _topLevelNode;
 
-  void dispatchEvent(Event event) {
-    _topLevelNode.dispatchEvent(event);
-  }
-
   void visitChildren(void visitor(RenderNode child)) {
     visitor(_topLevelNode);
   }
@@ -39,7 +38,7 @@ class Tree {
     if (_topLevelNode == null) {
       _topLevelNode = widget.instantiate(this);
       _topLevelNode.update(widget);
-      host.append(_topLevelNode.nativeNode);
+      host.append(_topLevelNode.surface);
     } else {
       _topLevelNode.update(_topLevelNode.configuration);
     }
@@ -56,6 +55,10 @@ class Tree {
     _debugCheckParentChildRelationshipWith(_topLevelNode);
     return true;
   }
+
+  // TODO: implement surface
+  @override
+  Surface get surface => host;
 }
 
 void _debugCheckParentChildRelationshipWith(RenderNode node) {

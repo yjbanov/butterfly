@@ -1,16 +1,65 @@
-part of butterfly;
+class Surface {
+  Surface();
 
-abstract class Surface {
   String id;
-}
-
-class ContainerSurface extends Surface {
-  void append(Surface child) { }
-  Map<String, String> get style => null;
-}
-
-class TextSurface extends Surface {
-  TextSurface(this.text);
-
   String text;
+  String padding;
+  String border;
+  String display;
+  String justifyContent;
+  String flexDirection;
+  String flexWrap;
+  String alignItems;
+  String left;
+  String top;
+  String position;
+  String order;
+  String grow;
+  String shrink;
+  String basis;
+  String alignSelf;
+
+  final List<Surface> _children = <Surface>[];
+
+  void append(Surface child) {
+    _children.add(child);
+  }
+
+  void removeChild(Surface child) {
+    _children.remove(child);
+  }
+
+  void insertBefore(Surface child, Surface ref) {
+    final int index = _children.indexOf(ref);
+    if (index == -1) {
+      throw new SurfaceError(
+        'Child not found:\n'
+        '  Child: $ref\n'
+        '  Parent: $this'
+      );
+    }
+    _children.insert(index, child);
+  }
+
+  int get childCount => _children.length;
+
+  String debugPrintToHtml() {
+    final StringBuffer buffer = new StringBuffer();
+    _debugHtmlInto(buffer);
+    return buffer.toString();
+  }
+
+  void _debugHtmlInto(StringBuffer buffer) {
+    buffer.write('<div id="$id">');
+    for (Surface child in _children) {
+      child._debugHtmlInto(buffer);
+    }
+    buffer.write('</div>');
+  }
+}
+
+class SurfaceError extends Error {
+  SurfaceError(this.description);
+
+  final String description;
 }

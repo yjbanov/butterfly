@@ -14,8 +14,6 @@
 
 library butterfly.testing;
 
-import 'dart:html' as html;
-
 import 'package:test/test.dart';
 
 import 'butterfly.dart';
@@ -26,9 +24,8 @@ WidgetTester testWidget(Node root) {
 
 class WidgetTester {
   factory WidgetTester(Node widget) {
-    final host = new html.DivElement();
-    final styleHost = new html.DivElement();
-    final tester = new WidgetTester._(new Tree(widget, host, styleHost));
+    final host = new Surface();
+    final tester = new WidgetTester._(new Tree(widget, host));
     return tester;
   }
 
@@ -56,20 +53,6 @@ class WidgetTester {
   RenderNode findNodeOfConfigurationType(Type type) =>
       findNode((node) => node.configuration.runtimeType == type);
 
-  RenderElement findElementNode({String byTag}) {
-    return findNode((n) {
-      if (n is! RenderElement) {
-        return false;
-      }
-
-      if (byTag != null && (n.configuration as SurfaceContainerBase).tag == byTag) {
-        return true;
-      }
-
-      return false;
-    });
-  }
-
   State findStateOfType(Type type) {
     RenderStatefulWidget renderWidget = findNode((node) {
       return node is RenderStatefulWidget && node.state.runtimeType == type;
@@ -84,13 +67,13 @@ class WidgetTester {
   // TODO(yjbanov): turn expect* methods into matchers.
   void expectRenders(String expectedHtml) {
     renderFrame();
-    expect(tree.host.innerHtml, expectedHtml);
+    expect(tree.host.debugPrintToHtml(), expectedHtml);
   }
 
   void expectRenderNoop() {
-    final htmlBefore = tree.host.innerHtml;
+    final htmlBefore = tree.host.debugPrintToHtml();
     renderFrame();
-    final htmlAfter = tree.host.innerHtml;
+    final htmlAfter = tree.host.debugPrintToHtml();
     expect(htmlAfter, htmlBefore);
   }
 }
