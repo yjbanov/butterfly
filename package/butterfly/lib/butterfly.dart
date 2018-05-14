@@ -16,24 +16,21 @@ library butterfly;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:html' as html;
 
 import 'package:meta/meta.dart';
 
-part 'src/convenience.dart';
-part 'src/element.dart';
-part 'src/event_type.dart';
 part 'src/key.dart';
 part 'src/node.dart';
-part 'src/style.dart';
 part 'src/tree.dart';
 part 'src/util.dart';
+part 'src/surface_containers.dart';
 part 'src/widget.dart';
 part 'src/basic/container.dart';
 part 'src/basic/events.dart';
 part 'src/basic/layout.dart';
 part 'src/basic/common.dart';
+part 'src/surface.dart';
 
-void runApp(Node widget, html.Element host, [html.Element styleHost]) {
-  new Tree(widget, host, styleHost).renderFrame();
+void runApp(Node widget, Surface host) {
+  new Tree(widget, host).renderFrame();
 }

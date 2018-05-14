@@ -16,50 +16,16 @@ part of butterfly;
 
 /// Renders a [widget] into HTML DOM hosted by [host].
 class Tree {
-  // TODO(yjbanov): top-level node and host element shouldn't be final. They
-  // should be replaceable.
-  Tree(this.widget, this.host, [html.Element styleHost])
-      : _styleHost = styleHost ?? html.document.head {
+  Tree(this.widget, this.host) {
     assert(widget != null);
     assert(host != null);
   }
 
   /// The widget rendered by this tree.
   final Node widget;
-  final html.Element host;
-  final html.Element _styleHost;
-  final Set<EventType> _globalEventTypes = new Set<EventType>();
+  final Surface host;
 
   RenderNode _topLevelNode;
-
-  StringBuffer _styleBuffer = new StringBuffer();
-
-  void registerEventType(EventType type) {
-    if (_globalEventTypes.contains(type)) {
-      return;
-    }
-    _globalEventTypes.add(type);
-    host.addEventListener(type.name, (html.Event nativeEvent) {
-      // Find the closest parent that has _bid.
-      html.Node nativeTarget = nativeEvent.target;
-      while (nativeTarget != null &&
-          !(nativeTarget as html.Element).attributes.containsKey('_bid')) {
-        nativeTarget = nativeTarget.parent;
-      }
-      if (nativeTarget != null) {
-        html.Element nativeElement = nativeTarget;
-        Event event =
-            new Event(type, nativeElement.getAttribute('_bid'), nativeEvent);
-        dispatchEvent(event);
-        renderFrame();
-      }
-    });
-  }
-
-  void registerStyle(Style style) {
-    assert(!style._isRegistered);
-    _styleBuffer.writeln('.${style.identifierClass} { ${style.css} }');
-  }
 
   void dispatchEvent(Event event) {
     _topLevelNode.dispatchEvent(event);
@@ -76,12 +42,6 @@ class Tree {
       host.append(_topLevelNode.nativeNode);
     } else {
       _topLevelNode.update(_topLevelNode.configuration);
-    }
-
-    if (_styleBuffer.isNotEmpty) {
-      _styleHost.children
-          .add(new html.StyleElement()..text = _styleBuffer.toString());
-      _styleBuffer = new StringBuffer();
     }
 
     assert(() {

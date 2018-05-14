@@ -24,12 +24,12 @@ class BoxDecoration {
   final String padding;
   final String border;
 
-  void update(BoxDecoration other, html.Element element) {
+  void update(BoxDecoration other, ContainerSurface surface) {
     if (other.padding != padding) {
-      element.style.setProperty('padding', other.padding);
+      surface.style['padding'] = other.padding;
     }
     if (other.border != border) {
-      element.style.setProperty('border', other.border);
+      surface.style['border'] = other.border;
     }
   }
 
@@ -47,7 +47,7 @@ class BoxDecoration {
 
 /// A decorated box that contains a single child.
 @immutable
-class Container extends SingleChildElementBase {
+class Container extends SingleChildSurfaceContainerBase {
   Container({
     this.decoration,
   })
@@ -59,7 +59,7 @@ class Container extends SingleChildElementBase {
   RenderContainer instantiate(Tree tree) => new RenderContainer(tree, this);
 }
 
-class RenderContainer extends RenderSingleChildElementBase<Container> {
+class RenderContainer extends RenderSingleChildSurfaceContainerBase<Container> {
   RenderContainer(Tree tree, Container container) : super(tree, container);
 
   @override

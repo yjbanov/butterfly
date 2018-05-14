@@ -31,7 +31,7 @@ abstract class RenderNode<N extends Node> {
   RenderNode(this._tree);
 
   /// The underlying HTML node that this tree node corresponds to.
-  html.Node get nativeNode;
+  Surface get nativeNode;
 
   /// The parent node of this node.
   RenderParent get parent => _parent;

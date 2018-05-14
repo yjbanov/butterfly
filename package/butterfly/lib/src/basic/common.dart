@@ -15,8 +15,6 @@
 part of butterfly;
 
 /// A section of text.
-///
-/// TODO(jonahwilliams): styling options directly on text.
 class Text extends Node {
   final String value;
 
@@ -29,11 +27,11 @@ class Text extends Node {
 /// A [RenderNode] for the [Text] node.
 class _TextRenderNode extends RenderNode<Text> {
   _TextRenderNode(Tree tree, Text text)
-      : nativeNode = new html.Text(text.value),
+      : nativeNode = new TextSurface(text.value),
         super(tree);
 
   @override
-  final html.Text nativeNode;
+  final TextSurface nativeNode;
 
   @override
   bool canUpdateUsing(Node node) => node is Text;

@@ -14,28 +14,8 @@
 
 part of butterfly;
 
-/// A special HTML attribute value for valueless attributes that indicates that
-/// the attribute is present.
-///
-/// An example of valueless attribute is "checked" on a checkbox input:
-///
-///     <input type="checkbox" checked>
-const attributePresent = '__present__';
-
-/// The opposite of [attributePresent].
-const attributeAbsent = '__absent__';
-
 int _butterflyIdCounter = 0;
 String _nextButterflyId() => '${_butterflyIdCounter++}';
-
-/// Converts a boolean [condition] into [attributePresent] and
-/// [attributeAbsent].
-String attributePresentIf(bool condition) =>
-    condition ? attributePresent : attributeAbsent;
-
-void _setButterflyIdAttribute(html.Element element, String butterflyId) {
-  element.setAttribute('_bid', butterflyId);
-}
 
 /// A node that maps to an HTML element and can have multiple children.
 ///
@@ -43,18 +23,18 @@ void _setButterflyIdAttribute(html.Element element, String butterflyId) {
 /// using this base class. Library authors may extend this class (but do not
 /// have to) as a convenience to implement specialized widgets, such as buttons,
 /// checkboxes and text fields, backed by an HTML element.
-abstract class ElementBase extends MultiChildNode {
-  const ElementBase(this.tag, {Key key, List<Node> children})
+abstract class SurfaceContainerBase extends MultiChildNode {
+  const SurfaceContainerBase(this.tag, {Key key, List<Node> children})
       : super(key: key, children: children);
 
   /// The tag of the HTML element, such as `<div>`.
   final String tag;
 }
 
-/// The render node counterpart for the [ElementBase].
+/// The render node counterpart for the [SurfaceContainerBase].
 ///
 /// It is expected (but not mandated) that a concrete implementation of an
-/// [ElementBase] would have its render node extend this class. It provides
+/// [SurfaceContainerBase] would have its render node extend this class. It provides
 /// conveniences, such as [butterflyId], `tag` and `key` syncing. An implementor
 /// would only need to implement the syncinc logic behind widget-specific
 /// properties.
@@ -69,9 +49,9 @@ abstract class ElementBase extends MultiChildNode {
 /// it is working with. It is perfectly OK to have any element configuration be
 /// updated using any other element configuration, as long as the tag is the
 /// same (element tags are immutable).
-abstract class RenderElementBase<N extends ElementBase>
+abstract class RenderSurfaceContainerBase<N extends SurfaceContainerBase>
     extends RenderMultiChildParent<N> {
-  RenderElementBase(Tree tree, N widget)
+  RenderSurfaceContainerBase(Tree tree, N widget)
       : nativeNode = new html.Element.tag(widget.tag),
         super(tree);
 
@@ -101,24 +81,24 @@ abstract class RenderElementBase<N extends ElementBase>
   }
 }
 
-/// Like [ElementBase] but has exactly one child.
+/// Like [SurfaceContainerBase] but has exactly one child.
 ///
 /// Use this class to implement custom elements that semantically have exactly
-/// one child. It is more efficient than [ElementBase], which allows arbitrary
+/// one child. It is more efficient than [SurfaceContainerBase], which allows arbitrary
 /// number of children.
-abstract class SingleChildElementBase extends SingleChildParent {
-  const SingleChildElementBase(this.tag, {Key key, Node child})
+abstract class SingleChildSurfaceContainerBase extends SingleChildParent {
+  const SingleChildSurfaceContainerBase(this.tag, {Key key, Node child})
       : super(key: key, child: child);
 
   /// The tag of the HTML element, such as `<div>`.
   final String tag;
 }
 
-/// The render node counterpart for [SingleChildElementBase], like
-/// [RenderElementBase] but has exactly one child.
-abstract class RenderSingleChildElementBase<N extends SingleChildElementBase>
+/// The render node counterpart for [SingleChildSurfaceContainerBase], like
+/// [RenderSurfaceContainerBase] but has exactly one child.
+abstract class RenderSingleChildSurfaceContainerBase<N extends SingleChildSurfaceContainerBase>
     extends RenderSingleChildParent<N> {
-  RenderSingleChildElementBase(Tree tree, N widget)
+  RenderSingleChildSurfaceContainerBase(Tree tree, N widget)
       : nativeNode = new html.Element.tag(widget.tag),
         super(tree);
 
@@ -148,19 +128,19 @@ abstract class RenderSingleChildElementBase<N extends SingleChildElementBase>
   }
 }
 
-/// Like [ElementBase] but has no children.
-abstract class LeafElementBase extends Node {
-  const LeafElementBase(this.tag, {Key key}) : super(key: key);
+/// Like [SurfaceContainerBase] but has no children.
+abstract class LeafSurfaceContainerBase extends Node {
+  const LeafSurfaceContainerBase(this.tag, {Key key}) : super(key: key);
 
   /// The tag of the HTML element, such as `<div>`.
   final String tag;
 }
 
-/// The render node counterpart for [LeafElementBase], like
-/// [RenderElementBase] but no children.
-abstract class RenderLeafElementBase<N extends LeafElementBase>
+/// The render node counterpart for [LeafSurfaceContainerBase], like
+/// [RenderSurfaceContainerBase] but no children.
+abstract class RenderLeafSurfaceContainerBase<N extends LeafSurfaceContainerBase>
     extends RenderNode<N> {
-  RenderLeafElementBase(Tree tree, N widget)
+  RenderLeafSurfaceContainerBase(Tree tree, N widget)
       : nativeNode = new html.Element.tag(widget.tag),
         super(tree);
 
@@ -192,7 +172,7 @@ abstract class RenderLeafElementBase<N extends LeafElementBase>
 
 /// A generic HTML element, useful when you want a simple ad hoc element such
 /// as `<div>`, `<button>`.
-class Element extends ElementBase {
+class Element extends SurfaceContainerBase {
   const Element(
     String tag, {
     Key key,
@@ -217,7 +197,7 @@ class Element extends ElementBase {
   RenderNode instantiate(Tree t) => new RenderElement(t, this);
 }
 
-class RenderElement extends RenderElementBase<Element> {
+class RenderElement extends RenderSurfaceContainerBase<Element> {
   RenderElement(Tree tree, Element element) : super(tree, element);
 
   @override

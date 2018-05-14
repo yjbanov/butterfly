@@ -62,7 +62,7 @@ class WidgetTester {
         return false;
       }
 
-      if (byTag != null && (n.configuration as ElementBase).tag == byTag) {
+      if (byTag != null && (n.configuration as SurfaceContainerBase).tag == byTag) {
         return true;
       }
 
