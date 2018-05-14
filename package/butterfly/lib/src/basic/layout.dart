@@ -12,7 +12,7 @@ class Flex extends MultiChildNode {
     @required this.direction,
     @required this.justifyContent,
     @required this.wrap,
-    @required List<Node> children,
+    @required List<Widget> children,
     Key key,
   })
       : super(key: key, children: children);
@@ -58,10 +58,10 @@ class _FlexRenderNode extends RenderMultiChildParent<Flex> {
 
 /// A flexible element with column oriented children.
 class Column extends Flex {
-  /// Create a new column node.
+  /// Create a new column widget.
   const Column({
     Key key,
-    List<Node> children = const [],
+    List<Widget> children = const [],
     FlexAlign align = FlexAlign.auto,
     JustifyContent justifyContent = JustifyContent.start,
     FlexWrap wrap = FlexWrap.noWrap,
@@ -78,10 +78,10 @@ class Column extends Flex {
 
 /// A flexible element with row oriented children.
 class Row extends Flex {
-  /// Create a new now node.
+  /// Create a new row widget.
   const Row({
     Key key,
-    List<Node> children = const [],
+    List<Widget> children = const [],
     FlexAlign align = FlexAlign.auto,
     JustifyContent justifyContent = JustifyContent.start,
     FlexWrap wrap = FlexWrap.noWrap,
@@ -147,7 +147,7 @@ class FlexChild extends Decoration {
     this.basis,
     this.alignSelf,
     Key key,
-    @required Node child,
+    @required Widget child,
   })
       : super(key: key, child: child);
 

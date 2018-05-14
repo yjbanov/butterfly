@@ -190,7 +190,7 @@ class IdenticalConfigElement extends StatelessWidget {
 }
 
 class SimpleTextWidget extends StatelessWidget {
-  Node build() => new Text('hello world!');
+  Widget build() => new Text('hello world!');
 }
 
 class ChangingTextWidget extends StatefulWidget {
@@ -207,16 +207,16 @@ class ChangingTextWidgetState extends State<ChangingTextWidget> {
     });
   }
 
-  Node build() => new Text(_value);
+  Widget build() => new Text(_value);
 }
 
 class SimpleSurfaceWidget extends StatelessWidget {
-  Node build() => new Container();
+  Widget build() => new Container();
 }
 
 class NestedElementWidget extends StatelessWidget {
-  Node build() => new TestListLike(
-    children: <Node>[
+  Widget build() => new TestListLike(
+    children: <Widget>[
       new Container(key: new ValueKey('a')),
       new Container(key: new ValueKey('b')),
     ],
@@ -236,7 +236,7 @@ class NodeUpdatingWidgetState extends State<NodeUpdatingWidget> {
     });
   }
 
-  Node build() => new Container(
+  Widget build() => new Container(
     child: new Text(_value),
   );
 }
@@ -258,28 +258,28 @@ class ChildListWidgetState extends State<ChildListWidget> {
     super.setState(fn);
   }
 
-  Node build() {
+  Widget build() {
     if (_childKeys == null) {
       return TestListLike();
     }
 
     return new TestListLike(
       children: _childKeys
-        .map<Node>((key) => new Text(key.toString(), key: new ValueKey(key)))
+        .map<Widget>((key) => new Text(key.toString(), key: new ValueKey(key)))
         .toList(),
     );
   }
 }
 
 class ElementWithTrackingChild extends StatelessWidget {
-  Node build() => new UpdateTrackingText('foo');
+  Widget build() => new UpdateTrackingText('foo');
 }
 
 /// A dummy container of a flat list of children.
 class TestListLike extends MultiChildNode {
   TestListLike({
     Key key,
-    List<Node> children,
+    List<Widget> children,
     this.decoration,
   }) : super(
     key: key,

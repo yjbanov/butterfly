@@ -15,7 +15,7 @@
 part of butterfly;
 
 /// A section of text.
-class Text extends Node {
+class Text extends Widget {
   final String value;
 
   const Text(this.value, {Key key}) : super(key: key);

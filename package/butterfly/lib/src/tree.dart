@@ -25,7 +25,7 @@ class Tree extends RenderParent {
   }
 
   /// The widget rendered by this tree.
-  final Node widget;
+  final Widget widget;
   final Surface host;
 
   RenderNode _topLevelNode;

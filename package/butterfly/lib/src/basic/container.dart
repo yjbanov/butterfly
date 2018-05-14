@@ -50,7 +50,7 @@ class BoxDecoration {
 class Container extends SingleChildParent {
   Container({
     Key key,
-    Node child,
+    Widget child,
     this.decoration,
   }) : super(
     key: key,

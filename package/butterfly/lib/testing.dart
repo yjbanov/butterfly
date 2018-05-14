@@ -18,12 +18,12 @@ import 'package:test/test.dart';
 
 import 'butterfly.dart';
 
-WidgetTester testWidget(Node root) {
+WidgetTester testWidget(Widget root) {
   return new WidgetTester(root);
 }
 
 class WidgetTester {
-  factory WidgetTester(Node widget) {
+  factory WidgetTester(Widget widget) {
     final host = new Surface();
     final tester = new WidgetTester._(new Tree(widget, host));
     return tester;
