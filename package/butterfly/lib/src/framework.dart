@@ -17,6 +17,8 @@ import 'package:meta/meta.dart';
 import 'key.dart';
 import 'surface.dart';
 
+export 'key.dart';
+
 /// Describes the state of the UI.
 ///
 /// This class is at the core of the framework.

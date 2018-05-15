@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of butterfly;
+import 'package:meta/meta.dart';
+
+import '../framework.dart';
+import '../surface.dart';
 
 @immutable
 class BoxDecoration {

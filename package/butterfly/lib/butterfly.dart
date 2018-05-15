@@ -14,24 +14,20 @@
 
 library butterfly;
 
-import 'dart:async';
-import 'dart:collection';
-
 import 'package:meta/meta.dart';
 
 import 'src/framework.dart';
 import 'src/key.dart';
 import 'src/surface.dart';
+import 'src/tree.dart';
 
+export 'src/basic/container.dart';
+export 'src/basic/layout.dart';
+export 'src/basic/text.dart';
 export 'src/framework.dart';
 export 'src/key.dart';
 export 'src/surface.dart';
-
-part 'src/tree.dart';
-part 'src/util.dart';
-part 'src/basic/container.dart';
-part 'src/basic/layout.dart';
-part 'src/basic/common.dart';
+export 'src/tree.dart';
 
 void runApp(Widget widget, Surface host) {
   new Tree(widget, host).renderFrame();

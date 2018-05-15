@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of butterfly;
+import '../framework.dart';
 
 /// A section of text.
 class Text extends LeafWidget {

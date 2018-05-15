@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of butterfly;
+import 'dart:async';
+
+import 'framework.dart';
+import 'surface.dart';
 
 /// The render node at the top of the render node hierarchy of a particular
 /// app.

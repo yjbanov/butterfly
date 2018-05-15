@@ -1,4 +1,7 @@
-part of butterfly;
+import 'package:meta/meta.dart';
+
+import '../framework.dart';
+import '../surface.dart';
 
 /// A flexible element.
 class Flex extends MultiChildWidget {
@@ -119,7 +122,7 @@ class Positioned extends Decoration {
 
 /// A [Renderer] that applies absolute positioning to a child.
 class PositionedRenderer extends DecorationRenderer<Positioned> {
-  PositionedRenderer(Tree tree) : super(tree);
+  PositionedRenderer(ParentRenderer parent) : super(parent);
 
   void update(Positioned newWidget) {
     if (!identical(newWidget, widget)) {
@@ -157,7 +160,7 @@ class FlexChild extends Decoration {
 
 /// A [Renderer] that applies flex properties to a child element.
 class _FlexChildDecoration extends DecorationRenderer<FlexChild> {
-  _FlexChildDecoration(Tree tree) : super(tree);
+  _FlexChildDecoration(ParentRenderer parent) : super(parent);
 
   void update(FlexChild newWidget) {
     if (!identical(newWidget, widget)) {
