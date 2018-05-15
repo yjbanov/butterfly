@@ -1,7 +1,7 @@
 language: dart
 dist: trusty
 sudo: false
-dart: stable
+dart: dev
 before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
@@ -9,9 +9,9 @@ before_script:
 script:
   - cd package/butterfly
   - pub get
-  - pub run test -p chrome
+  - dart -c test/butterfly_test.dart
   - dartfmt -n --set-exit-if-changed lib/ test/ bin/
-  - dartanalyzer --fatal-warnings lib/ test/
+  - dartanalyzer --strong --fatal-warnings lib/ test/
 cache:
   directories:
     - $HOME/.pub-cache

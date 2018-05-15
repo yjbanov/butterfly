@@ -258,7 +258,7 @@ class ChildListWidgetState extends State<ChildListWidget> {
 
   Widget build() {
     if (_childKeys == null) {
-      return TestListLike();
+      return new TestListLike();
     }
 
     return new TestListLike(
