@@ -167,7 +167,8 @@ main() {
 class UpdateTrackingText extends Text {
   UpdateTrackingText(String text) : super(text);
 
-  TextRenderer instantiate(ParentRenderer parent) => new UpdateTrackingRenderText(parent, this);
+  TextRenderer instantiate(ParentRenderer parent) =>
+      new UpdateTrackingRenderText(parent, this);
 }
 
 class UpdateTrackingRenderText extends TextRenderer {
@@ -214,11 +215,11 @@ class SimpleSurfaceWidget extends LeafWidget {}
 
 class NestedElementWidget extends StatelessWidget {
   Widget build() => new TestListLike(
-    children: <Widget>[
-      new Text('a'),
-      new Text('b'),
-    ],
-  );
+        children: <Widget>[
+          new Text('a'),
+          new Text('b'),
+        ],
+      );
 }
 
 class NodeUpdatingWidget extends StatefulWidget {
@@ -235,8 +236,8 @@ class NodeUpdatingWidgetState extends State<NodeUpdatingWidget> {
   }
 
   Widget build() => new Container(
-    child: new Text(_value),
-  );
+        child: new Text(_value),
+      );
 }
 
 class ChildListWidget extends StatefulWidget {
@@ -263,8 +264,9 @@ class ChildListWidgetState extends State<ChildListWidget> {
 
     return new TestListLike(
       children: _childKeys
-        .map<Widget>((key) => new Text(key.toString(), key: new ValueKey(key)))
-        .toList(),
+          .map<Widget>(
+              (key) => new Text(key.toString(), key: new ValueKey(key)))
+          .toList(),
     );
   }
 }
@@ -280,14 +282,15 @@ class TestListLike extends MultiChildWidget {
     List<Widget> children,
     this.decoration,
   }) : super(
-    key: key,
-    children: children,
-  );
+          key: key,
+          children: children,
+        );
 
   final BoxDecoration decoration;
 
   @override
-  TestListLikeRenderer instantiate(ParentRenderer parent) => new TestListLikeRenderer(parent);
+  TestListLikeRenderer instantiate(ParentRenderer parent) =>
+      new TestListLikeRenderer(parent);
 }
 
 class TestListLikeRenderer extends MultiChildParentRenderer<TestListLike> {

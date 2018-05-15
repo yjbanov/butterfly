@@ -55,16 +55,17 @@ class Container extends SingleChildParent {
     Key key,
     Widget child,
     this.decoration,
-  }) : assert(child != null),
-       super(
-         key: key,
-         child: child,
-       );
+  })  : assert(child != null),
+        super(
+          key: key,
+          child: child,
+        );
 
   final BoxDecoration decoration;
 
   @override
-  ContainerRenderer instantiate(ParentRenderer parent) => new ContainerRenderer(parent);
+  ContainerRenderer instantiate(ParentRenderer parent) =>
+      new ContainerRenderer(parent);
 }
 
 class ContainerRenderer extends RenderSingleChildParent<Container> {

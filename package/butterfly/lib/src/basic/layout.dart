@@ -17,8 +17,7 @@ class Flex extends MultiChildWidget {
     @required this.wrap,
     @required List<Widget> children,
     Key key,
-  })
-      : super(key: key, children: children);
+  }) : super(key: key, children: children);
 
   @override
   Renderer instantiate(ParentRenderer parent) => new _FlexRenderer(parent);
@@ -41,8 +40,7 @@ class _FlexRenderer extends MultiChildParentRenderer<Flex> {
         ..flexWrap = newWidget.wrap._value
         ..alignItems = newWidget.align._value;
     } else if (!identical(newWidget, widget)) {
-      if (!identical(
-          newWidget.justifyContent, widget.justifyContent)) {
+      if (!identical(newWidget.justifyContent, widget.justifyContent)) {
         surface.justifyContent = newWidget.justifyContent._value;
       }
       if (!identical(newWidget.wrap, widget.wrap)) {
@@ -68,8 +66,7 @@ class Column extends Flex {
     FlexAlign align = FlexAlign.auto,
     JustifyContent justifyContent = JustifyContent.start,
     FlexWrap wrap = FlexWrap.noWrap,
-  })
-      : super(
+  }) : super(
           key: key,
           children: children,
           align: align,
@@ -88,8 +85,7 @@ class Row extends Flex {
     FlexAlign align = FlexAlign.auto,
     JustifyContent justifyContent = JustifyContent.start,
     FlexWrap wrap = FlexWrap.noWrap,
-  })
-      : super(
+  }) : super(
           key: key,
           children: children,
           align: align,
@@ -111,13 +107,13 @@ class Positioned extends Decoration {
     double topOffset = 0.0,
     @required Widget child,
     Key key,
-  })
-      : left = '${leftOffset}px',
+  })  : left = '${leftOffset}px',
         top = '${topOffset}px',
         super(child: child, key: key);
 
   @override
-  DecorationRenderer instantiate(ParentRenderer parent) => new PositionedRenderer(parent);
+  DecorationRenderer instantiate(ParentRenderer parent) =>
+      new PositionedRenderer(parent);
 }
 
 /// A [Renderer] that applies absolute positioning to a child.
@@ -151,11 +147,11 @@ class FlexChild extends Decoration {
     this.alignSelf,
     Key key,
     @required Widget child,
-  })
-      : super(key: key, child: child);
+  }) : super(key: key, child: child);
 
   @override
-  DecorationRenderer instantiate(ParentRenderer parent) => new _FlexChildDecoration(parent);
+  DecorationRenderer instantiate(ParentRenderer parent) =>
+      new _FlexChildDecoration(parent);
 }
 
 /// A [Renderer] that applies flex properties to a child element.

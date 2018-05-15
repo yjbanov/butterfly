@@ -31,11 +31,9 @@ class Surface {
   void insertBefore(Surface child, Surface ref) {
     final int index = _children.indexOf(ref);
     if (index == -1) {
-      throw new SurfaceError(
-        'Child not found:\n'
-        '  Child: $ref\n'
-        '  Parent: $this'
-      );
+      throw new SurfaceError('Child not found:\n'
+          '  Child: $ref\n'
+          '  Parent: $this');
     }
     _children.insert(index, child);
   }

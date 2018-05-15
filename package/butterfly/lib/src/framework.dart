@@ -34,12 +34,12 @@ abstract class Widget {
 
 /// Translates [Widget] objects into [Surface] commands, and maintains the state
 /// of the UI.
-/// 
+///
 /// Renderers can have child renderers, thus forming a tree. The tree is
 /// doubly-linked, i.e. the parent maintains references to its children, and
 /// children maintain references to their parent. When a child is detached, this
 /// cycle must be explicitly removed.
-/// 
+///
 /// Renderers are persistent across frames. A renderer update the UI when its
 /// [update] method is called with a widget containing the desired new state
 /// of the UI. The render is responsible to compute the optimal surface updates
@@ -48,7 +48,7 @@ abstract class Renderer<N extends Widget> {
   Renderer(this._parent);
 
   /// The [Surface] that this renderer renders into.
-  /// 
+  ///
   /// There is a many-to-one correspondence between renderers and surfaces.
   /// Some renderers create new surfaces. Others "decorate" surfaces created
   /// by their child renderers.
@@ -110,7 +110,8 @@ abstract class Renderer<N extends Widget> {
 abstract class StatelessWidget extends Widget {
   const StatelessWidget({Key key}) : super(key: key);
 
-  Renderer instantiate(ParentRenderer parent) => new StatelessWidgetRenderer(parent);
+  Renderer instantiate(ParentRenderer parent) =>
+      new StatelessWidgetRenderer(parent);
 
   Widget build();
 }
@@ -126,7 +127,8 @@ abstract class StatefulWidget extends Widget {
 
   State createState();
 
-  Renderer instantiate(ParentRenderer parent) => new StatefulWidgetRenderer(parent);
+  Renderer instantiate(ParentRenderer parent) =>
+      new StatefulWidgetRenderer(parent);
 }
 
 typedef dynamic StateSettingFunction();
@@ -230,8 +232,7 @@ class StatefulWidgetRenderer extends ParentRenderer<StatefulWidget> {
       _state._renderer = this;
       Widget newChildWidget = _state.build();
       if (_child != null &&
-          identical(newChildWidget.runtimeType,
-              _child.widget.runtimeType)) {
+          identical(newChildWidget.runtimeType, _child.widget.runtimeType)) {
         _child.update(newChildWidget);
       } else {
         _child?.detach();
@@ -390,14 +391,13 @@ class GlobalObjectKey extends GlobalKey {
   String toString() => '[$runtimeType ${value.runtimeType}(${value.hashCode})]';
 }
 
-
 /// A widget that has a flat list of children.
 @immutable
 abstract class MultiChildWidget extends Widget {
   const MultiChildWidget({Key key, this.children}) : super(key: key);
 
   /// Child widgets of this widget.
-  /// 
+  ///
   /// To update the list of widgets, instead of mutating this list, create
   /// a new instance of this widget with the new list. The framework will
   /// automatically compute the minimal updates that need to be performed
@@ -466,7 +466,8 @@ abstract class Decoration extends Widget {
   DecorationRenderer instantiate(ParentRenderer parent);
 }
 
-abstract class DecorationRenderer<N extends Decoration> extends ParentRenderer<N> {
+abstract class DecorationRenderer<N extends Decoration>
+    extends ParentRenderer<N> {
   DecorationRenderer(ParentRenderer parent) : super(parent);
 
   Renderer _currentChild;
@@ -492,7 +493,8 @@ abstract class DecorationRenderer<N extends Decoration> extends ParentRenderer<N
     }
 
     final childConfig = newWidget.child;
-    if (_currentChild == null || !canUpdateRenderer(_currentChild, childConfig)) {
+    if (_currentChild == null ||
+        !canUpdateRenderer(_currentChild, childConfig)) {
       Renderer child = childConfig.instantiate(this);
       child.update(childConfig);
       child.attach(this);
@@ -508,9 +510,10 @@ abstract class DecorationRenderer<N extends Decoration> extends ParentRenderer<N
 /// A superclass of widgets that render to a dedicated [Surface] object and do
 /// not have children.
 abstract class LeafWidget extends Widget {
-  const LeafWidget({ Key key }) : super(key: key);
+  const LeafWidget({Key key}) : super(key: key);
 
-  LeafWidgetRenderer<LeafWidget> instantiate(ParentRenderer parent) => new LeafWidgetRenderer(parent);
+  LeafWidgetRenderer<LeafWidget> instantiate(ParentRenderer parent) =>
+      new LeafWidgetRenderer(parent);
 }
 
 /// A superclass of a renderer that renders a [LeafWidget].
@@ -565,7 +568,8 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
     }
 
     final childWidget = newWidget.child;
-    if (_currentChild == null || !canUpdateRenderer(_currentChild, childWidget)) {
+    if (_currentChild == null ||
+        !canUpdateRenderer(_currentChild, childWidget)) {
       if (_currentChild != null) {
         _currentChild.detach();
       }

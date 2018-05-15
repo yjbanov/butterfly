@@ -19,7 +19,7 @@ import 'surface.dart';
 
 /// The render node at the top of the render node hierarchy of a particular
 /// app.
-/// 
+///
 /// Renders a [widget] into HTML DOM hosted by [host].
 class Tree extends ParentRenderer {
   Tree(this.widget, this.host) : super(null) {

@@ -21,7 +21,8 @@ class Text extends LeafWidget {
   const Text(this.value, {Key key}) : super(key: key);
 
   @override
-  TextRenderer instantiate(ParentRenderer parent) => new TextRenderer(parent, this);
+  TextRenderer instantiate(ParentRenderer parent) =>
+      new TextRenderer(parent, this);
 }
 
 /// A [Renderer] for the [Text] widget.
