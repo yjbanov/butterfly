@@ -1,7 +1,6 @@
 class Surface {
   Surface();
 
-  String id;
   String text;
   String padding;
   String border;
@@ -50,7 +49,10 @@ class Surface {
   }
 
   void _debugHtmlInto(StringBuffer buffer) {
-    buffer.write('<div id="$id">');
+    buffer.write('<div>');
+    if (text != null && text.isNotEmpty) {
+      buffer.write(text);
+    }
     for (Surface child in _children) {
       child._debugHtmlInto(buffer);
     }

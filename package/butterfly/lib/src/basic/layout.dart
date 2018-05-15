@@ -22,7 +22,7 @@ class Flex extends MultiChildWidget {
 }
 
 class _FlexRenderer extends MultiChildParentRenderer<Flex> {
-  _FlexRenderer(Tree tree) : super(tree);
+  _FlexRenderer(ParentRenderer parent) : super(parent);
 
   @override
   final Surface surface = new Surface();

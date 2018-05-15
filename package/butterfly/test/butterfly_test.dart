@@ -21,13 +21,13 @@ main() {
   group('text', () {
     test('renders simple text', () {
       WidgetTester tester = testWidget(new SimpleTextWidget());
-      tester.expectRenders('<span>hello world!</span>');
+      tester.expectRenders('<div><div>hello world!</div></div>');
     });
 
     test('renders changing text', () {
       var widget = new ChangingTextWidget();
       WidgetTester tester = testWidget(widget);
-      tester.expectRenders('<span>initial</span>');
+      tester.expectRenders('<div><div>initial</div></div>');
 
       // Repeated re-renders without actual change should be a noop
       tester.renderFrame();
@@ -35,19 +35,19 @@ main() {
 
       // Now with the actual change
       widget.state.value = 'updated';
-      tester.expectRenders('<span>updated</span>');
+      tester.expectRenders('<div><div>updated</div></div>');
     });
   });
 
   group('surface', () {
     test('renders simple surface', () {
       final tester = testWidget(new SimpleSurfaceWidget());
-      tester.expectRenders('<div></div>');
+      tester.expectRenders('<div><div></div></div>');
     });
 
     test('renders nested surface', () {
       final tester = testWidget(new NestedElementWidget());
-      tester.expectRenders('<div><span></span><button></button></div>');
+      tester.expectRenders('<div><div><div>a</div><div>b</div></div></div>');
     });
   });
 
@@ -55,7 +55,7 @@ main() {
     test('does not update if config is identical', () {
       var tester = testWidget(new IdenticalConfigElement());
 
-      tester.expectRenders('<div><span>never updated</span></div>');
+      tester.expectRenders('<div><div><div>never updated</div></div></div>');
 
       UpdateTrackingRenderText trackingNode =
           tester.findRenderWidgetOfType(UpdateTrackingRenderText);
@@ -104,16 +104,16 @@ main() {
 
       testCreate(List<int> keys) {
         listState.childKeys = keys;
-        var innerHtml = keys.map((key) => '<span>${key}</span>').join();
-        tester.expectRenders('<div>${innerHtml}</div>');
+        var innerHtml = keys.map((key) => '<div>${key}</div>').join();
+        tester.expectRenders('<div><div>${innerHtml}</div></div>');
       }
 
       testUpdate(List<int> keys) {
         listState.setState(() {
           listState.childKeys = keys;
         });
-        var innerHtml = keys.map((key) => '<span>${key}</span>').join();
-        tester.expectRenders('<div>${innerHtml}</div>');
+        var innerHtml = keys.map((key) => '<div>${key}</div>').join();
+        tester.expectRenders('<div><div>${innerHtml}</div></div>');
       }
 
       test('appends new children added to previously empty child list', () {
@@ -167,7 +167,7 @@ main() {
 class UpdateTrackingText extends Text {
   UpdateTrackingText(String text) : super(text);
 
-  Renderer instantiate(ParentRenderer parent) => new UpdateTrackingRenderText(parent, this);
+  TextRenderer instantiate(ParentRenderer parent) => new UpdateTrackingRenderText(parent, this);
 }
 
 class UpdateTrackingRenderText extends TextRenderer {
@@ -210,15 +210,13 @@ class ChangingTextWidgetState extends State<ChangingTextWidget> {
   Widget build() => new Text(_value);
 }
 
-class SimpleSurfaceWidget extends StatelessWidget {
-  Widget build() => new Container();
-}
+class SimpleSurfaceWidget extends LeafWidget {}
 
 class NestedElementWidget extends StatelessWidget {
   Widget build() => new TestListLike(
     children: <Widget>[
-      new Container(key: new ValueKey('a')),
-      new Container(key: new ValueKey('b')),
+      new Text('a'),
+      new Text('b'),
     ],
   );
 }

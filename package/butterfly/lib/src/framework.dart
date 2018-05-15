@@ -503,8 +503,28 @@ abstract class DecorationRenderer<N extends Decoration> extends ParentRenderer<N
   }
 }
 
+/// A superclass of widgets that render to a dedicated [Surface] object and do
+/// not have children.
+abstract class LeafWidget extends Widget {
+  const LeafWidget({ Key key }) : super(key: key);
+
+  LeafWidgetRenderer<LeafWidget> instantiate(ParentRenderer parent) => new LeafWidgetRenderer(parent);
+}
+
+/// A superclass of a renderer that renders a [LeafWidget].
+class LeafWidgetRenderer<N extends LeafWidget> extends Renderer<N> {
+  LeafWidgetRenderer(ParentRenderer<Widget> parent) : super(parent);
+
+  @override
+  final Surface surface = new Surface();
+
+  @override
+  void visitChildren(void Function(Renderer<Widget> child) visitor) {
+    // This widget has no children.
+  }
+}
+
 /// A widget that has exactly one child.
-@experimental
 @immutable
 abstract class SingleChildParent extends Widget {
   // TODO(yjbanov): assert non-null child when const assert are supported by dart2js
@@ -534,25 +554,26 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
   @override
   @mustCallSuper
   void update(N newWidget) {
-    if (newWidget == _currentChild._widget) {
+    assert(newWidget != null);
+    if (newWidget == _currentChild?._widget) {
       if (hasDescendantsNeedingUpdate) {
         _currentChild.update(newWidget.child);
       }
       return;
     }
 
-    final childConfig = newWidget.child;
-    if (_currentChild == null || !canUpdateRenderer(_currentChild, childConfig)) {
+    final childWidget = newWidget.child;
+    if (_currentChild == null || !canUpdateRenderer(_currentChild, childWidget)) {
       if (_currentChild != null) {
         _currentChild.detach();
       }
 
-      Renderer child = childConfig.instantiate(this);
-      child.update(childConfig);
+      Renderer child = childWidget.instantiate(this);
+      child.update(childWidget);
       child.attach(this);
       _currentChild = child;
     } else {
-      _currentChild.update(childConfig);
+      _currentChild.update(childWidget);
     }
 
     super.update(newWidget);

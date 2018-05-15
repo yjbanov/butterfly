@@ -15,29 +15,23 @@
 part of butterfly;
 
 /// A section of text.
-class Text extends Widget {
+class Text extends LeafWidget {
   final String value;
 
   const Text(this.value, {Key key}) : super(key: key);
 
   @override
-  Renderer instantiate(ParentRenderer parent) => new TextRenderer(parent, this);
+  TextRenderer instantiate(ParentRenderer parent) => new TextRenderer(parent, this);
 }
 
 /// A [Renderer] for the [Text] widget.
-class TextRenderer extends Renderer<Text> {
-  TextRenderer(ParentRenderer parent, Text text)
-      : surface = new Surface()..text = text.value,
-        super(parent);
-
-  @override
-  final Surface surface;
-
-  @override
-  void visitChildren(void visitor(Renderer child)) {}
+class TextRenderer extends LeafWidgetRenderer<Text> {
+  TextRenderer(ParentRenderer parent, Text text) : super(parent) {
+    super.surface.text = text.value;
+  }
 
   void update(Text newWidget) {
-    if (newWidget.value != widget.value) {
+    if (widget?.value != newWidget.value) {
       surface.text = newWidget.value;
     }
     super.update(newWidget);
