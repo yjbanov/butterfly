@@ -27,25 +27,41 @@ abstract class Widget {
   /// Identifies this widget among its siblings.
   final Key key;
 
-  RenderNode instantiate(RenderParent parent);
+  Renderer instantiate(ParentRenderer parent);
 }
 
-/// A node in the retained tree instantiated from [Widget]s.
-abstract class RenderNode<N extends Widget> {
-  RenderNode(this._parent);
+/// Translates [Widget] objects into [Surface] commands, and maintains the state
+/// of the UI.
+/// 
+/// Renderers can have child renderers, thus forming a tree. The tree is
+/// doubly-linked, i.e. the parent maintains references to its children, and
+/// children maintain references to their parent. When a child is detached, this
+/// cycle must be explicitly removed.
+/// 
+/// Renderers are persistent across frames. A renderer update the UI when its
+/// [update] method is called with a widget containing the desired new state
+/// of the UI. The render is responsible to compute the optimal surface updates
+/// necessary to transition from the current UI state to the new UI state.
+abstract class Renderer<N extends Widget> {
+  Renderer(this._parent);
 
-  /// The underlying HTML node that this tree node corresponds to.
+  /// The [Surface] that this renderer renders into.
+  /// 
+  /// There is a many-to-one correspondence between renderers and surfaces.
+  /// Some renderers create new surfaces. Others "decorate" surfaces created
+  /// by their child renderers.
   Surface get surface;
 
-  /// The parent node of this node.
-  RenderParent get parent => _parent;
-  RenderParent _parent;
+  /// The parent of this renderer.
+  ParentRenderer get parent => _parent;
+  ParentRenderer _parent;
 
-  void visitChildren(void visitor(RenderNode child));
+  /// Visits _direct_ children of this renderer, if any.
+  void visitChildren(void visitor(Renderer child));
 
-  /// Remove this node from the tree.
+  /// Disassociate this renderer from its parent.
   ///
-  /// This operation can be used to temporarily remove nodes in order to move
+  /// This operation can be used to temporarily remove renderers in order to move
   /// them around.
   void detach() {
     parent.surface.removeChild(surface);
@@ -57,16 +73,16 @@ abstract class RenderNode<N extends Widget> {
   }
 
   /// Attached this node to a [newParent].
-  void attach(RenderParent newParent) {
+  void attach(ParentRenderer newParent) {
     assert(newParent != null);
     _parent = newParent;
   }
 
-  /// The [Widget] that instantiated this retained node.
+  /// The [Widget] that instantiated this renderer.
   N get widget => _widget;
   N _widget;
 
-  /// Updates this node and its children.
+  /// Updates this renderer and its children.
   ///
   /// Implementations of this class must override this method and ensure that
   /// all necessary updates to `this` node and its children (if any) happen
@@ -92,7 +108,7 @@ abstract class RenderNode<N extends Widget> {
 abstract class StatelessWidget extends Widget {
   const StatelessWidget({Key key}) : super(key: key);
 
-  RenderNode instantiate(RenderParent parent) => new RenderStatelessWidget(parent);
+  Renderer instantiate(ParentRenderer parent) => new StatelessWidgetRenderer(parent);
 
   Widget build();
 }
@@ -108,14 +124,15 @@ abstract class StatefulWidget extends Widget {
 
   State createState();
 
-  RenderNode instantiate(RenderParent parent) => new RenderStatefulWidget(parent);
+  Renderer instantiate(ParentRenderer parent) => new StatefulWidgetRenderer(parent);
 }
 
 typedef dynamic StateSettingFunction();
 
 /// Mutable state of a [StatefulWidget].
 abstract class State<T extends StatefulWidget> {
-  RenderStatefulWidget _widget;
+  StatefulWidgetRenderer _renderer;
+
   T _config;
   T get config => _config;
 
@@ -130,7 +147,7 @@ abstract class State<T extends StatefulWidget> {
       return true;
     }());
     fn();
-    _widget.scheduleUpdate();
+    _renderer.scheduleUpdate();
   }
 
   /// Lifecycle method called before the widget is unmounted in the DOM.
@@ -139,21 +156,16 @@ abstract class State<T extends StatefulWidget> {
   void willUnmount() {}
 }
 
-// TODO: this begs for a better API
-void internalSetStateWidget(State state, RenderStatefulWidget widget) {
-  state._widget = widget;
-}
+class StatelessWidgetRenderer extends ParentRenderer<StatelessWidget> {
+  StatelessWidgetRenderer(ParentRenderer parent) : super(parent);
 
-class RenderStatelessWidget extends RenderParent<StatelessWidget> {
-  RenderStatelessWidget(RenderParent parent) : super(parent);
-
-  RenderNode _child;
+  Renderer _child;
 
   @override
   Surface get surface => _child.surface;
 
   @override
-  void visitChildren(void visitor(RenderNode child)) {
+  void visitChildren(void visitor(Renderer child)) {
     visitor(_child);
   }
 
@@ -165,7 +177,7 @@ class RenderStatelessWidget extends RenderParent<StatelessWidget> {
       // or replace with a new one.
       Widget newChildWidget = newWidget.build();
       assert(newChildWidget != null);
-      if (_child != null && canUpdateRenderNode(_child, newChildWidget)) {
+      if (_child != null && canUpdateRenderer(_child, newChildWidget)) {
         _child.update(newChildWidget);
       } else {
         // Replace child
@@ -183,19 +195,19 @@ class RenderStatelessWidget extends RenderParent<StatelessWidget> {
   }
 }
 
-class RenderStatefulWidget extends RenderParent<StatefulWidget> {
-  RenderStatefulWidget(RenderParent parent) : super(parent);
+class StatefulWidgetRenderer extends ParentRenderer<StatefulWidget> {
+  StatefulWidgetRenderer(ParentRenderer parent) : super(parent);
 
   State _state;
   State get state => _state;
-  RenderNode _child;
+  Renderer _child;
   bool _isDirty = false;
 
   @override
   Surface get surface => _child.surface;
 
   @override
-  void visitChildren(void visitor(RenderNode child)) {
+  void visitChildren(void visitor(Renderer child)) {
     visitor(_child);
   }
 
@@ -213,7 +225,7 @@ class RenderStatefulWidget extends RenderParent<StatefulWidget> {
       _state?.willUnmount();
       _state = newWidget.createState();
       _state._config = newWidget;
-      internalSetStateWidget(_state, this);
+      _state._renderer = this;
       Widget newChildWidget = _state.build();
       if (_child != null &&
           identical(newChildWidget.runtimeType,
@@ -252,14 +264,14 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
   factory GlobalKey({String debugLabel}) => new LabeledGlobalKey<T>(
       debugLabel); // the label is purely for debugging purposes and is otherwise ignored
 
-  static final Map<GlobalKey, RenderNode> _registry =
-      new Map<GlobalKey, RenderNode>();
+  static final Map<GlobalKey, Renderer> _registry =
+      new Map<GlobalKey, Renderer>();
   static final Map<GlobalKey, int> _debugDuplicates = new Map<GlobalKey, int>();
   static final Map<GlobalKey, Set<GlobalKeyRemoveListener>> _removeListeners =
       new Map<GlobalKey, Set<GlobalKeyRemoveListener>>();
   static final Set<GlobalKey> _removedKeys = new Set<GlobalKey>();
 
-  void register(RenderNode element) {
+  void register(Renderer element) {
     assert(() {
       if (_registry.containsKey(this)) {
         int oldCount = _debugDuplicates.putIfAbsent(this, () => 1);
@@ -271,7 +283,7 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
     _registry[this] = element;
   }
 
-  void unregister(RenderNode element) {
+  void unregister(Renderer element) {
     assert(() {
       if (_registry.containsKey(this) && _debugDuplicates.containsKey(this)) {
         int oldCount = _debugDuplicates[this];
@@ -290,12 +302,12 @@ abstract class GlobalKey<T extends State<StatefulWidget>> extends Key {
     }
   }
 
-  RenderNode get _currentTreeNode => _registry[this];
-  Widget get currentVirtualNode => _currentTreeNode?.widget;
+  Renderer get _currentRenderer => _registry[this];
+  Widget get currentWidget => _currentRenderer?.widget;
   T get currentState {
-    RenderNode element = _currentTreeNode;
-    if (element is RenderStatefulWidget) {
-      RenderStatefulWidget statefulElement = element;
+    Renderer element = _currentRenderer;
+    if (element is StatefulWidgetRenderer) {
+      StatefulWidgetRenderer statefulElement = element;
       return statefulElement.state;
     }
     return null;
@@ -377,11 +389,17 @@ class GlobalObjectKey extends GlobalKey {
 }
 
 
-/// A type of node that has a flat list of children.
+/// A widget that has a flat list of children.
 @immutable
-abstract class MultiChildNode extends Widget {
-  const MultiChildNode({Key key, this.children}) : super(key: key);
+abstract class MultiChildWidget extends Widget {
+  const MultiChildWidget({Key key, this.children}) : super(key: key);
 
+  /// Child widgets of this widget.
+  /// 
+  /// To update the list of widgets, instead of mutating this list, create
+  /// a new instance of this widget with the new list. The framework will
+  /// automatically compute the minimal updates that need to be performed
+  /// to update the UI.
   final List<Widget> children;
 }
 
@@ -389,7 +407,7 @@ abstract class MultiChildNode extends Widget {
 ///
 /// This is used to decide whether a widget should be moved, replaced, removed or
 /// updated using the new widget.
-bool canUpdateRenderNode(RenderNode node, Widget widget) {
+bool canUpdateRenderer(Renderer node, Widget widget) {
   if (!identical(node.widget.runtimeType, widget.runtimeType)) {
     return false;
   }
@@ -398,8 +416,8 @@ bool canUpdateRenderNode(RenderNode node, Widget widget) {
 }
 
 /// A widget that has children.
-abstract class RenderParent<N extends Widget> extends RenderNode<N> {
-  RenderParent(RenderParent parent) : super(parent);
+abstract class ParentRenderer<N extends Widget> extends Renderer<N> {
+  ParentRenderer(ParentRenderer parent) : super(parent);
 
   /// Whether any of this widget's descentant widgets need to be updated.
   bool _hasDescendantsNeedingUpdate = true;
@@ -408,7 +426,7 @@ abstract class RenderParent<N extends Widget> extends RenderNode<N> {
   // TODO(yjbanov): rename to setState
   void scheduleUpdate() {
     _hasDescendantsNeedingUpdate = true;
-    RenderParent parent = _parent;
+    ParentRenderer parent = _parent;
     while (parent != null) {
       parent._hasDescendantsNeedingUpdate = true;
       parent = parent.parent;
@@ -443,19 +461,19 @@ abstract class Decoration extends Widget {
   /// Cannot be `null`.
   final Widget child;
 
-  RenderDecoration instantiate(RenderParent parent);
+  DecorationRenderer instantiate(ParentRenderer parent);
 }
 
-abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
-  RenderDecoration(RenderParent parent) : super(parent);
+abstract class DecorationRenderer<N extends Decoration> extends ParentRenderer<N> {
+  DecorationRenderer(ParentRenderer parent) : super(parent);
 
-  RenderNode _currentChild;
+  Renderer _currentChild;
 
   @override
   Surface get surface => _currentChild.surface;
 
   @override
-  void visitChildren(void visitor(RenderNode child)) {
+  void visitChildren(void visitor(Renderer child)) {
     if (_currentChild != null) {
       visitor(_currentChild);
     }
@@ -472,8 +490,8 @@ abstract class RenderDecoration<N extends Decoration> extends RenderParent<N> {
     }
 
     final childConfig = newWidget.child;
-    if (_currentChild == null || !canUpdateRenderNode(_currentChild, childConfig)) {
-      RenderNode child = childConfig.instantiate(this);
+    if (_currentChild == null || !canUpdateRenderer(_currentChild, childConfig)) {
+      Renderer child = childConfig.instantiate(this);
       child.update(childConfig);
       child.attach(this);
       _currentChild = child;
@@ -497,17 +515,17 @@ abstract class SingleChildParent extends Widget {
   /// Cannot be `null`.
   final Widget child;
 
-  RenderSingleChildParent instantiate(RenderParent parent);
+  RenderSingleChildParent instantiate(ParentRenderer parent);
 }
 
 abstract class RenderSingleChildParent<N extends SingleChildParent>
-    extends RenderParent<N> {
-  RenderSingleChildParent(RenderParent parent) : super(parent);
+    extends ParentRenderer<N> {
+  RenderSingleChildParent(ParentRenderer parent) : super(parent);
 
-  RenderNode _currentChild;
+  Renderer _currentChild;
 
   @override
-  void visitChildren(void visitor(RenderNode child)) {
+  void visitChildren(void visitor(Renderer child)) {
     if (_currentChild != null) {
       visitor(_currentChild);
     }
@@ -524,12 +542,12 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
     }
 
     final childConfig = newWidget.child;
-    if (_currentChild == null || !canUpdateRenderNode(_currentChild, childConfig)) {
+    if (_currentChild == null || !canUpdateRenderer(_currentChild, childConfig)) {
       if (_currentChild != null) {
         _currentChild.detach();
       }
 
-      RenderNode child = childConfig.instantiate(this);
+      Renderer child = childConfig.instantiate(this);
       child.update(childConfig);
       child.attach(this);
       _currentChild = child;
@@ -542,19 +560,19 @@ abstract class RenderSingleChildParent<N extends SingleChildParent>
 }
 
 /// A widget that has multiple children.
-abstract class RenderMultiChildParent<N extends MultiChildNode>
-    extends RenderParent<N> {
-  RenderMultiChildParent(RenderParent parent) : super(parent);
+abstract class MultiChildParentRenderer<N extends MultiChildWidget>
+    extends ParentRenderer<N> {
+  MultiChildParentRenderer(ParentRenderer parent) : super(parent);
 
-  List<RenderNode> _currentChildren;
+  List<Renderer> _currentChildren;
 
   @override
-  void visitChildren(void visitor(RenderNode child)) {
+  void visitChildren(void visitor(Renderer child)) {
     if (_currentChildren == null) {
       return;
     }
 
-    for (RenderNode child in _currentChildren) {
+    for (Renderer child in _currentChildren) {
       visitor(child);
     }
   }
@@ -568,7 +586,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
       if (newChildList != null &&
           newChildList.isNotEmpty &&
           _currentChildren == null) {
-        _currentChildren = <RenderNode>[];
+        _currentChildren = <Renderer>[];
       }
 
       if (_currentChildren == null || _currentChildren.isEmpty) {
@@ -584,7 +602,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
         int from = 0;
         while (from < _currentChildren.length &&
             from < newChildList.length &&
-            canUpdateRenderNode(_currentChildren[from], newChildList[from])) {
+            canUpdateRenderer(_currentChildren[from], newChildList[from])) {
           _currentChildren[from].update(newChildList[from]);
           from++;
         }
@@ -606,7 +624,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
           int newTo = newChildList.length;
           while (currTo > from &&
               newTo > from &&
-              canUpdateRenderNode(
+              canUpdateRenderer(
                   _currentChildren[currTo - 1], newChildList[newTo - 1])) {
             _currentChildren[currTo - 1].update(newChildList[newTo - 1]);
             currTo--;
@@ -623,9 +641,9 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
             // New children were inserted in the middle, insert them
             List<Widget> newChildren = newChildList.sublist(from, newTo);
 
-            List<RenderNode> insertedChildren = <RenderNode>[];
+            List<Renderer> insertedChildren = <Renderer>[];
             for (Widget vn in newChildren) {
-              RenderNode child = vn.instantiate(this);
+              Renderer child = vn.instantiate(this);
               child.update(vn);
               child.attach(this);
               insertedChildren.add(child);
@@ -634,7 +652,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
             _currentChildren.insertAll(from, insertedChildren);
 
             Surface refNode = _currentChildren[newTo].surface;
-            for (RenderNode node in insertedChildren) {
+            for (Renderer node in insertedChildren) {
               surface.insertBefore(node.surface, refNode);
             }
           } else {
@@ -647,14 +665,14 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
             // implementation would compute the minimum sufficient number of
             // moves to transform the tree into the desired widget configuration.
 
-            List<RenderNode> disputedRange = <RenderNode>[];
+            List<Renderer> disputedRange = <Renderer>[];
             for (int i = from; i < currTo; i++) {
-              RenderNode child = _currentChildren[i];
+              Renderer child = _currentChildren[i];
               child.detach();
               disputedRange.add(child);
             }
 
-            List<RenderNode> newRange = <RenderNode>[];
+            List<Renderer> newRange = <Renderer>[];
             Surface refNode = currTo < _currentChildren.length
                 ? _currentChildren[currTo].surface
                 : null;
@@ -662,8 +680,8 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
               Widget newChild = newChildList[i];
               // First try to fing an existing node that could be updated
               bool updated = false;
-              for (RenderNode child in disputedRange) {
-                if (canUpdateRenderNode(child, newChild)) {
+              for (Renderer child in disputedRange) {
+                if (canUpdateRenderer(child, newChild)) {
                   child.update(newChild);
                   child.attach(this);
                   if (refNode == null) {
@@ -678,7 +696,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
               }
 
               if (!updated) {
-                RenderNode child = newChild.instantiate(this);
+                Renderer child = newChild.instantiate(this);
                 child.update(newChild);
                 child.attach(this);
                 if (refNode == null) {
@@ -690,7 +708,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
               }
             }
 
-            _currentChildren = <RenderNode>[]
+            _currentChildren = <Renderer>[]
               ..addAll(_currentChildren.sublist(0, from))
               ..addAll(newRange)
               ..addAll(_currentChildren.sublist(currTo));
@@ -700,7 +718,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
         }
       }
     } else if (hasDescendantsNeedingUpdate) {
-      for (RenderNode child in _currentChildren) {
+      for (Renderer child in _currentChildren) {
         child.update(child.widget);
       }
     }
@@ -710,7 +728,7 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
   void _appendChildren(List<Widget> newChildList) {
     assert(newChildList != null && newChildList.isNotEmpty);
     for (Widget vn in newChildList) {
-      RenderNode node = vn.instantiate(this);
+      Renderer node = vn.instantiate(this);
       node.update(vn);
       node.attach(this);
       _currentChildren.add(node);
@@ -719,9 +737,9 @@ abstract class RenderMultiChildParent<N extends MultiChildNode>
   }
 
   void _removeAllCurrentChildren() {
-    for (RenderNode child in _currentChildren) {
+    for (Renderer child in _currentChildren) {
       child.detach();
     }
-    _currentChildren = <RenderNode>[];
+    _currentChildren = <Renderer>[];
   }
 }

@@ -18,7 +18,7 @@ part of butterfly;
 /// app.
 /// 
 /// Renders a [widget] into HTML DOM hosted by [host].
-class Tree extends RenderParent {
+class Tree extends ParentRenderer {
   Tree(this.widget, this.host) : super(null) {
     assert(widget != null);
     assert(host != null);
@@ -28,9 +28,9 @@ class Tree extends RenderParent {
   final Widget widget;
   final Surface host;
 
-  RenderNode _topLevelNode;
+  Renderer _topLevelNode;
 
-  void visitChildren(void visitor(RenderNode child)) {
+  void visitChildren(void visitor(Renderer child)) {
     visitor(_topLevelNode);
   }
 
@@ -61,8 +61,8 @@ class Tree extends RenderParent {
   Surface get surface => host;
 }
 
-void _debugCheckParentChildRelationshipWith(RenderNode node) {
-  node.visitChildren((RenderNode child) {
+void _debugCheckParentChildRelationshipWith(Renderer node) {
+  node.visitChildren((Renderer child) {
     assert(identical(child.parent, node));
     _debugCheckParentChildRelationshipWith(child);
   });

@@ -60,11 +60,11 @@ class Container extends SingleChildParent {
   final BoxDecoration decoration;
 
   @override
-  RenderContainer instantiate(RenderParent parent) => new RenderContainer(parent);
+  ContainerRenderer instantiate(ParentRenderer parent) => new ContainerRenderer(parent);
 }
 
-class RenderContainer extends RenderSingleChildParent<Container> {
-  RenderContainer(RenderParent parent) : super(parent);
+class ContainerRenderer extends RenderSingleChildParent<Container> {
+  ContainerRenderer(ParentRenderer parent) : super(parent);
 
   @override
   final Surface surface = new Surface();

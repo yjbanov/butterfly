@@ -1,7 +1,7 @@
 part of butterfly;
 
 /// A flexible element.
-class Flex extends MultiChildNode {
+class Flex extends MultiChildWidget {
   final FlexAlign align;
   final FlexDirection direction;
   final JustifyContent justifyContent;
@@ -18,11 +18,11 @@ class Flex extends MultiChildNode {
       : super(key: key, children: children);
 
   @override
-  RenderNode instantiate(RenderParent parent) => new _FlexRenderNode(parent);
+  Renderer instantiate(ParentRenderer parent) => new _FlexRenderer(parent);
 }
 
-class _FlexRenderNode extends RenderMultiChildParent<Flex> {
-  _FlexRenderNode(Tree tree) : super(tree);
+class _FlexRenderer extends MultiChildParentRenderer<Flex> {
+  _FlexRenderer(Tree tree) : super(tree);
 
   @override
   final Surface surface = new Surface();
@@ -114,12 +114,12 @@ class Positioned extends Decoration {
         super(child: child, key: key);
 
   @override
-  RenderDecoration instantiate(RenderParent parent) => new _PositionedDecoration(parent);
+  DecorationRenderer instantiate(ParentRenderer parent) => new PositionedRenderer(parent);
 }
 
-/// A [RenderNode] that applies absolute positioning to a child.
-class _PositionedDecoration extends RenderDecoration<Positioned> {
-  _PositionedDecoration(Tree tree) : super(tree);
+/// A [Renderer] that applies absolute positioning to a child.
+class PositionedRenderer extends DecorationRenderer<Positioned> {
+  PositionedRenderer(Tree tree) : super(tree);
 
   void update(Positioned newWidget) {
     if (!identical(newWidget, widget)) {
@@ -152,11 +152,11 @@ class FlexChild extends Decoration {
       : super(key: key, child: child);
 
   @override
-  RenderDecoration instantiate(RenderParent parent) => new _FlexChildDecoration(parent);
+  DecorationRenderer instantiate(ParentRenderer parent) => new _FlexChildDecoration(parent);
 }
 
-/// A [RenderNode] that applies flex properties to a child element.
-class _FlexChildDecoration extends RenderDecoration<FlexChild> {
+/// A [Renderer] that applies flex properties to a child element.
+class _FlexChildDecoration extends DecorationRenderer<FlexChild> {
   _FlexChildDecoration(Tree tree) : super(tree);
 
   void update(FlexChild newWidget) {

@@ -21,12 +21,12 @@ class Text extends Widget {
   const Text(this.value, {Key key}) : super(key: key);
 
   @override
-  RenderNode instantiate(RenderParent parent) => new TextRenderNode(parent, this);
+  Renderer instantiate(ParentRenderer parent) => new TextRenderer(parent, this);
 }
 
-/// A [RenderNode] for the [Text] node.
-class TextRenderNode extends RenderNode<Text> {
-  TextRenderNode(RenderParent parent, Text text)
+/// A [Renderer] for the [Text] widget.
+class TextRenderer extends Renderer<Text> {
+  TextRenderer(ParentRenderer parent, Text text)
       : surface = new Surface()..text = text.value,
         super(parent);
 
@@ -34,7 +34,7 @@ class TextRenderNode extends RenderNode<Text> {
   final Surface surface;
 
   @override
-  void visitChildren(void visitor(RenderNode child)) {}
+  void visitChildren(void visitor(Renderer child)) {}
 
   void update(Text newWidget) {
     if (newWidget.value != widget.value) {

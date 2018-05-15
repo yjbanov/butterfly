@@ -51,7 +51,7 @@ main() {
     });
   });
 
-  group('MultiChildNode', () {
+  group('MultiChildWidget', () {
     test('does not update if config is identical', () {
       var tester = testWidget(new IdenticalConfigElement());
 
@@ -72,7 +72,7 @@ main() {
 
       tester.renderFrame();
 
-      RenderParent statefulNode =
+      ParentRenderer statefulNode =
           tester.findWidgetOfType(ElementWithTrackingChild);
       UpdateTrackingRenderText trackingNode1 =
           tester.findRenderWidgetOfType(UpdateTrackingRenderText);
@@ -167,11 +167,11 @@ main() {
 class UpdateTrackingText extends Text {
   UpdateTrackingText(String text) : super(text);
 
-  RenderNode instantiate(RenderParent parent) => new UpdateTrackingRenderText(parent, this);
+  Renderer instantiate(ParentRenderer parent) => new UpdateTrackingRenderText(parent, this);
 }
 
-class UpdateTrackingRenderText extends TextRenderNode {
-  UpdateTrackingRenderText(RenderParent parent, UpdateTrackingText element)
+class UpdateTrackingRenderText extends TextRenderer {
+  UpdateTrackingRenderText(ParentRenderer parent, UpdateTrackingText element)
       : super(parent, element);
 
   int updateCount = 0;
@@ -276,7 +276,7 @@ class ElementWithTrackingChild extends StatelessWidget {
 }
 
 /// A dummy container of a flat list of children.
-class TestListLike extends MultiChildNode {
+class TestListLike extends MultiChildWidget {
   TestListLike({
     Key key,
     List<Widget> children,
@@ -289,11 +289,11 @@ class TestListLike extends MultiChildNode {
   final BoxDecoration decoration;
 
   @override
-  RenderTestListLike instantiate(RenderParent parent) => new RenderTestListLike(parent);
+  TestListLikeRenderer instantiate(ParentRenderer parent) => new TestListLikeRenderer(parent);
 }
 
-class RenderTestListLike extends RenderMultiChildParent<TestListLike> {
-  RenderTestListLike(RenderParent parent) : super(parent);
+class TestListLikeRenderer extends MultiChildParentRenderer<TestListLike> {
+  TestListLikeRenderer(ParentRenderer parent) : super(parent);
 
   @override
   final Surface surface = new Surface();

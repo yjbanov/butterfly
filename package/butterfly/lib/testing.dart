@@ -33,9 +33,9 @@ class WidgetTester {
 
   final Tree tree;
 
-  RenderNode findNode(bool predicate(RenderNode node)) {
-    RenderNode foundNode;
-    void findTrackingNode(RenderNode node) {
+  Renderer findNode(bool predicate(Renderer node)) {
+    Renderer foundNode;
+    void findTrackingNode(Renderer node) {
       if (predicate(node)) {
         foundNode = node;
       } else {
@@ -47,15 +47,15 @@ class WidgetTester {
     return foundNode;
   }
 
-  RenderNode findRenderWidgetOfType(Type type) =>
+  Renderer findRenderWidgetOfType(Type type) =>
       findNode((node) => node.runtimeType == type);
 
-  RenderNode findWidgetOfType(Type type) =>
+  Renderer findWidgetOfType(Type type) =>
       findNode((node) => node.widget.runtimeType == type);
 
   State findStateOfType(Type type) {
-    RenderStatefulWidget renderWidget = findNode((node) {
-      return node is RenderStatefulWidget && node.state.runtimeType == type;
+    StatefulWidgetRenderer renderWidget = findNode((node) {
+      return node is StatefulWidgetRenderer && node.state.runtimeType == type;
     });
     return renderWidget.state;
   }
