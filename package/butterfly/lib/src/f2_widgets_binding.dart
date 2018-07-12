@@ -238,8 +238,10 @@ class RenderObjectToWidgetElement extends RootRenderObjectElement {
   @override
   void insertChildRenderObject(RenderObject child, dynamic slot) {
     assert(slot == _rootChildSlot);
-    assert(renderObject.debugValidateChild(child));
-    renderObject.child = child;
+    // TODO(yjbanov): implement a single-child render object model.
+    //renderObject.child = child;
+    renderObject.removeAll();
+    renderObject.insert(child);
   }
 
   @override
@@ -249,7 +251,10 @@ class RenderObjectToWidgetElement extends RootRenderObjectElement {
 
   @override
   void removeChildRenderObject(RenderObject child) {
-    assert(renderObject.child == child);
-    renderObject.child = null;
+    // TODO(yjbanov): implement a single-child render object model.
+    //assert(renderObject.child == child);
+    assert(renderObject.firstChild == child);
+    //renderObject.child = null;
+    renderObject.removeAll();
   }
 }

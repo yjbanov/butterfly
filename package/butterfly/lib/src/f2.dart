@@ -4,7 +4,6 @@
 
 import 'dart:async' show Future;
 import 'dart:collection';
-import 'dart:developer';
 
 import 'package:meta/meta.dart';
 
@@ -24,10 +23,6 @@ export 'f2_object.dart';
 ///
 /// Combined with [debugPrintScheduleBuildForStacks], this lets you watch a
 /// widget's dirty/clean lifecycle.
-///
-/// To get similar information but showing it on the timeline available from the
-/// Observatory rather than getting it in the console (where it can be
-/// overwhelming), consider [debugProfileBuildsEnabled].
 ///
 /// See also the discussion at [WidgetsBinding.drawFrame].
 bool debugPrintRebuildDirtyWidgets = false;
@@ -64,19 +59,8 @@ bool debugPrintScheduleBuildForStacks = false;
 /// This can help track down framework bugs relating to the [GlobalKey] logic.
 bool debugPrintGlobalKeyedWidgetLifecycle = false;
 
-/// Adds [Timeline] events for every Widget built.
-///
-/// For details on how to use [Timeline] events in the Dart Observatory to
-/// optimize your app, see https://fuchsia.googlesource.com/sysui/+/master/docs/performance.md
-///
-/// See also [debugProfilePaintsEnabled], which does something similar but for
-/// painting, and [debugPrintRebuildDirtyWidgets], which does something similar
-/// but reporting the builds to the console.
-bool debugProfileBuildsEnabled = false;
-
 /// Show banners for deprecated widgets.
 bool debugHighlightDeprecatedWidgets = false;
-
 
 /// A [Key] is an identifier for [Widget]s, [Element]s and [SemanticsNode]s.
 ///
@@ -2350,7 +2334,6 @@ class BuildOwner {
       _dirtyElements.clear();
       _scheduledFlushDirtyElements = false;
       _dirtyElementsNeedsResorting = null;
-      Timeline.finishSync();
       assert(_debugBuilding);
       assert(() {
         _debugBuilding = false;
@@ -2471,8 +2454,6 @@ class BuildOwner {
       }());
     } catch (e, stack) {
       _debugReportException('while finalizing the widget tree', e, stack);
-    } finally {
-      Timeline.finishSync();
     }
   }
 
@@ -2483,14 +2464,9 @@ class BuildOwner {
   ///
   /// This is expensive and should not be called except during development.
   void reassemble(Element root) {
-    Timeline.startSync('Dirty Element Tree');
-    try {
-      assert(root._parent == null);
-      assert(root.owner == this);
-      root._reassemble();
-    } finally {
-      Timeline.finishSync();
-    }
+    assert(root._parent == null);
+    assert(root.owner == this);
+    root._reassemble();
   }
 }
 
@@ -3549,12 +3525,6 @@ abstract class ComponentElement extends Element {
   /// [rebuild] when the element needs updating.
   @override
   void performRebuild() {
-    assert(() {
-      if (debugProfileBuildsEnabled)
-        Timeline.startSync('${widget.runtimeType}');
-      return true;
-    }());
-
     assert(_debugSetAllowIgnoredCallsToMarkNeedsBuild(true));
     Widget built;
     try {
@@ -3574,12 +3544,6 @@ abstract class ComponentElement extends Element {
       built = ErrorWidget.builder(_debugReportException('building $this', e, stack));
       _child = updateChild(null, built, slot);
     }
-
-    assert(() {
-      if (debugProfileBuildsEnabled)
-        Timeline.finishSync();
-      return true;
-    }());
   }
 
   /// Subclasses should override this function to actually call the appropriate
