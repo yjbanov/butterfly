@@ -1,16 +1,17 @@
+import 'dart:html' as html;
+
 import 'package:meta/meta.dart';
 
-import '../framework.dart';
-import '../surface.dart';
+import '../f2.dart';
 
 /// A flexible element.
-class Flex extends MultiChildWidget {
+class Flex extends MultiChildRenderObjectWidget {
   final FlexAlign align;
   final FlexDirection direction;
   final JustifyContent justifyContent;
   final FlexWrap wrap;
 
-  const Flex({
+  Flex({
     @required this.align,
     @required this.direction,
     @required this.justifyContent,
@@ -20,47 +21,74 @@ class Flex extends MultiChildWidget {
   }) : super(key: key, children: children);
 
   @override
-  Renderer instantiate(ParentRenderer parent) => new _FlexRenderer(parent);
+  RenderObject createRenderObject(BuildContext context) {
+    return RenderFlex()
+      ..align = align
+      ..direction = direction
+      ..justifyContent = justifyContent
+      ..wrap = wrap;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderFlex renderObject) {
+    renderObject
+      ..align = align
+      ..direction = direction
+      ..justifyContent = justifyContent
+      ..wrap = wrap;
+  }
 }
 
-class _FlexRenderer extends MultiChildParentRenderer<Flex> {
-  _FlexRenderer(ParentRenderer parent) : super(parent);
+class RenderFlex extends RenderObject {
+  RenderFlex() : super(html.DivElement()) {
+    element.style.display = 'flex';
+  }
 
-  @override
-  final Surface surface = new Surface();
-
-  @override
-  void update(Flex newWidget) {
-    /// On the initial build, insert all styles.
-    if (widget == null) {
-      surface
-        ..display = 'flex'
-        ..justifyContent = newWidget.justifyContent._value
-        ..flexDirection = newWidget.direction._value
-        ..flexWrap = newWidget.wrap._value
-        ..alignItems = newWidget.align._value;
-    } else if (!identical(newWidget, widget)) {
-      if (!identical(newWidget.justifyContent, widget.justifyContent)) {
-        surface.justifyContent = newWidget.justifyContent._value;
-      }
-      if (!identical(newWidget.wrap, widget.wrap)) {
-        surface.flexWrap = newWidget.wrap._value;
-      }
-      if (!identical(newWidget.align, widget.align)) {
-        surface.alignItems = newWidget.align._value;
-      }
-      if (!identical(newWidget.direction, widget.direction)) {
-        surface.flexDirection = newWidget.direction._value;
-      }
+  FlexAlign get align => _align;
+  FlexAlign _align;
+  set align(FlexAlign newValue) {
+    if (identical(newValue, _align)) {
+      return;
     }
-    super.update(newWidget);
+    element.style.alignItems = newValue._value;
+    _align = newValue;
+  }
+
+  FlexDirection get direction => _direction;
+  FlexDirection _direction;
+  set direction(FlexDirection newValue) {
+    if (identical(_direction, newValue)) {
+      return;
+    }
+    element.style.flexDirection = newValue._value;
+    _direction = newValue;
+  }
+
+  JustifyContent get justifyContent => _justifyContent;
+  JustifyContent _justifyContent;
+  set justifyContent(JustifyContent newValue) {
+    if (identical(_justifyContent, newValue)) {
+      return;
+    }
+    element.style.justifyContent = newValue._value;
+    _justifyContent = newValue;
+  }
+
+  FlexWrap get wrap => _wrap;
+  FlexWrap _wrap;
+  set wrap(FlexWrap newValue) {
+    if (identical(_wrap, newValue)) {
+      return;
+    }
+    element.style.flexWrap = newValue._value;
+    _wrap = newValue;
   }
 }
 
 /// A flexible element with column oriented children.
 class Column extends Flex {
   /// Create a new column widget.
-  const Column({
+  Column({
     Key key,
     List<Widget> children = const [],
     FlexAlign align = FlexAlign.auto,
@@ -79,7 +107,7 @@ class Column extends Flex {
 /// A flexible element with row oriented children.
 class Row extends Flex {
   /// Create a new row widget.
-  const Row({
+  Row({
     Key key,
     List<Widget> children = const [],
     FlexAlign align = FlexAlign.auto,
@@ -98,7 +126,7 @@ class Row extends Flex {
 /// A decoration which allows absolutely positioning a child.
 ///
 /// The offset from either the window or a previous `relative` element in px.
-class Positioned extends Decoration {
+class Positioned extends DecoratorWidget {
   final String left;
   final String top;
 
@@ -112,27 +140,16 @@ class Positioned extends Decoration {
         super(child: child, key: key);
 
   @override
-  DecorationRenderer instantiate(ParentRenderer parent) =>
-      new PositionedRenderer(parent);
-}
-
-/// A [Renderer] that applies absolute positioning to a child.
-class PositionedRenderer extends DecorationRenderer<Positioned> {
-  PositionedRenderer(ParentRenderer parent) : super(parent);
-
-  void update(Positioned newWidget) {
-    if (!identical(newWidget, widget)) {
-      surface
-        ..left = newWidget.left
-        ..top = newWidget.left
-        ..position = 'absoute';
-    }
-    super.update(newWidget);
+  void decorate(RenderObject renderObject) {
+    renderObject.element.style
+      ..left = left
+      ..top = top
+      ..position = 'absoute';
   }
 }
 
 /// A decoration that controls the flex properties of a child.
-class FlexChild extends Decoration {
+class FlexChild extends DecoratorWidget {
   final int order;
   final double grow;
   final double shrink;
@@ -150,43 +167,33 @@ class FlexChild extends Decoration {
   }) : super(key: key, child: child);
 
   @override
-  DecorationRenderer instantiate(ParentRenderer parent) =>
-      new _FlexChildDecoration(parent);
-}
-
-/// A [Renderer] that applies flex properties to a child element.
-class _FlexChildDecoration extends DecorationRenderer<FlexChild> {
-  _FlexChildDecoration(ParentRenderer parent) : super(parent);
-
-  void update(FlexChild newWidget) {
-    if (!identical(newWidget, widget)) {
-      if (newWidget.order == null) {
-        surface.order = null;
-      } else {
-        surface.order = '${newWidget.order}';
-      }
-      if (newWidget.grow == null) {
-        surface.grow = null;
-      } else {
-        surface.grow = '${newWidget.grow}';
-      }
-      if (newWidget.shrink == null) {
-        surface.shrink = null;
-      } else {
-        surface.shrink = '${newWidget.shrink}';
-      }
-      if (newWidget.basis == null) {
-        surface.basis = null;
-      } else {
-        surface.basis = '${newWidget.basis}';
-      }
-      if (newWidget.alignSelf == null) {
-        surface.alignSelf = null;
-      } else {
-        surface.alignSelf = newWidget.alignSelf._value;
-      }
+  void decorate(RenderObject renderObject) {
+    final html.CssStyleDeclaration style = renderObject.element.style;
+    if (order == null) {
+      style.order = null;
+    } else {
+      style.order = '${order}';
     }
-    super.update(newWidget);
+    if (grow == null) {
+      style.flexGrow = null;
+    } else {
+      style.flexGrow = '${grow}';
+    }
+    if (shrink == null) {
+      style.flexShrink = null;
+    } else {
+      style.flexShrink = '${shrink}';
+    }
+    if (basis == null) {
+      style.flexBasis = null;
+    } else {
+      style.flexBasis = '${basis}';
+    }
+    if (alignSelf == null) {
+      style.alignSelf = null;
+    } else {
+      style.alignSelf = alignSelf._value;
+    }
   }
 }
 

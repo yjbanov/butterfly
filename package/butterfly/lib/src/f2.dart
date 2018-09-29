@@ -4639,3 +4639,36 @@ void debugPrintStack({ String label, int maxFrames }) {
     lines = lines.take(maxFrames);
   debugPrint(FlutterError.defaultStackFilter(lines).join('\n'));
 }
+
+abstract class DecoratorWidget extends Widget {
+  const DecoratorWidget({
+    Key key,
+    @required this.child,
+  }) : super(key: key);
+
+  final Widget child;
+
+  @override
+  Element createElement() {
+    return DecoratorElement(this);
+  }
+
+  void decorate(RenderObject renderObject);
+}
+
+class DecoratorElement extends ComponentElement {
+  DecoratorElement(Widget widget) : super(widget);
+
+  @override
+  Widget build() {
+    DecoratorWidget widget = this.widget;
+    return widget.child;
+  }
+
+  @override
+  void performRebuild() {
+    super.performRebuild();
+    DecoratorWidget widget = this.widget;
+    widget.decorate(_child.renderObject);
+  }
+}

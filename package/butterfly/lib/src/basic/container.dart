@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:html' as html;
+
 import 'package:meta/meta.dart';
 
-import '../framework.dart';
-import '../surface.dart';
+import '../f2.dart';
 
 @immutable
 class BoxDecoration {
@@ -26,15 +27,6 @@ class BoxDecoration {
 
   final String padding;
   final String border;
-
-  void update(BoxDecoration other, Surface surface) {
-    if (other.padding != padding) {
-      surface.padding = other.padding;
-    }
-    if (other.border != border) {
-      surface.border = other.border;
-    }
-  }
 
   @override
   bool operator ==(dynamic other) {
@@ -50,7 +42,7 @@ class BoxDecoration {
 
 /// A decorated box that contains a single child.
 @immutable
-class Container extends SingleChildParent {
+class Container extends SingleChildRenderObjectWidget {
   Container({
     Key key,
     Widget child,
@@ -64,25 +56,36 @@ class Container extends SingleChildParent {
   final BoxDecoration decoration;
 
   @override
-  ContainerRenderer instantiate(ParentRenderer parent) =>
-      new ContainerRenderer(parent);
+  RenderObject createRenderObject(BuildContext context) {
+    return RenderContainer()..decoration = decoration;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderContainer renderObject) {
+    renderObject.decoration = decoration;
+  }
 }
 
-class ContainerRenderer extends RenderSingleChildParent<Container> {
-  ContainerRenderer(ParentRenderer parent) : super(parent);
+class RenderContainer extends RenderObject {
+  RenderContainer() : super(html.DivElement());
 
-  @override
-  final Surface surface = new Surface();
-
-  @override
-  void update(Container newWidget) {
-    if (widget != null) {
-      final BoxDecoration oldDecoration = widget.decoration;
-      final BoxDecoration newDecoration = newWidget.decoration;
-      if (!identical(oldDecoration, newDecoration)) {
-        oldDecoration.update(newDecoration, surface);
+  BoxDecoration get decoration => _decoration;
+  BoxDecoration _decoration;
+  set decoration(BoxDecoration newValue) {
+    if (identical(_decoration, newValue)) {
+      return;
+    }
+    if (newValue != null) {
+      if (_decoration?.padding != newValue.padding) {
+        element.style.padding = newValue.padding;
       }
-    } else {}
-    super.update(newWidget);
+      if (_decoration?.border != newValue.border) {
+        element.style.border = newValue.border;
+      }
+    } else {
+      element.style.padding = '';
+      element.style.border = '';
+    }
+    _decoration = newValue;
   }
 }

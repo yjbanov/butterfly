@@ -12,29 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '../framework.dart';
+import 'dart:html' as html;
+
+import '../f2.dart';
 
 /// A section of text.
-class Text extends LeafWidget {
+class Text extends LeafRenderObjectWidget {
   final String value;
 
   const Text(this.value, {Key key}) : super(key: key);
 
   @override
-  TextRenderer instantiate(ParentRenderer parent) =>
-      new TextRenderer(parent, this);
-}
-
-/// A [Renderer] for the [Text] widget.
-class TextRenderer extends LeafWidgetRenderer<Text> {
-  TextRenderer(ParentRenderer parent, Text text) : super(parent) {
-    super.surface.text = text.value;
+  RenderObject createRenderObject(BuildContext context) {
+    return RenderText()
+      ..text = value;
   }
 
-  void update(Text newWidget) {
-    if (widget?.value != newWidget.value) {
-      surface.text = newWidget.value;
+  @override
+  void updateRenderObject(BuildContext context, RenderText renderObject) {
+    renderObject.text = value;
+  }
+}
+
+/// Renders text into a `<p>` tag.
+class RenderText extends RenderObject {
+  RenderText() : super(html.ParagraphElement());
+
+  String get text => _text;
+  String _text;
+  set text(String newValue) {
+    if (identical(newValue, _text)) {
+      return;
     }
-    super.update(newWidget);
+    element.text = newValue;
+    _text = newValue;
   }
 }

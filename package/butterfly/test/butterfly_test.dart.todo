@@ -14,7 +14,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:butterfly/butterfly.dart';
+import 'package:butterfly/widgets.dart';
 import 'package:butterfly/testing.dart';
 
 main() {
