@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of butterfly;
+import 'dart:html' as html;
+
+import 'package:meta/meta.dart';
+
+import '../f2.dart';
 
 @immutable
 class BoxDecoration {
@@ -23,15 +27,6 @@ class BoxDecoration {
 
   final String padding;
   final String border;
-
-  void update(BoxDecoration other, html.Element element) {
-    if (other.padding != padding) {
-      element.style.setProperty('padding', other.padding);
-    }
-    if (other.border != border) {
-      element.style.setProperty('border', other.border);
-    }
-  }
 
   @override
   bool operator ==(dynamic other) {
@@ -47,33 +42,50 @@ class BoxDecoration {
 
 /// A decorated box that contains a single child.
 @immutable
-class Container extends SingleChildElementBase {
+class Container extends SingleChildRenderObjectWidget {
   Container({
+    Key key,
+    Widget child,
     this.decoration,
-  })
-      : super('div');
+  })  : assert(child != null),
+        super(
+          key: key,
+          child: child,
+        );
 
   final BoxDecoration decoration;
 
   @override
-  RenderContainer instantiate(Tree tree) => new RenderContainer(tree, this);
+  RenderObject createRenderObject(BuildContext context) {
+    return RenderContainer()..decoration = decoration;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderContainer renderObject) {
+    renderObject.decoration = decoration;
+  }
 }
 
-class RenderContainer extends RenderSingleChildElementBase<Container> {
-  RenderContainer(Tree tree, Container container) : super(tree, container);
+class RenderContainer extends RenderObject {
+  RenderContainer() : super(html.DivElement());
 
-  @override
-  bool canUpdateUsing(Node node) => node is Container;
-
-  @override
-  void update(Container newConfiguration) {
-    if (_configuration != null) {
-      final BoxDecoration oldDecoration = _configuration.decoration;
-      final BoxDecoration newDecoration = newConfiguration.decoration;
-      if (!identical(oldDecoration, newDecoration)) {
-        oldDecoration.update(newDecoration, nativeNode);
+  BoxDecoration get decoration => _decoration;
+  BoxDecoration _decoration;
+  set decoration(BoxDecoration newValue) {
+    if (identical(_decoration, newValue)) {
+      return;
+    }
+    if (newValue != null) {
+      if (_decoration?.padding != newValue.padding) {
+        element.style.padding = newValue.padding;
       }
-    } else {}
-    super.update(newConfiguration);
+      if (_decoration?.border != newValue.border) {
+        element.style.border = newValue.border;
+      }
+    } else {
+      element.style.padding = '';
+      element.style.border = '';
+    }
+    _decoration = newValue;
   }
 }

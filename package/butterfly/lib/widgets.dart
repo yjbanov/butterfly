@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:test/test.dart';
+library butterfly;
 
-void main() {
-  group('An empty test', () {
-    expect(true, true);
-  });
-}
+export 'package:meta/meta.dart';
+
+export 'src/f2.dart';
+export 'src/f2_widgets_binding.dart';
+export 'src/scheduler/f2_binding.dart';
+
+export 'src/basic/container.dart';
+export 'src/basic/layout.dart';
+export 'src/basic/text.dart';

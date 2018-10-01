@@ -18,27 +18,38 @@ import 'dart:html' as html;
 
 import 'package:test/test.dart';
 
-import 'butterfly.dart';
+import 'widgets.dart';
 
-WidgetTester testWidget(Node root) {
-  return new WidgetTester(root);
+WidgetTester testWidget(Widget rootWidget) {
+  return new WidgetTester._(rootWidget);
 }
 
 class WidgetTester {
-  factory WidgetTester(Node widget) {
-    final host = new html.DivElement();
-    final styleHost = new html.DivElement();
-    final tester = new WidgetTester._(new Tree(widget, host, styleHost));
-    return tester;
+  WidgetTester._(Widget rootWidget) {
+    final hostElement = new html.DivElement();
+
+    SchedulerBinding.initialize(((FrameCallback frameHandler) {
+      html.window.requestAnimationFrame((_) {
+        frameHandler(_frameTimestamp);
+      });
+    }));
+
+    WidgetsBinding.initialize(hostElement: hostElement);
+    WidgetsBinding.instance
+      ..attachRootWidget(rootWidget)
+      ..drawFrame();
   }
 
-  WidgetTester._(this.tree);
+  Duration _frameTimestamp = Duration.zero;
 
-  final Tree tree;
+  void pump([Duration duration = const Duration(milliseconds: 16)]) {
+    _frameTimestamp += duration;
+    WidgetsBinding.instance.drawFrame();
+  }
 
-  RenderNode findNode(bool predicate(RenderNode node)) {
-    RenderNode foundNode;
-    void findTrackingNode(RenderNode node) {
+  Element findNode(bool predicate(Element node)) {
+    Element foundNode;
+    void findTrackingNode(Element node) {
       if (predicate(node)) {
         foundNode = node;
       } else {
@@ -46,51 +57,44 @@ class WidgetTester {
       }
     }
 
-    tree.visitChildren(findTrackingNode);
+    WidgetsBinding.instance.renderViewElement.visitChildren(findTrackingNode);
     return foundNode;
   }
 
-  RenderNode findNodeOfType(Type type) =>
+  Element findRenderWidgetOfType(Type type) =>
       findNode((node) => node.runtimeType == type);
 
-  RenderNode findNodeOfConfigurationType(Type type) =>
-      findNode((node) => node.configuration.runtimeType == type);
-
-  RenderElement findElementNode({String byTag}) {
-    return findNode((n) {
-      if (n is! RenderElement) {
-        return false;
-      }
-
-      if (byTag != null && n.configuration.tag == byTag) {
-        return true;
-      }
-
-      return false;
-    });
-  }
+  Element findWidgetOfType(Type type) =>
+      findNode((node) => node.widget.runtimeType == type);
 
   State findStateOfType(Type type) {
-    RenderStatefulWidget renderWidget = findNode((node) {
-      return node is RenderStatefulWidget && node.state.runtimeType == type;
+    StatefulElement renderWidget = findNode((node) {
+      return node is StatefulElement && node.state.runtimeType == type;
     });
     return renderWidget.state;
   }
 
-  void renderFrame() {
-    return tree.renderFrame();
-  }
-
   // TODO(yjbanov): turn expect* methods into matchers.
   void expectRenders(String expectedHtml) {
-    renderFrame();
-    expect(tree.host.innerHtml, expectedHtml);
+    pump();
+    expectHtml(
+      WidgetsBinding.instance.renderViewElement.renderObject,
+      expectedHtml,
+    );
   }
 
+  String get currentHtml => debugGetRenderObjectHtml(
+    WidgetsBinding.instance.renderViewElement.renderObject,
+  );
+
   void expectRenderNoop() {
-    final htmlBefore = tree.host.innerHtml;
-    renderFrame();
-    final htmlAfter = tree.host.innerHtml;
+    final htmlBefore = currentHtml;
+    pump();
+    final htmlAfter = currentHtml;
     expect(htmlAfter, htmlBefore);
   }
+}
+
+void expectHtml(RenderObject renderObject, String html) {
+  expect(debugGetRenderObjectHtml(renderObject), html);
 }

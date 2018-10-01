@@ -1,9 +1,0 @@
-name: todo
-description: A TodoMVC app
-dependencies:
-  butterfly:
-    path: ../../package/butterfly
-
-transformers:
-- $dart2js:
-    minify: true

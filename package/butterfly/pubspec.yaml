@@ -8,10 +8,8 @@ description: >
   non-goal is "write once, run anywhere".
 homepage: https://github.com/yjbanov/butterfly
 environment:
-  sdk: '>=1.14.0 <2.0.0'
+  sdk: '>=2.0.0 <3.0.0'
 dependencies:
-  browser: ^0.10.0+2
-  js:
   path:
   meta:
   mime:
@@ -20,10 +18,6 @@ dependencies:
   watcher: ^0.9.7+3
   vm_service_lib:
 dev_dependencies:
-  test: '>=0.12.0 <1.0.0'
+  test: '>=1.3.3 <2.0.0'
   charcode:
   quiver:
-
-transformers:
-- $dart2js:
-    minify: true
